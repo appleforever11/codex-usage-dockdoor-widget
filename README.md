@@ -6,6 +6,12 @@ A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recen
 
 ![Codex Usage panel](screenshots/codex-usage-panel.png)
 
+## Social Preview
+
+Use this square cover image as the first Discord attachment when announcing the widget:
+
+![Codex Usage Discord cover](screenshots/codex-usage-discord-cover.png)
+
 ## Highlights
 
 - Usage countdown ring in the dock, with a built-in rainbow ring toggle.
