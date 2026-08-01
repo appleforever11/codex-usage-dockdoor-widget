@@ -1,0 +1,21 @@
+{
+  "source": "Codex account usage settings",
+  "creditsBalance": "$0",
+  "limits": [
+    {
+      "name": "General",
+      "subtitle": "Weekly usage limit",
+      "percentRemaining": 56,
+      "resetLabel": "Aug 5",
+      "systemImage": "gauge.with.dots.needle.67percent"
+    },
+    {
+      "name": "GPT-5.3-Codex-Spark",
+      "subtitle": "Weekly usage limit",
+      "percentRemaining": 100,
+      "resetLabel": "Aug 7",
+      "systemImage": "sparkles"
+    }
+  ]
+}
+
