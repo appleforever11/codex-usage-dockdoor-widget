@@ -95,7 +95,9 @@ private struct CodexTrackerCompactView: View {
         }
         .task {
             while !Task.isCancelled {
-                snapshot = await CodexTrackerStore.snapshot()
+                let refreshed = await CodexTrackerStore.snapshot()
+                snapshot = refreshed
+                CodexSnapshotCache.latest = refreshed
                 rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
                 try? await Task.sleep(for: .seconds(5))
             }
@@ -292,13 +294,51 @@ private enum CodexAppIconProvider {
     }()
 }
 
+@MainActor
+private enum CodexSnapshotCache {
+    static var latest: CodexSnapshot?
+}
+
+@MainActor
 private struct CodexTrackerPanelView: View {
     let dismiss: () -> Void
-    @State private var snapshot = CodexSnapshot.empty
+    @State private var snapshot: CodexSnapshot?
     @State private var now = Date()
     @State private var rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
 
+    init(dismiss: @escaping () -> Void) {
+        self.dismiss = dismiss
+        _snapshot = State(initialValue: CodexSnapshotCache.latest)
+    }
+
     var body: some View {
+        Group {
+            if let snapshot {
+                panelContent(snapshot)
+            } else {
+                loadingContent
+            }
+        }
+        .task {
+            if snapshot == nil {
+                await refreshSnapshot()
+            }
+
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(5))
+                guard !Task.isCancelled else { break }
+                await refreshSnapshot()
+            }
+        }
+        .task {
+            while !Task.isCancelled {
+                now = Date()
+                try? await Task.sleep(for: .seconds(30))
+            }
+        }
+    }
+
+    private func panelContent(_ snapshot: CodexSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("Codex Usage", systemImage: "gauge.with.dots.needle.67percent")
@@ -374,7 +414,7 @@ private struct CodexTrackerPanelView: View {
                 onChange: { model, reasoning in
                     CodexConfigStore.update(model: model, reasoningEffort: reasoning)
                     Task {
-                        snapshot = await CodexTrackerStore.snapshot()
+                        await refreshSnapshot()
                     }
                 }
             )
@@ -403,16 +443,24 @@ private struct CodexTrackerPanelView: View {
         }
         .padding(14)
         .frame(width: 350)
-        .task {
-            snapshot = await CodexTrackerStore.snapshot()
-            rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
+    }
+
+    private var loadingContent: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.small)
+            Text("Loading Codex Usage")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
         }
-        .task {
-            while !Task.isCancelled {
-                now = Date()
-                try? await Task.sleep(for: .seconds(30))
-            }
-        }
+        .frame(width: 350, height: 640)
+    }
+
+    private func refreshSnapshot() async {
+        let refreshed = await CodexTrackerStore.snapshot()
+        CodexSnapshotCache.latest = refreshed
+        snapshot = refreshed
+        rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
     }
 }
 
