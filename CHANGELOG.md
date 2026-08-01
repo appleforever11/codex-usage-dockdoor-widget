@@ -7,10 +7,12 @@ Codex Usage 3.0.0 is the big release. The widget has grown from a simple project
 - Rebuilt the primary dock experience around a fast usage countdown ring.
 - Added optional rainbow/glow usage tracking with both DockDoor settings support and an in-panel palette toggle.
 - Added account usage parsing from `~/.codex/usage.json`, including credits, weekly limits, percent remaining, and reset labels.
-- Fixed real-time account synchronization by reading the newest General and model-specific `rate_limits` events from active Codex sessions before consulting the compatibility snapshot file.
+- Fixed real-time account synchronization by treating an explicit `~/.codex/usage.json` account snapshot as authoritative, preventing older session telemetry or reset windows from overriding the current subscription state.
+- Retained the newest General and model-specific session `rate_limits` events as a fallback when the explicit account snapshot is unavailable or invalid.
 - Added automatic weekly-window rollover handling so an expired local event displays a fresh 100% window until Codex emits its next authoritative update.
 - Fixed staged panel loading by caching the compact widget's complete snapshot and presenting usage, controls, and recent chats together on the first expanded-panel frame.
 - Added a fixed-size cold-start loading state so the panel never exposes empty sections or changes height while session data is still being assembled.
+- Balanced compact-card ring and text spacing so the usage circle stays inside the card without crowding the label at either edge.
 - Added rotating dock cards for usage limits, selected model, tasks, and chats.
 - Added Codex Defaults controls for model and reasoning preferences.
 - Improved model and reasoning controls with smoother rounded cells, gradient fills, hover states, and selected-state glow.
@@ -20,6 +22,7 @@ Codex Usage 3.0.0 is the big release. The widget has grown from a simple project
 - Tightened external usage snapshot refreshes so `~/.codex/usage.json` changes are picked up faster.
 - Kept the widget ultra-thin: it reads local Codex files directly, uses simple SwiftUI views, avoids background daemons, and only refreshes lightweight snapshots.
 - Added standalone repo documentation, screenshots, examples, marketplace notes, and release copy.
+- Published the final square promotional artwork as the starter attachment for the canonical Discord v3.0.0 repost.
 
 ## 0.2.0 - Clickable Chat Tracker
 

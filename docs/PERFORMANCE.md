@@ -13,9 +13,10 @@ Codex Usage is designed to stay thin inside DockDoor Pro.
 
 ## Refresh Behavior
 
-- Usage and session snapshots refresh periodically. Live account limits are decoded from small tails of the newest session files, and scanning stops as soon as both the General and model-specific streams are found.
+- Usage and session snapshots refresh periodically. An explicit `~/.codex/usage.json` account snapshot is decoded first; when it is unavailable, live account limits are decoded from small tails of the newest session files and scanning stops as soon as both the General and model-specific streams are found.
 - The compact dock card rotates every few seconds.
 - The compact card also keeps one complete snapshot in memory so opening the expanded panel does not repeat the session scan before recent chats can appear.
+- The panel waits for that complete snapshot and uses a fixed-size cold-start state, preventing partial menus, late chat rows, and layout jumps during the first hover.
 - The expanded panel refreshes time labels less frequently because reset labels and account usage do not need second-level polling.
 
 ## Why This Matters

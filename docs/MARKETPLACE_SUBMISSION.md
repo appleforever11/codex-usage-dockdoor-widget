@@ -9,6 +9,8 @@ Use this checklist when preparing a pull request against `ejbills/dockdoorpro-wi
 - Widget id: `codex-project-tracker`
 - Widget name: `Codex Usage`
 - Current package version: `3.0.0`
+- Marketplace PR: `https://github.com/ejbills/dockdoorpro-widgets/pull/20`
+- Canonical Discord discussion: `https://discord.com/channels/1312172160931856464/1532985348374659092`
 
 ## Pre-PR Checklist
 
@@ -28,7 +30,7 @@ Add Codex Usage widget with usage countdown, defaults controls, and chat deep li
 
 ## Suggested PR Summary
 
-This adds Codex Usage 3.0.0 for DockDoor Pro. It shows Codex account usage countdowns, credits, recent chats, project/task counts, and local Codex default controls directly from the dock. Account limits synchronize from the newest `rate_limits` events already written by Codex, with `~/.codex/usage.json` retained only as a compatibility fallback. The widget includes a rainbow usage ring setting, clickable Codex task rows, and model/reasoning selectors for new Codex work. It is intentionally lightweight: local file reads, native SwiftUI rendering, no helper daemon, and modest refresh intervals for low energy and memory use.
+This adds Codex Usage 3.0.0 for DockDoor Pro. It shows Codex account usage countdowns, credits, recent chats, project/task counts, and local Codex default controls directly from the dock. An explicit `~/.codex/usage.json` account snapshot wins when present so stale session telemetry cannot override the current subscription window; the newest session `rate_limits` events remain the automatic fallback. The widget includes a rainbow usage ring setting, clickable Codex task rows, and model/reasoning selectors for new Codex work. It is intentionally lightweight: local file reads, native SwiftUI rendering, no helper daemon, and modest refresh intervals for low energy and memory use.
 
 ## Suggested Discord Patch Notes
 

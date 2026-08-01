@@ -4,11 +4,15 @@ A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recen
 
 **Current release:** `3.0.0`
 
+**Marketplace PR:** [ejbills/dockdoorpro-widgets#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20)
+
+**Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
+
 ![Codex Usage panel](screenshots/codex-usage-panel.png)
 
 ## Social Preview
 
-Use this square cover image as the first Discord attachment when announcing the widget:
+Use this square cover image as the first Discord attachment when announcing the widget. The canonical Discord repost uses this file as its starter attachment and forum-card artwork:
 
 ![Codex Usage Discord cover](screenshots/codex-usage-discord-cover.png)
 
@@ -33,7 +37,7 @@ The model and reasoning buttons update local Codex defaults in `~/.codex/config.
 
 ## Runtime Data
 
-The widget reads Codex session files from `~/.codex/sessions` by default. Current Codex builds include authoritative account `rate_limits` snapshots in those session events, so the widget uses the newest General and model-specific limits directly. It reads `~/.codex/usage.json` only as a compatibility fallback for older Codex builds, then falls back to local token-window estimates if neither account source is available.
+The widget reads Codex session files from `~/.codex/sessions` by default. When `~/.codex/usage.json` contains an explicit account snapshot, that file is authoritative because it represents the current subscription and reset window. If the file is unavailable or invalid, the widget falls back to the newest General and model-specific `rate_limits` events in Codex session telemetry, then to local token-window estimates when neither account source is available.
 
 See [examples/usage.json](examples/usage.json) for the account-usage shape used by the current build.
 
@@ -47,7 +51,7 @@ DockDoor Pro exposes these widget settings:
 | Recent Session Count | `5` | Number of recent chats shown in the panel. |
 | Usage Budget (M tokens) | `200` | Fallback rolling-window budget when account usage data is unavailable. |
 | Usage Window Hours | `5` | Fallback rolling-window length. |
-| Usage State File | `~/.codex/usage.json` | Optional compatibility fallback when live session rate limits are unavailable. |
+| Usage State File | `~/.codex/usage.json` | Authoritative current-account snapshot when present; session telemetry is the fallback. |
 | Rainbow Usage Ring | `On` | Uses the rainbow/glow usage ring instead of a single-color ring. |
 
 The panel also includes a small palette button in the header. That button toggles the same `Rainbow Usage Ring` preference without needing to open DockDoor Pro settings.
@@ -80,7 +84,7 @@ Restart DockDoor Pro after replacing an installed bundle.
 
 ## Marketplace Prep
 
-This folder is structured so it can become a standalone GitHub repo before submitting a marketplace PR to `ejbills/dockdoorpro-widgets`.
+This repository is the review and documentation home for marketplace PR [#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20). Discord review and future community updates continue in the [canonical v3.0.0 repost](https://discord.com/channels/1312172160931856464/1532985348374659092); the older forum thread is superseded because its starter message was deleted and Discord cannot restore it.
 
 Before opening the marketplace PR:
 
