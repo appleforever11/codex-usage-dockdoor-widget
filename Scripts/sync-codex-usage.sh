@@ -6,11 +6,20 @@ usage_file="${CODEX_USAGE_FILE:-$HOME/.codex/usage.json}"
 codex_bin="${CODEX_BIN:-}"
 
 if [[ -z "$codex_bin" ]]; then
-    if [[ -x "/Applications/ChatGPT.app/Contents/Resources/codex" ]]; then
-        codex_bin="/Applications/ChatGPT.app/Contents/Resources/codex"
-    elif command -v codex >/dev/null 2>&1; then
+    for bundled_codex in \
+        "/Applications/Codex.app/Contents/Resources/codex" \
+        "$HOME/Applications/Codex.app/Contents/Resources/codex" \
+        "/Applications/ChatGPT.app/Contents/Resources/codex" \
+        "$HOME/Applications/ChatGPT.app/Contents/Resources/codex"; do
+        if [[ -x "$bundled_codex" ]]; then
+            codex_bin="$bundled_codex"
+            break
+        fi
+    done
+
+    if [[ -z "$codex_bin" ]] && command -v codex >/dev/null 2>&1; then
         codex_bin="$(command -v codex)"
-    else
+    elif [[ -z "$codex_bin" ]]; then
         print -u2 "Codex executable not found. Install or launch the Codex desktop app."
         exit 1
     fi
