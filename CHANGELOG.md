@@ -13,6 +13,7 @@ Codex Usage 3.0.0 is the big release. The widget has grown from a simple project
 - Reduced the older green-heavy styling in favor of cleaner cyan/blue activity accents and optional rainbow usage visuals.
 - Preserved recent chat selection and Codex task deep links.
 - Tuned dock and panel refresh intervals so the widget stays responsive without waking more often than it needs to.
+- Tightened external usage snapshot refreshes so `~/.codex/usage.json` changes are picked up faster.
 - Kept the widget ultra-thin: it reads local Codex files directly, uses simple SwiftUI views, avoids background daemons, and only refreshes lightweight snapshots.
 - Added standalone repo documentation, screenshots, examples, marketplace notes, and release copy.
 

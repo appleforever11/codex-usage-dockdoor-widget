@@ -97,7 +97,7 @@ private struct CodexTrackerCompactView: View {
             while !Task.isCancelled {
                 snapshot = await CodexTrackerStore.snapshot()
                 rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
-                try? await Task.sleep(for: .seconds(15))
+                try? await Task.sleep(for: .seconds(5))
             }
         }
         .task {
