@@ -1264,50 +1264,8 @@ private enum CodexTrackerStore {
         return max(fileCount, delegatedThreads)
     }
 
-    private static func sqliteUsage(since date: Date) -> CodexSQLiteUsage {
-        let dbPath = codexHome.appendingPathComponent("state_5.sqlite").path
-        guard FileManager.default.fileExists(atPath: dbPath) else {
-            return CodexSQLiteUsage(tokens: 0, threadCount: 0)
-        }
-
-        let cutoff = Int64(date.timeIntervalSince1970 * 1000)
-        let sql = """
-        select coalesce(sum(tokens_used),0), count(*) from threads where coalesce(updated_at_ms, updated_at * 1000, 0) >= \(cutoff);
-        """
-
-        guard let output = runSQLite(dbPath: dbPath, sql: sql) else {
-            return CodexSQLiteUsage(tokens: 0, threadCount: 0)
-        }
-
-        let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: "|")
-        guard parts.count >= 2 else {
-            return CodexSQLiteUsage(tokens: 0, threadCount: 0)
-        }
-
-        return CodexSQLiteUsage(
-            tokens: Int64(parts[0]) ?? 0,
-            threadCount: Int(parts[1]) ?? 0
-        )
-    }
-
-    private static func runSQLite(dbPath: String, sql: String) -> String? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
-        process.arguments = ["-batch", "-noheader", "-separator", "|", dbPath, sql]
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-            guard process.terminationStatus == 0 else { return nil }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            return String(data: data, encoding: .utf8)
-        } catch {
-            return nil
-        }
+    private static func sqliteUsage(since _: Date) -> CodexSQLiteUsage {
+        CodexSQLiteUsage(tokens: 0, threadCount: 0)
     }
 
     private static func externalUsageSnapshot() -> CodexUsageSnapshot? {
