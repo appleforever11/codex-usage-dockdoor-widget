@@ -76,10 +76,11 @@ private struct CodexTrackerCompactView: View {
     @State private var rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
 
     private var dim: CGFloat { min(size.width, size.height) }
-    private var gaugeSize: CGFloat { min(dim * 0.76, 38) }
+    private var gaugeSize: CGFloat { min(dim * 0.70, 35) }
+    private var horizontalGaugeOutset: CGFloat { max(3, min(dim * 0.07, 4)) }
     private var compactTitleSize: CGFloat { max(9, min(dim * 0.22, 12)) }
-    private var titleSize: CGFloat { isVertical ? max(10, min(dim * 0.21, 13)) : max(12, min(dim * 0.24, 14)) }
-    private var subtitleSize: CGFloat { isVertical ? max(8, min(dim * 0.16, 10)) : max(9, min(dim * 0.18, 10.5)) }
+    private var titleSize: CGFloat { isVertical ? max(10, min(dim * 0.21, 13)) : max(11, min(dim * 0.22, 13)) }
+    private var subtitleSize: CGFloat { isVertical ? max(8, min(dim * 0.16, 10)) : max(8.5, min(dim * 0.16, 9.5)) }
     private var isExtended: Bool {
         isVertical ? size.height > size.width * 1.5 : size.width > size.height * 1.5
     }
@@ -134,11 +135,17 @@ private struct CodexTrackerCompactView: View {
                     usageLabels(alignment: .center)
                 }
             } else {
-                HStack(spacing: max(6, dim * 0.08)) {
+                HStack(spacing: max(4, dim * 0.05)) {
                     UsageRingView(percentRemaining: card.percentRemaining ?? snapshot.usage.percentRemaining, size: gaugeSize, lineWidth: max(3, dim * 0.052), rainbow: rainbowUsageRing)
+                        .frame(
+                            width: gaugeSize + (horizontalGaugeOutset * 2),
+                            height: gaugeSize + (horizontalGaugeOutset * 2)
+                        )
                     usageLabels(alignment: .leading)
                 }
-                .padding(.horizontal, 2)
+                .padding(.leading, 1)
+                .padding(.trailing, max(4, dim * 0.06))
+                .padding(.vertical, 2)
             }
         }
         .foregroundStyle(.primary)
@@ -151,12 +158,13 @@ private struct CodexTrackerCompactView: View {
                     .font(.system(size: titleSize, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.72)
                 Text(card.subtitle)
-                    .font(.system(size: subtitleSize, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.primary.opacity(0.72))
+                    .font(.system(size: subtitleSize, weight: .medium, design: .rounded))
+                    .foregroundStyle(.primary.opacity(0.80))
                     .lineLimit(1)
+                    .minimumScaleFactor(0.72)
             }
-            .minimumScaleFactor(0.60)
             .layoutPriority(1)
         }
     }
