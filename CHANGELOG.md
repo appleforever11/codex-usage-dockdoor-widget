@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.1.0 - Fast Mode Toggle
+
+- Added a one-click lightning toggle directly to the left of the rainbow-ring control.
+- Fast mode changes the defaults for new Codex chats to Spark with Instant reasoning.
+- Turning fast mode off restores the model and reasoning defaults that were active before it was enabled.
+- The lightning button derives its active state from the real Codex configuration, so manual model or reasoning changes remain accurately reflected.
+- Added a yellow active treatment and concise hover help without increasing the panel header height.
+
 ## 3.0.1 - Live Account Sync Fix
 
 - Added an optional one-shot sync agent that reads the signed-in account's current limits from Codex's local `account/rateLimits/read` app-server RPC.

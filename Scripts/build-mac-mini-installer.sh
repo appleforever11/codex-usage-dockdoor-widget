@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir="${0:A:h}"
 root_dir="${script_dir:h}"
-version="3.0.1"
+version="3.1.0"
 dist_dir="$root_dir/Dist"
 package_name="Codex Usage for DockDoor Pro v$version"
 stage_dir="$dist_dir/$package_name"
@@ -34,4 +34,3 @@ zip_path="$dist_dir/$package_name.zip"
 print "Created:"
 print "  $dmg_path"
 print "  $zip_path"
-

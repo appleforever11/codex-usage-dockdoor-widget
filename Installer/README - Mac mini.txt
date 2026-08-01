@@ -1,4 +1,4 @@
-CODEX USAGE FOR DOCKDOOR PRO v3.0.1
+CODEX USAGE FOR DOCKDOOR PRO v3.1.0
 ====================================
 
 QUICK INSTALL
@@ -40,4 +40,3 @@ Widget backups:
 
 To remove the widget without permanently deleting its bundle, double-click
 "Remove Codex Usage.command". The removed widget is moved into a backup folder.
-

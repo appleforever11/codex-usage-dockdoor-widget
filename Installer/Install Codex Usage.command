@@ -28,7 +28,7 @@ finish() {
 
 trap 'exit_code=$?; trap - EXIT; finish "$exit_code"; exit "$exit_code"' EXIT
 
-print "Codex Usage for DockDoor Pro v3.0.1"
+print "Codex Usage for DockDoor Pro v3.1.0"
 print "======================================"
 
 if [[ ! -d "/Applications/DockDoor Pro.app" && ! -d "$HOME/Applications/DockDoor Pro.app" ]]; then

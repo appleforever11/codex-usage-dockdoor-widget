@@ -8,7 +8,7 @@ Use this checklist when preparing a pull request against `ejbills/dockdoorpro-wi
 - Widget folder: `Widgets/CodexProjectTracker`
 - Widget id: `codex-project-tracker`
 - Widget name: `Codex Usage`
-- Current package version: `3.0.1`
+- Current package version: `3.1.0`
 - Marketplace PR: `https://github.com/ejbills/dockdoorpro-widgets/pull/20`
 - Canonical Discord discussion: `https://discord.com/channels/1312172160931856464/1532985348374659092`
 
@@ -32,11 +32,11 @@ Update Codex Usage with live account synchronization
 
 ## Suggested PR Summary
 
-This updates Codex Usage to 3.0.1 for DockDoor Pro. It shows Codex account usage countdowns, credits, recent chats, project/task counts, and local Codex default controls directly from the dock. An optional one-shot LaunchAgent reads the signed-in account's limits from Codex's local `account/rateLimits/read` RPC every 60 seconds and atomically updates `~/.codex/usage.json`, preventing stale legacy session telemetry from overriding the current subscription window. The newest session `rate_limits` events remain the automatic fallback. The widget remains intentionally lightweight: native SwiftUI, widget-side local file reads, no persistent helper daemon, and modest refresh intervals.
+This updates Codex Usage to 3.1.0 for DockDoor Pro. It adds a lightning-button fast mode that switches new Codex chats to Spark with Instant reasoning and restores the previous defaults when disabled. The widget also shows account usage countdowns, credits, recent chats, project/task counts, and local Codex defaults directly from the dock. An optional one-shot LaunchAgent reads the signed-in account's limits from Codex's local `account/rateLimits/read` RPC every 60 seconds and atomically updates `~/.codex/usage.json`, preventing stale legacy session telemetry from overriding the current subscription window. The newest session `rate_limits` events remain the automatic fallback. The widget remains intentionally lightweight: native SwiftUI, widget-side local file reads, no persistent helper daemon, and modest refresh intervals.
 
 ## Suggested Discord Patch Notes
 
-**Codex Usage Widget v3.0.1**
+**Codex Usage Widget v3.1.0**
 
 This is the big Codex Usage release for DockDoor Pro. The widget has evolved from a simple tracker into a polished, lightweight Codex command center right in the dock.
 

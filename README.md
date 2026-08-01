@@ -2,7 +2,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** `3.0.1`
+**Current release:** `3.1.0`
 
 **Marketplace PR:** [ejbills/dockdoorpro-widgets#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20)
 
@@ -23,6 +23,7 @@ Use this square cover image as the first Discord attachment when announcing the 
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
 - Local model and reasoning default controls for Luna, Sol, Spark, Instant, Medium, and High.
+- One-click Fast mode for switching new chats to Spark + Instant and restoring the previous defaults when disabled.
 - DockDoor settings schema for session folder, usage state file, recent session count, budget window, and rainbow mode.
 
 ## Lightweight Design
@@ -43,9 +44,9 @@ See [examples/usage.json](examples/usage.json) for the account-usage shape used 
 
 ## Easy Mac Installation
 
-For another Mac, including a Mac mini, download the DMG from the [v3.0.1 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v3.0.1):
+For another Mac, including a Mac mini, download the DMG from the [v3.1.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v3.1.0):
 
-1. Open `Codex Usage for DockDoor Pro v3.0.1.dmg`.
+1. Open `Codex Usage for DockDoor Pro v3.1.0.dmg`.
 2. Double-click `Install Codex Usage.command`.
 3. Choose **Open** if macOS asks for confirmation.
 4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.

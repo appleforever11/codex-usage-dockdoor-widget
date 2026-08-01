@@ -353,6 +353,17 @@ private struct CodexTrackerPanelView: View {
                     .font(.headline)
                 Spacer()
                 Button {
+                    toggleFastMode(current: snapshot.modelSettings)
+                } label: {
+                    Image(systemName: snapshot.modelSettings.isFastMode ? "bolt.fill" : "bolt")
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(snapshot.modelSettings.isFastMode ? .yellow : .secondary)
+                        .frame(width: 22, height: 22)
+                        .background(.white.opacity(snapshot.modelSettings.isFastMode ? 0.12 : 0.06), in: Circle())
+                }
+                .buttonStyle(.plain)
+                .help(snapshot.modelSettings.isFastMode ? "Fast mode is on: Spark + Instant" : "Use Spark + Instant for new chats")
+                Button {
                     rainbowUsageRing.toggle()
                     CodexWidgetPreferences.setRainbowUsageRing(rainbowUsageRing)
                 } label: {
@@ -469,6 +480,20 @@ private struct CodexTrackerPanelView: View {
         CodexSnapshotCache.latest = refreshed
         snapshot = refreshed
         rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
+    }
+
+    private func toggleFastMode(current: CodexModelSettings) {
+        if current.isFastMode {
+            let restored = CodexWidgetPreferences.fastModeRestoreSettings
+            CodexConfigStore.update(model: restored.model, reasoningEffort: restored.reasoningEffort)
+        } else {
+            CodexWidgetPreferences.saveFastModeRestoreSettings(current)
+            CodexConfigStore.update(model: CodexModelSettings.fast.model, reasoningEffort: CodexModelSettings.fast.reasoningEffort)
+        }
+
+        Task {
+            await refreshSnapshot()
+        }
     }
 }
 
@@ -748,6 +773,11 @@ private struct CodexModelSettings {
     var reasoningEffort: String
 
     static let `default` = CodexModelSettings(model: "gpt-5.6-luna", reasoningEffort: "medium")
+    static let fast = CodexModelSettings(model: "gpt-5.3-codex-spark", reasoningEffort: "instant")
+
+    var isFastMode: Bool {
+        model == Self.fast.model && reasoningEffort == Self.fast.reasoningEffort
+    }
 
     var shortModelName: String {
         if model.localizedCaseInsensitiveContains("spark") { return "Spark" }
@@ -944,6 +974,8 @@ private enum CodexAppLauncher {
 private enum CodexWidgetPreferences {
     private static let widgetId = "codex-project-tracker"
     private static let rainbowKey = "rainbowUsageRing"
+    private static let fastRestoreModelKey = "fastModeRestoreModel"
+    private static let fastRestoreReasoningKey = "fastModeRestoreReasoning"
 
     static var rainbowUsageRing: Bool {
         WidgetDefaults.bool(key: rainbowKey, widgetId: widgetId, default: true)
@@ -951,6 +983,19 @@ private enum CodexWidgetPreferences {
 
     static func setRainbowUsageRing(_ value: Bool) {
         UserDefaults.standard.set(value, forKey: "widget.\(widgetId).\(rainbowKey)")
+    }
+
+    static var fastModeRestoreSettings: CodexModelSettings {
+        let defaults = UserDefaults.standard
+        let model = defaults.string(forKey: "widget.\(widgetId).\(fastRestoreModelKey)") ?? CodexModelSettings.default.model
+        let reasoning = defaults.string(forKey: "widget.\(widgetId).\(fastRestoreReasoningKey)") ?? CodexModelSettings.default.reasoningEffort
+        return CodexModelSettings(model: model, reasoningEffort: reasoning)
+    }
+
+    static func saveFastModeRestoreSettings(_ settings: CodexModelSettings) {
+        let defaults = UserDefaults.standard
+        defaults.set(settings.model, forKey: "widget.\(widgetId).\(fastRestoreModelKey)")
+        defaults.set(settings.reasoningEffort, forKey: "widget.\(widgetId).\(fastRestoreReasoningKey)")
     }
 }
 
