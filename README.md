@@ -33,7 +33,7 @@ The model and reasoning buttons update local Codex defaults in `~/.codex/config.
 
 ## Runtime Data
 
-The widget reads Codex session files from `~/.codex/sessions` by default and reads account usage from `~/.codex/usage.json` by default. If the usage file is missing, the widget falls back to local token-window estimates so the dock still has useful activity context.
+The widget reads Codex session files from `~/.codex/sessions` by default. Current Codex builds include authoritative account `rate_limits` snapshots in those session events, so the widget uses the newest General and model-specific limits directly. It reads `~/.codex/usage.json` only as a compatibility fallback for older Codex builds, then falls back to local token-window estimates if neither account source is available.
 
 See [examples/usage.json](examples/usage.json) for the account-usage shape used by the current build.
 
@@ -47,7 +47,7 @@ DockDoor Pro exposes these widget settings:
 | Recent Session Count | `5` | Number of recent chats shown in the panel. |
 | Usage Budget (M tokens) | `200` | Fallback rolling-window budget when account usage data is unavailable. |
 | Usage Window Hours | `5` | Fallback rolling-window length. |
-| Usage State File | `~/.codex/usage.json` | External account usage snapshot. |
+| Usage State File | `~/.codex/usage.json` | Optional compatibility fallback when live session rate limits are unavailable. |
 | Rainbow Usage Ring | `On` | Uses the rainbow/glow usage ring instead of a single-color ring. |
 
 The panel also includes a small palette button in the header. That button toggles the same `Rainbow Usage Ring` preference without needing to open DockDoor Pro settings.

@@ -13,11 +13,10 @@ Codex Usage is designed to stay thin inside DockDoor Pro.
 
 ## Refresh Behavior
 
-- Usage and session snapshots refresh periodically.
+- Usage and session snapshots refresh periodically. Live account limits are decoded from small tails of the newest session files, and scanning stops as soon as both the General and model-specific streams are found.
 - The compact dock card rotates every few seconds.
 - The expanded panel refreshes time labels less frequently because reset labels and account usage do not need second-level polling.
 
 ## Why This Matters
 
 The widget is meant to be visible all day. Keeping the implementation simple reduces wakeups, memory churn, and unnecessary background work while preserving the responsive dock feel.
-

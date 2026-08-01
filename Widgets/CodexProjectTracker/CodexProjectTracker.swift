@@ -975,7 +975,7 @@ private enum CodexTrackerStore {
         let latestChat = latestHistoryPrompt()
         let activeCount = sessions.filter(\.isActive).count
         let headline = sessions.first?.projectName ?? projects.first?.name ?? "No sessions"
-        let usage = usageSnapshot(projects: projects, sessions: sessions)
+        let usage = usageSnapshot(projects: projects, sessions: sessions, sessionFiles: sessionFiles)
         let taskCount = localTaskCount(sessions: sessions)
         let modelSettings = CodexConfigStore.read()
 
@@ -1182,7 +1182,15 @@ private enum CodexTrackerStore {
         return nil
     }
 
-    private static func usageSnapshot(projects: [CodexProject], sessions: [CodexSession]) -> CodexUsageSnapshot {
+    private static func usageSnapshot(
+        projects: [CodexProject],
+        sessions: [CodexSession],
+        sessionFiles: [CodexSessionFile]
+    ) -> CodexUsageSnapshot {
+        if let live = liveRateLimitSnapshot(from: sessionFiles) {
+            return live
+        }
+
         if let external = externalUsageSnapshot() {
             return external
         }
@@ -1266,6 +1274,162 @@ private enum CodexTrackerStore {
 
     private static func sqliteUsage(since _: Date) -> CodexSQLiteUsage {
         CodexSQLiteUsage(tokens: 0, threadCount: 0)
+    }
+
+    private static func liveRateLimitSnapshot(from sessionFiles: [CodexSessionFile]) -> CodexUsageSnapshot? {
+        let decoder = JSONDecoder()
+        var latestByID: [String: CodexLiveRateLimitSample] = [:]
+
+        for file in sessionFiles.prefix(24) {
+            guard let text = tailText(from: file.url, maximumBytes: 96 * 1024) else { continue }
+
+            for line in text.split(separator: "\n").reversed() {
+                guard let data = String(line).data(using: .utf8),
+                      let envelope = try? decoder.decode(CodexRateLimitEnvelope.self, from: data),
+                      envelope.type == "event_msg",
+                      envelope.payload.type == "token_count",
+                      let limits = envelope.payload.rateLimits,
+                      let primary = limits.primary
+                else { continue }
+
+                let id = limits.limitID ?? limits.limitName ?? "codex"
+                let timestamp = parseCodexDate(envelope.timestamp) ?? file.modified
+                if let existing = latestByID[id], existing.timestamp >= timestamp {
+                    continue
+                }
+
+                latestByID[id] = CodexLiveRateLimitSample(
+                    id: id,
+                    name: limits.limitName,
+                    usedPercent: primary.usedPercent,
+                    windowMinutes: primary.windowMinutes,
+                    resetsAt: primary.resetsAt,
+                    creditsBalance: limits.credits?.balance,
+                    unlimitedCredits: limits.credits?.unlimited ?? false,
+                    timestamp: timestamp
+                )
+            }
+
+            let hasGeneral = latestByID.values.contains(where: \.isGeneral)
+            let hasNamedLimit = latestByID.values.contains { !$0.isGeneral }
+            if hasGeneral && hasNamedLimit {
+                break
+            }
+        }
+
+        guard !latestByID.isEmpty else { return nil }
+
+        let now = Date()
+        let samples = latestByID.values.sorted { lhs, rhs in
+            if lhs.isGeneral != rhs.isGeneral { return lhs.isGeneral }
+            return lhs.displayName.localizedCaseInsensitiveCompare(rhs.displayName) == .orderedAscending
+        }
+        guard let primarySample = samples.first else { return nil }
+
+        let liveLimits = samples.map { sample -> CodexResolvedRateLimit in
+            let resolved = resolvedRateLimit(sample, now: now)
+            return CodexResolvedRateLimit(
+                name: sample.displayName,
+                percentRemaining: resolved.percentRemaining,
+                resetDate: resolved.resetDate,
+                resetLabel: resolved.resetDate.map(shortResetLabel)
+            )
+        }
+        guard let primaryLimit = liveLimits.first else { return nil }
+
+        let creditsSample = samples.first { $0.unlimitedCredits || $0.creditsBalance != nil } ?? primarySample
+        let creditsValue: String? = if creditsSample.unlimitedCredits {
+            "Unlimited"
+        } else if let balance = creditsSample.creditsBalance {
+            balance.hasPrefix("$") ? balance : "$\(balance)"
+        } else {
+            nil
+        }
+
+        var metrics = liveLimits.map { limit in
+            CodexUsageMetric(
+                title: limit.name,
+                value: "\(Int((limit.percentRemaining * 100).rounded()))% left",
+                systemImage: limit.name.localizedCaseInsensitiveContains("spark") ? "sparkles" : "gauge.with.dots.needle.67percent",
+                tint: usageTint(limit.percentRemaining)
+            )
+        }
+        if let creditsValue {
+            metrics.insert(CodexUsageMetric(
+                title: "Credits",
+                value: creditsValue,
+                systemImage: "creditcard.fill",
+                tint: .blue
+            ), at: 0)
+        }
+
+        var cards = liveLimits.map { limit in
+            CodexDockCard(
+                title: "\(Int((limit.percentRemaining * 100).rounded()))% Left",
+                subtitle: "\(shortUsageLabel(for: limit.name)) • \(limit.resetLabel.map { "Resets \($0)" } ?? "Weekly usage")",
+                shortLabel: shortUsageLabel(for: limit.name),
+                percentRemaining: limit.percentRemaining
+            )
+        }
+        if let creditsValue {
+            cards.append(CodexDockCard(
+                title: "\(creditsValue) Credits",
+                subtitle: "Current balance",
+                shortLabel: "Credits"
+            ))
+        }
+
+        return CodexUsageSnapshot(
+            percentRemaining: primaryLimit.percentRemaining,
+            primaryTitle: "\(Int((primaryLimit.percentRemaining * 100).rounded()))% Left",
+            primarySubtitle: "\(primaryLimit.name) • \(primaryLimit.resetLabel.map { "Resets \($0)" } ?? "Weekly usage")",
+            windowUsedTokens: 0,
+            todayUsedTokens: 0,
+            budgetTokens: 0,
+            resetDate: primaryLimit.resetDate,
+            resetLabel: primaryLimit.resetLabel,
+            source: "Live Codex rate limits",
+            metrics: metrics,
+            accountCards: cards
+        )
+    }
+
+    private static func tailText(from url: URL, maximumBytes: UInt64) -> String? {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
+        defer { try? handle.close() }
+
+        let fileSize = (try? handle.seekToEnd()) ?? 0
+        let readSize = min(fileSize, maximumBytes)
+        try? handle.seek(toOffset: fileSize - readSize)
+
+        guard let data = try? handle.read(upToCount: Int(readSize)) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private static func resolvedRateLimit(
+        _ sample: CodexLiveRateLimitSample,
+        now: Date
+    ) -> (percentRemaining: Double, resetDate: Date?) {
+        var resetDate = sample.resetsAt.map { Date(timeIntervalSince1970: $0) }
+        var remaining = min(max(1 - sample.usedPercent / 100, 0), 1)
+
+        if let originalReset = resetDate, originalReset <= now {
+            remaining = 1
+            if let windowMinutes = sample.windowMinutes, windowMinutes > 0 {
+                let interval = TimeInterval(windowMinutes * 60)
+                let elapsedWindows = floor(now.timeIntervalSince(originalReset) / interval) + 1
+                resetDate = originalReset.addingTimeInterval(elapsedWindows * interval)
+            }
+        }
+
+        return (remaining, resetDate)
+    }
+
+    private static func shortResetLabel(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: date)
     }
 
     private static func externalUsageSnapshot() -> CodexUsageSnapshot? {
@@ -1490,4 +1654,77 @@ private struct CodexExternalUsageLimit: Decodable {
     let remainingPercent: Double?
     let percentUsed: Double?
     let usedPercent: Double?
+}
+
+private struct CodexRateLimitEnvelope: Decodable {
+    let timestamp: String?
+    let type: String
+    let payload: Payload
+
+    struct Payload: Decodable {
+        let type: String?
+        let rateLimits: CodexRateLimits?
+
+        enum CodingKeys: String, CodingKey {
+            case type
+            case rateLimits = "rate_limits"
+        }
+    }
+}
+
+private struct CodexRateLimits: Decodable {
+    let limitID: String?
+    let limitName: String?
+    let primary: Window?
+    let credits: Credits?
+
+    struct Window: Decodable {
+        let usedPercent: Double
+        let windowMinutes: Int?
+        let resetsAt: TimeInterval?
+
+        enum CodingKeys: String, CodingKey {
+            case usedPercent = "used_percent"
+            case windowMinutes = "window_minutes"
+            case resetsAt = "resets_at"
+        }
+    }
+
+    struct Credits: Decodable {
+        let balance: String?
+        let unlimited: Bool?
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case limitID = "limit_id"
+        case limitName = "limit_name"
+        case primary
+        case credits
+    }
+}
+
+private struct CodexLiveRateLimitSample {
+    let id: String
+    let name: String?
+    let usedPercent: Double
+    let windowMinutes: Int?
+    let resetsAt: TimeInterval?
+    let creditsBalance: String?
+    let unlimitedCredits: Bool
+    let timestamp: Date
+
+    var isGeneral: Bool {
+        id == "codex" || name == nil
+    }
+
+    var displayName: String {
+        name ?? "General"
+    }
+}
+
+private struct CodexResolvedRateLimit {
+    let name: String
+    let percentRemaining: Double
+    let resetDate: Date?
+    let resetLabel: String?
 }

@@ -7,6 +7,8 @@ Codex Usage 3.0.0 is the big release. The widget has grown from a simple project
 - Rebuilt the primary dock experience around a fast usage countdown ring.
 - Added optional rainbow/glow usage tracking with both DockDoor settings support and an in-panel palette toggle.
 - Added account usage parsing from `~/.codex/usage.json`, including credits, weekly limits, percent remaining, and reset labels.
+- Fixed real-time account synchronization by reading the newest General and model-specific `rate_limits` events from active Codex sessions before consulting the compatibility snapshot file.
+- Added automatic weekly-window rollover handling so an expired local event displays a fresh 100% window until Codex emits its next authoritative update.
 - Added rotating dock cards for usage limits, selected model, tasks, and chats.
 - Added Codex Defaults controls for model and reasoning preferences.
 - Improved model and reasoning controls with smoother rounded cells, gradient fills, hover states, and selected-state glow.

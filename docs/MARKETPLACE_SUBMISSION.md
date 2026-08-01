@@ -28,7 +28,7 @@ Add Codex Usage widget with usage countdown, defaults controls, and chat deep li
 
 ## Suggested PR Summary
 
-This adds Codex Usage 3.0.0 for DockDoor Pro. It shows Codex account usage countdowns, credits, recent chats, project/task counts, and local Codex default controls directly from the dock. The widget includes a rainbow usage ring setting, clickable Codex task rows, and model/reasoning selectors for new Codex work. It is intentionally lightweight: local file reads, native SwiftUI rendering, no helper daemon, and modest refresh intervals for low energy and memory use.
+This adds Codex Usage 3.0.0 for DockDoor Pro. It shows Codex account usage countdowns, credits, recent chats, project/task counts, and local Codex default controls directly from the dock. Account limits synchronize from the newest `rate_limits` events already written by Codex, with `~/.codex/usage.json` retained only as a compatibility fallback. The widget includes a rainbow usage ring setting, clickable Codex task rows, and model/reasoning selectors for new Codex work. It is intentionally lightweight: local file reads, native SwiftUI rendering, no helper daemon, and modest refresh intervals for low energy and memory use.
 
 ## Suggested Discord Patch Notes
 
@@ -46,4 +46,3 @@ This is the big Codex Usage release for DockDoor Pro. The widget has evolved fro
 - Repo-ready package with screenshots, examples, changelog, and marketplace submission notes.
 
 Note: model/reasoning controls update Codex defaults for new work. They do not change already-running chats.
-
