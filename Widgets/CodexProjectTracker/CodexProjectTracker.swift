@@ -1243,12 +1243,14 @@ private enum CodexTrackerStore {
         sessions: [CodexSession],
         sessionFiles: [CodexSessionFile]
     ) -> CodexUsageSnapshot {
-        if let live = liveRateLimitSnapshot(from: sessionFiles) {
-            return live
-        }
-
+        // The account snapshot represents the active subscription and wins over
+        // session telemetry, which may belong to an older plan or reset window.
         if let external = externalUsageSnapshot() {
             return external
+        }
+
+        if let live = liveRateLimitSnapshot(from: sessionFiles) {
+            return live
         }
 
         let budget = usageBudgetTokens()
