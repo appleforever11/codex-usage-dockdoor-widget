@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.1 - Live Account Sync Fix
+
+- Added an optional one-shot sync agent that reads the signed-in account's current limits from Codex's local `account/rateLimits/read` app-server RPC.
+- Refreshes `~/.codex/usage.json` every 60 seconds so the dock and panel track the current General and Spark percentages instead of stale legacy session telemetry.
+- Writes snapshots atomically and preserves the last valid result when Codex is temporarily unavailable.
+- Added bounded retries for occasional slow app-server startup.
+- Kept the widget itself lightweight and local-only; the sync process runs briefly on demand and exits instead of remaining resident.
+- Added install and uninstall scripts, launchd configuration, and diagnostic logs for the live-sync companion.
+
 ## 3.0.0 - Major Usage Countdown Release
 
 Codex Usage 3.0.0 is the big release. The widget has grown from a simple project tracker into a full DockDoor Pro command center for Codex usage, chats, tasks, and local defaults.

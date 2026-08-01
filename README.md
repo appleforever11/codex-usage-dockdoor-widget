@@ -2,7 +2,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** `3.0.0`
+**Current release:** `3.0.1`
 
 **Marketplace PR:** [ejbills/dockdoorpro-widgets#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20)
 
@@ -27,7 +27,7 @@ Use this square cover image as the first Discord attachment when announcing the 
 
 ## Lightweight Design
 
-Codex Usage is intentionally thin. It reads local Codex state directly, renders with native SwiftUI, avoids background helper processes, and refreshes small snapshots on a modest interval. The dock stays responsive without constantly polling or doing heavy work in the background.
+Codex Usage is intentionally thin. It reads a small local snapshot, renders with native SwiftUI, and refreshes on a modest interval. The optional live-sync agent performs one short local Codex app-server request per minute and exits; there is no persistent helper daemon or widget-side network activity.
 
 The compact dock card rotates every few seconds, session/usage snapshots refresh periodically, and the expanded panel uses a slower label refresh because the data does not require second-by-second updates. That keeps the widget visually alive while staying low on energy and memory use.
 
@@ -37,9 +37,25 @@ The model and reasoning buttons update local Codex defaults in `~/.codex/config.
 
 ## Runtime Data
 
-The widget reads Codex session files from `~/.codex/sessions` by default. When `~/.codex/usage.json` contains an explicit account snapshot, that file is authoritative because it represents the current subscription and reset window. If the file is unavailable or invalid, the widget falls back to the newest General and model-specific `rate_limits` events in Codex session telemetry, then to local token-window estimates when neither account source is available.
+The widget reads Codex session files from `~/.codex/sessions` by default. The live-sync companion requests the signed-in account limits from Codex's local app-server and writes them atomically to `~/.codex/usage.json`. That file is authoritative because legacy session telemetry may describe a different or expired usage window. If the file is unavailable or invalid, the widget falls back to the newest General and model-specific `rate_limits` events in session telemetry, then to local token-window estimates.
 
 See [examples/usage.json](examples/usage.json) for the account-usage shape used by the current build.
+
+## Live Account Sync
+
+Install the optional one-shot sync agent after installing the widget:
+
+```bash
+Scripts/install-usage-sync.sh
+```
+
+It refreshes `~/.codex/usage.json` from the official local `account/rateLimits/read` RPC every 60 seconds. Each invocation exits after the snapshot is written, and a bounded retry handles occasional slow app-server startup without replacing the last valid data.
+
+Logs are written to `~/Library/Logs/CodexUsageWidget/`. To remove the agent:
+
+```bash
+Scripts/uninstall-usage-sync.sh
+```
 
 ## Settings
 
@@ -51,7 +67,7 @@ DockDoor Pro exposes these widget settings:
 | Recent Session Count | `5` | Number of recent chats shown in the panel. |
 | Usage Budget (M tokens) | `200` | Fallback rolling-window budget when account usage data is unavailable. |
 | Usage Window Hours | `5` | Fallback rolling-window length. |
-| Usage State File | `~/.codex/usage.json` | Authoritative current-account snapshot when present; session telemetry is the fallback. |
+| Usage State File | `~/.codex/usage.json` | Authoritative current-account snapshot produced by the optional live-sync agent; session telemetry is the fallback. |
 | Rainbow Usage Ring | `On` | Uses the rainbow/glow usage ring instead of a single-color ring. |
 
 The panel also includes a small palette button in the header. That button toggles the same `Rainbow Usage Ring` preference without needing to open DockDoor Pro settings.
