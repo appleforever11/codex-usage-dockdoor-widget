@@ -4,6 +4,6 @@ build/
 *.bundle
 *.bundle.zip
 DerivedData/
+Dist/
 *.xcuserstate
 *.swp
-

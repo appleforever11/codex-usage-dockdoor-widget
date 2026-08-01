@@ -8,6 +8,7 @@
 - Added bounded retries for occasional slow app-server startup.
 - Kept the widget itself lightweight and local-only; the sync process runs briefly on demand and exits instead of remaining resident.
 - Added install and uninstall scripts, launchd configuration, and diagnostic logs for the live-sync companion.
+- Added a self-contained Mac installer DMG and ZIP with one-click widget installation, automatic backup, dock-placement preservation, live-sync setup, verification, and recoverable removal.
 
 ## 3.0.0 - Major Usage Countdown Release
 

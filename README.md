@@ -41,6 +41,23 @@ The widget reads Codex session files from `~/.codex/sessions` by default. The li
 
 See [examples/usage.json](examples/usage.json) for the account-usage shape used by the current build.
 
+## Easy Mac Installation
+
+For another Mac, including a Mac mini, download the DMG from the [v3.0.1 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v3.0.1):
+
+1. Open `Codex Usage for DockDoor Pro v3.0.1.dmg`.
+2. Double-click `Install Codex Usage.command`.
+3. Choose **Open** if macOS asks for confirmation.
+4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.
+
+The installer requires no administrator password. It preserves an existing widget as a recoverable backup, retains the marketplace identifier and dock placement, installs the universal Apple Silicon/Intel bundle, enables live account synchronization, and verifies the first snapshot. DockDoor Pro must be installed and activated on the destination Mac, and Codex or ChatGPT must be signed in for account usage data.
+
+Build fresh DMG and ZIP transfer packages with:
+
+```bash
+Scripts/build-mac-mini-installer.sh
+```
+
 ## Live Account Sync
 
 Install the optional one-shot sync agent after installing the widget:
