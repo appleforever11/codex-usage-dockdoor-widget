@@ -6,6 +6,8 @@ setopt NULL_GLOB
 package_dir="${0:A:h}"
 payload_bundle="$package_dir/Payload/CodexProjectTracker.bundle"
 sync_installer="$package_dir/Scripts/install-usage-sync.sh"
+updater_installer="$package_dir/Scripts/install-widget-updater.sh"
+version="$(tr -d '[:space:]' < "$package_dir/VERSION")"
 widgets_dir="$HOME/Library/Application Support/DockDoorPro/Widgets"
 backup_root="$HOME/Library/Application Support/DockDoorPro/WidgetInstallerBackups"
 timestamp="$(/bin/date '+%Y%m%d-%H%M%S')"
@@ -28,7 +30,7 @@ finish() {
 
 trap 'exit_code=$?; trap - EXIT; finish "$exit_code"; exit "$exit_code"' EXIT
 
-print "Codex Usage for DockDoor Pro v3.1.0"
+print "Codex Usage for DockDoor Pro v$version"
 print "======================================"
 
 if [[ ! -d "/Applications/DockDoor Pro.app" && ! -d "$HOME/Applications/DockDoor Pro.app" ]]; then
@@ -36,7 +38,7 @@ if [[ ! -d "/Applications/DockDoor Pro.app" && ! -d "$HOME/Applications/DockDoor
     exit 1
 fi
 
-if [[ ! -d "$payload_bundle" || ! -x "$sync_installer" ]]; then
+if [[ ! -d "$payload_bundle" || ! -x "$sync_installer" || ! -x "$updater_installer" ]]; then
     print -u2 "This installer is incomplete. Re-download the full Mac mini package."
     exit 1
 fi
@@ -69,7 +71,10 @@ print "3. Installing the universal Codex Usage widget..."
 print "4. Installing live Codex account synchronization..."
 "$sync_installer"
 
-print "5. Waiting for the first live account snapshot..."
+print "5. Installing the automatic widget updater..."
+"$updater_installer"
+
+print "6. Waiting for the first live account snapshot..."
 for _ in {1..15}; do
     if [[ -s "$HOME/.codex/usage.json" ]] && \
        /usr/bin/jq -e '.source == "Codex app-server live account limits"' "$HOME/.codex/usage.json" >/dev/null 2>&1; then
@@ -86,10 +91,11 @@ else
     print "   Codex has not produced a snapshot yet. Launch Codex, then wait one minute."
 fi
 
-print "6. Starting DockDoor Pro..."
+print "7. Starting DockDoor Pro..."
 /usr/bin/open -a "DockDoor Pro"
 
 print ""
 print "Widget installed at: $widgets_dir/$target_name"
 print "Backup saved at:     $backup_dir"
 print "Sync log:            $HOME/Library/Logs/CodexUsageWidget/sync.log"
+print "Updater log:         $HOME/Library/Logs/CodexUsageWidget/updater.log"

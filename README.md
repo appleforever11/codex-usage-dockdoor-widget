@@ -2,7 +2,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** `3.1.0`
+**Current release:** `3.2.0`
 
 **Marketplace PR:** [ejbills/dockdoorpro-widgets#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20)
 
@@ -22,7 +22,7 @@ Use this square cover image as the first Discord attachment when announcing the 
 - Rotating dock cards for account limits, selected model, task count, and chat count.
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
-- Local model and reasoning default controls for Luna, Sol, Spark, Instant, Medium, and High.
+- Local model and reasoning default controls for Luna, Sol, Spark, Instant, Medium, and Max.
 - One-click Fast mode for switching new chats to Spark + Instant and restoring the previous defaults when disabled.
 - DockDoor settings schema for session folder, usage state file, recent session count, budget window, and rainbow mode.
 
@@ -44,14 +44,35 @@ See [examples/usage.json](examples/usage.json) for the account-usage shape used 
 
 ## Easy Mac Installation
 
-For another Mac, including a Mac mini, download the DMG from the [v3.1.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v3.1.0):
+For another Mac, including a Mac mini, download the DMG from the [v3.2.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v3.2.0):
 
-1. Open `Codex Usage for DockDoor Pro v3.1.0.dmg`.
+1. Open `Codex Usage for DockDoor Pro v3.2.0.dmg`.
 2. Double-click `Install Codex Usage.command`.
 3. Choose **Open** if macOS asks for confirmation.
 4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.
 
 The installer requires no administrator password. It preserves an existing widget as a recoverable backup, retains the marketplace identifier and dock placement, installs the universal Apple Silicon/Intel bundle, enables live account synchronization, and verifies the first snapshot. DockDoor Pro must be installed and activated on the destination Mac, and Codex or ChatGPT must be signed in for account usage data.
+
+## Automatic Updates
+
+The Mac installer adds a lightweight updater that runs at login and every six hours. It checks the latest stable GitHub release and exits immediately when the installed version is current. For an available update, it:
+
+- Compares semantic versions and never downgrades a newer local build.
+- Downloads only `CodexProjectTracker.bundle.zip` from the official release.
+- Requires the archive SHA-256 to match GitHub's published asset digest.
+- Validates the property list and both `arm64` and `x86_64` architectures before touching the installed widget.
+- Stages the complete replacement before stopping DockDoor Pro.
+- Preserves the existing hashed bundle name, marketplace identifier, and dock placement.
+- Saves the previous bundle under `~/Library/Application Support/DockDoorPro/WidgetUpdaterBackups/`.
+- Restarts DockDoor Pro only when it was already running.
+
+Updater logs are stored at `~/Library/Logs/CodexUsageWidget/updater.log`. Run an immediate check with:
+
+```bash
+"$HOME/Library/Application Support/CodexUsageWidget/update-codex-widget.sh"
+```
+
+Release tags trigger `.github/workflows/release.yml`, which verifies `VERSION`, builds the universal widget and Mac installers, and creates or refreshes the GitHub release assets automatically.
 
 Build fresh DMG and ZIP transfer packages with:
 

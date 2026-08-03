@@ -1,4 +1,4 @@
-CODEX USAGE FOR DOCKDOOR PRO v3.1.0
+CODEX USAGE FOR DOCKDOOR PRO v3.2.0
 ====================================
 
 QUICK INSTALL
@@ -15,6 +15,7 @@ The installer does not need an administrator password. It will:
 - Install the universal Apple Silicon and Intel widget bundle.
 - Preserve the existing Codex widget identifier and dock placement.
 - Install a lightweight 60-second live account-usage synchronizer.
+- Install an automatic updater that checks at login and every six hours.
 - Restart DockDoor Pro and verify the first usage snapshot.
 
 REQUIREMENTS
@@ -31,6 +32,12 @@ open DockDoor Pro and verify that it is activated on that Mac first.
 
 Live-sync logs:
 ~/Library/Logs/CodexUsageWidget/
+
+Updater log:
+~/Library/Logs/CodexUsageWidget/updater.log
+
+Updater rollback backups:
+~/Library/Application Support/DockDoorPro/WidgetUpdaterBackups/
 
 Usage snapshot:
 ~/.codex/usage.json

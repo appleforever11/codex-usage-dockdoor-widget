@@ -571,8 +571,8 @@ private struct ModelControlSection: View {
             colors: [Color(red: 0.58, green: 0.44, blue: 1.00), Color(red: 0.78, green: 0.38, blue: 0.96)]
         ),
         CodexPickerOption(
-            label: "High",
-            value: "high",
+            label: "Max",
+            value: "max",
             colors: [Color(red: 1.00, green: 0.46, blue: 0.24), Color(red: 0.92, green: 0.18, blue: 0.56)]
         ),
     ]
@@ -788,7 +788,8 @@ private struct CodexModelSettings {
     }
 
     var reasoningLabel: String {
-        reasoningEffort.prefix(1).uppercased() + reasoningEffort.dropFirst()
+        if reasoningEffort == "max" { return "Max" }
+        return reasoningEffort.prefix(1).uppercased() + reasoningEffort.dropFirst()
     }
 }
 
@@ -988,7 +989,8 @@ private enum CodexWidgetPreferences {
     static var fastModeRestoreSettings: CodexModelSettings {
         let defaults = UserDefaults.standard
         let model = defaults.string(forKey: "widget.\(widgetId).\(fastRestoreModelKey)") ?? CodexModelSettings.default.model
-        let reasoning = defaults.string(forKey: "widget.\(widgetId).\(fastRestoreReasoningKey)") ?? CodexModelSettings.default.reasoningEffort
+        let storedReasoning = defaults.string(forKey: "widget.\(widgetId).\(fastRestoreReasoningKey)") ?? CodexModelSettings.default.reasoningEffort
+        let reasoning = CodexConfigStore.normalizedReasoningEffort(storedReasoning)
         return CodexModelSettings(model: model, reasoningEffort: reasoning)
     }
 
@@ -1010,13 +1012,15 @@ private enum CodexConfigStore {
 
         return CodexModelSettings(
             model: tomlStringValue(for: "model", in: text) ?? CodexModelSettings.default.model,
-            reasoningEffort: tomlStringValue(for: "model_reasoning_effort", in: text) ?? CodexModelSettings.default.reasoningEffort
+            reasoningEffort: normalizedReasoningEffort(
+                tomlStringValue(for: "model_reasoning_effort", in: text) ?? CodexModelSettings.default.reasoningEffort
+            )
         )
     }
 
     static func update(model: String, reasoningEffort: String) {
         let allowedModels = ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.3-codex-spark"]
-        let allowedReasoning = ["instant", "medium", "high"]
+        let allowedReasoning = ["instant", "medium", "max"]
         guard allowedModels.contains(model), allowedReasoning.contains(reasoningEffort) else { return }
 
         let current = (try? String(contentsOf: configURL, encoding: .utf8)) ?? ""
@@ -1026,6 +1030,14 @@ private enum CodexConfigStore {
 
         let output = lines.joined(separator: "\n")
         try? output.write(to: configURL, atomically: true, encoding: .utf8)
+    }
+
+    static func normalizedReasoningEffort(_ value: String) -> String {
+        switch value.lowercased() {
+        case "high", "xhigh", "max": return "max"
+        case "instant": return "instant"
+        default: return "medium"
+        }
     }
 
     private static func tomlStringValue(for key: String, in text: String) -> String? {

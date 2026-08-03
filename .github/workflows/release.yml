@@ -1,0 +1,51 @@
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag and package version
+        shell: zsh {0}
+        run: |
+          version="$(<VERSION)"
+          [[ "${GITHUB_REF_NAME#v}" == "$version" ]]
+
+      - name: Build universal widget and Mac installers
+        run: Scripts/build-mac-mini-installer.sh
+
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: zsh {0}
+        run: |
+          version="$(<VERSION)"
+          assets=(
+            "Dist/Codex Usage for DockDoor Pro v$version.dmg"
+            "Dist/Codex Usage for DockDoor Pro v$version.zip"
+            "build/CodexProjectTracker.bundle.zip"
+            "Scripts/install-usage-sync.sh"
+            "Scripts/sync-codex-usage.sh"
+            "Scripts/uninstall-usage-sync.sh"
+            "Scripts/install-widget-updater.sh"
+            "Scripts/update-codex-widget.sh"
+            "Scripts/uninstall-widget-updater.sh"
+          )
+
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+              --title "Codex Usage Widget v$version" \
+              --generate-notes \
+              --verify-tag
+          fi
