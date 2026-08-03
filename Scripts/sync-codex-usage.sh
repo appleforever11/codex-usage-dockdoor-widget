@@ -37,7 +37,7 @@ for attempt in 1 2 3; do
     response_file="$work_dir/app-server-$attempt.jsonl"
     : >"$error_file"
     {
-        printf '%s\n' '{"id":1,"method":"initialize","params":{"clientInfo":{"name":"dockdoor-codex-usage-sync","title":"DockDoor Codex Usage Sync","version":"3.1.0"},"capabilities":{"experimentalApi":true,"requestAttestation":false}}}'
+        printf '%s\n' '{"id":1,"method":"initialize","params":{"clientInfo":{"name":"dockdoor-codex-usage-sync","title":"DockDoor Codex Usage Sync","version":"3.2.0"},"capabilities":{"experimentalApi":true,"requestAttestation":false}}}'
         sleep 0.25
         printf '%s\n' '{"method":"initialized","params":{}}'
         printf '%s\n' '{"id":2,"method":"account/rateLimits/read","params":null}'

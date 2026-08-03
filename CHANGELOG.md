@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.2.0 - Max Reasoning and Mac Mini Update Pipeline
+
+- Replaced the High reasoning cell with Max and write Codex's native `max` reasoning value.
+- Normalize legacy `high` and `xhigh` defaults to Max so upgrades retain an active reasoning selection.
+- Added a Mac updater that checks the latest stable GitHub release at login and every six hours.
+- Added semantic version comparison to prevent release downgrades.
+- Require GitHub's published SHA-256 asset digest before installing an update.
+- Validate bundle metadata and universal Apple Silicon/Intel architectures before replacing the installed widget.
+- Preserve the existing marketplace bundle name and dock placement, with timestamped rollback backups.
+- Added an automated GitHub tag pipeline that builds and publishes the widget bundle, DMG, ZIP, live-sync scripts, and updater scripts.
+- Integrated updater installation and removal into the self-contained Mac package.
+
 ## 3.1.0 - Fast Mode Toggle
 
 - Added a one-click lightning toggle directly to the left of the rainbow-ring control.

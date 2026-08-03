@@ -7,6 +7,7 @@ BUILD_DIR="$ROOT_DIR/build"
 WIDGETS_DIR="$ROOT_DIR/Widgets"
 SDK_DIR="$ROOT_DIR/Sources/DockDoorWidgetSDK"
 SDK_OUT="$BUILD_DIR/sdk"
+WIDGET_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
 
 echo "=== DockDoor Pro Widget Builder ==="
 echo ""
@@ -125,6 +126,10 @@ for WIDGET_DIR in "${WIDGET_DIRS[@]}"; do
     <string>BNDL</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${WIDGET_VERSION}</string>
+    <key>CFBundleVersion</key>
+    <string>${WIDGET_VERSION}</string>
 </dict>
 </plist>
 PLIST

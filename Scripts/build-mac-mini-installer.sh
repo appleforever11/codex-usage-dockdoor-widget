@@ -4,7 +4,7 @@ set -euo pipefail
 
 script_dir="${0:A:h}"
 root_dir="${script_dir:h}"
-version="3.1.0"
+version="$(tr -d '[:space:]' < "$root_dir/VERSION")"
 dist_dir="$root_dir/Dist"
 package_name="Codex Usage for DockDoor Pro v$version"
 stage_dir="$dist_dir/$package_name"
@@ -20,10 +20,14 @@ zip_path="$dist_dir/$package_name.zip"
 /bin/cp "$root_dir/Installer/Install Codex Usage.command" "$stage_dir/"
 /bin/cp "$root_dir/Installer/Remove Codex Usage.command" "$stage_dir/"
 /bin/cp "$root_dir/Installer/README - Mac mini.txt" "$stage_dir/"
+/bin/cp "$root_dir/VERSION" "$stage_dir/"
 /bin/cp "$root_dir/screenshots/codex-usage-discord-cover.png" "$stage_dir/Codex Usage Preview.png"
 /bin/cp "$root_dir/Scripts/install-usage-sync.sh" "$stage_dir/Scripts/"
 /bin/cp "$root_dir/Scripts/sync-codex-usage.sh" "$stage_dir/Scripts/"
 /bin/cp "$root_dir/Scripts/uninstall-usage-sync.sh" "$stage_dir/Scripts/"
+/bin/cp "$root_dir/Scripts/install-widget-updater.sh" "$stage_dir/Scripts/"
+/bin/cp "$root_dir/Scripts/update-codex-widget.sh" "$stage_dir/Scripts/"
+/bin/cp "$root_dir/Scripts/uninstall-widget-updater.sh" "$stage_dir/Scripts/"
 /bin/chmod 755 "$stage_dir"/*.command "$stage_dir/Scripts"/*.sh
 /usr/bin/xattr -cr "$stage_dir" 2>/dev/null || true
 

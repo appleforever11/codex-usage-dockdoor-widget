@@ -24,6 +24,9 @@ fi
 if [[ -x "$package_dir/Scripts/uninstall-usage-sync.sh" ]]; then
     "$package_dir/Scripts/uninstall-usage-sync.sh"
 fi
+if [[ -x "$package_dir/Scripts/uninstall-widget-updater.sh" ]]; then
+    "$package_dir/Scripts/uninstall-widget-updater.sh"
+fi
 
 /usr/bin/open -a "DockDoor Pro"
 print "Removal complete. Your previous widget was preserved as a backup."
@@ -33,4 +36,3 @@ if [[ -t 0 ]]; then
     read -k 1
     printf '\n'
 fi
-
