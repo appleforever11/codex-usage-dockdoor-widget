@@ -5,35 +5,33 @@ Use this checklist when preparing a pull request against `ejbills/dockdoorpro-wi
 ## Target
 
 - Marketplace repo: `https://github.com/ejbills/dockdoorpro-widgets`
-- Widget folder: `Widgets/CodexProjectTracker`
-- Widget id: `codex-project-tracker`
+- Marketplace widget folder: `Widgets/CodexUsage`
+- Marketplace widget id: `codex-usage`
 - Widget name: `Codex Usage`
-- Current package version: `3.2.0`
-- Marketplace PR: `https://github.com/ejbills/dockdoorpro-widgets/pull/20`
+- Standalone release: `3.2.0`
+- Marketplace PR: `https://github.com/ejbills/dockdoorpro-widgets/pull/21`
 - Canonical Discord discussion: `https://discord.com/channels/1312172160931856464/1532985348374659092`
+
+The standalone v3.2.0 project is intentionally broader than the marketplace submission. The marketplace contribution is a separate widget with a new identifier so it cannot silently replace the existing `codex-project-tracker` installation.
 
 ## Pre-PR Checklist
 
-- Build with `bash Scripts/build-widgets.sh Widgets/CodexProjectTracker`.
-- Confirm `Build/CodexProjectTracker.bundle.zip` is regenerated.
-- Test the installed bundle in the current DockDoor Pro build.
-- Verify compact dock mode rotates between usage, model, tasks, and chats.
-- Verify the panel palette button toggles the rainbow usage ring.
-- Verify DockDoor settings exposes `Rainbow Usage Ring`.
-- Verify model/reasoning buttons update `~/.codex/config.toml`.
-- Verify the Max button writes `model_reasoning_effort = "max"` and legacy High/XHigh values display as Max.
-- Verify recent chat rows open Codex tasks when the session id is available.
-- Install `Scripts/install-usage-sync.sh` and verify `~/.codex/usage.json` follows the current Codex account limits.
-- Verify the sync LaunchAgent exits cleanly and refreshes again after 60 seconds.
-- Refresh screenshots if the UI changed.
+- Build the marketplace checkout with `bash scripts/build-widgets.sh Widgets/CodexProjectTracker Widgets/CodexUsage`.
+- Confirm `CodexProjectTracker` is unchanged from marketplace `main`.
+- Confirm `CodexUsage` has its own `codex-usage` identifier and supports both dock orientations.
+- Verify the marketplace widget reads `~/.codex/usage.json` without writing it.
+- Verify DockDoor settings exposes only the `Rainbow Usage Ring` preference for the marketplace widget.
+- Confirm the marketplace widget contains no scripts, LaunchAgent, process spawning, network calls, or Codex config writes.
+- Test the read-only bundle in the current DockDoor Pro build.
+- Keep the full installer, live-sync helper, updater, screenshots, and release notes in the standalone repository only.
 
 ## Suggested PR Title
 
-Update Codex Usage with live account synchronization
+Add separate read-only Codex Usage widget
 
 ## Suggested PR Summary
 
-This updates Codex Usage to 3.2.0 for DockDoor Pro. It replaces High reasoning with Max using Codex's native `max` value and normalizes legacy High/XHigh settings during upgrade. Fast mode switches new Codex chats to Spark with Instant reasoning and restores the previous defaults when disabled. The widget also shows account usage countdowns, credits, recent chats, project/task counts, and local Codex defaults directly from the dock. An optional one-shot LaunchAgent reads the signed-in account's limits from Codex's local `account/rateLimits/read` RPC every 60 seconds and atomically updates `~/.codex/usage.json`, preventing stale legacy session telemetry from overriding the current subscription window. The newest session `rate_limits` events remain the automatic fallback. The widget remains intentionally lightweight: native SwiftUI, widget-side local file reads, no persistent helper daemon, and modest refresh intervals.
+This is a fresh marketplace submission for the separate `codex-usage` identifier. It leaves `codex-project-tracker` unchanged and adds a native SwiftUI usage widget that reads `~/.codex/usage.json` only. It shows General and model-specific percentages, credits, reset labels, reset countdowns, compact dock rotation, and a rainbow ring setting. The marketplace bundle contains only `widget.json` and Swift source: no config writes, process spawning, network calls, LaunchAgent, scripts, or installer. The full v3.2.0 project and optional local synchronization tooling remain in this standalone repository.
 
 ## Suggested Discord Patch Notes
 

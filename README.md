@@ -4,7 +4,9 @@ A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recen
 
 **Current release:** `3.2.0`
 
-**Marketplace PR:** [ejbills/dockdoorpro-widgets#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20)
+**Marketplace companion PR:** [ejbills/dockdoorpro-widgets#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21)
+
+The standalone v3.2.0 build contains the complete tracker, local account-sync tooling, model/reasoning defaults, and Mac mini updater. The marketplace companion is intentionally separate: it uses the new `codex-usage` identifier and only reads `~/.codex/usage.json`.
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
@@ -139,12 +141,12 @@ Restart DockDoor Pro after replacing an installed bundle.
 
 ## Marketplace Prep
 
-This repository is the review and documentation home for marketplace PR [#20](https://github.com/ejbills/dockdoorpro-widgets/pull/20). Discord review and future community updates continue in the [canonical v3.0.0 repost](https://discord.com/channels/1312172160931856464/1532985348374659092); the older forum thread is superseded because its starter message was deleted and Discord cannot restore it.
+This repository is the full-featured release and documentation home for marketplace companion PR [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21). The companion submission is a separate `codex-usage` widget with read-only usage display; it does not replace the original `codex-project-tracker` identifier. Discord review and future community updates continue in the [canonical v3.0.0 repost](https://discord.com/channels/1312172160931856464/1532985348374659092); the older forum thread is superseded because its starter message was deleted and Discord cannot restore it.
 
-Before opening the marketplace PR:
+Marketplace companion checklist:
 
-- Confirm the widget builds with the current DockDoor Pro widget SDK.
-- Confirm the screenshot in `screenshots/codex-usage-panel.png` matches the current UI.
-- Confirm `widget.json` uses the marketplace-ready name, description, icon, and principal class.
-- Add any new real-world screenshots to `screenshots/`.
-- Use [docs/MARKETPLACE_SUBMISSION.md](docs/MARKETPLACE_SUBMISSION.md) as the submission checklist.
+- The original tracker remains under `codex-project-tracker`.
+- The separate marketplace widget uses `codex-usage` and reads `~/.codex/usage.json` only.
+- The marketplace widget contains only `widget.json` and Swift source files.
+- The full installer, updater, live-sync helper, screenshots, and release notes remain standalone assets in this repository.
+- Use [docs/MARKETPLACE_SUBMISSION.md](docs/MARKETPLACE_SUBMISSION.md) for the boundary and review checklist.
