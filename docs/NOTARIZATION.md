@@ -55,4 +55,4 @@ After notarization, the release pipeline verifies:
 - The widget has a valid Developer ID signature.
 - The widget contains both `arm64` and `x86_64` slices.
 - The DMG has a valid stapled ticket.
-- `spctl` accepts the DMG under normal Gatekeeper assessment.
+- Apple reports the DMG and ZIP submissions as `Accepted`.

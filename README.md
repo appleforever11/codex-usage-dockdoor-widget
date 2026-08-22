@@ -12,7 +12,7 @@ The standalone v4.0.0 build contains the complete tracker, freshness-aware accou
 
 ![Codex Usage panel](screenshots/codex-usage-panel.png)
 
-> **Distribution note:** v4.0.0 was published before a Developer ID certificate was available, so its DMG may require the one-time Gatekeeper approval described by Apple. The repository now contains the signed/notarized release pipeline for the next version; see [docs/NOTARIZATION.md](docs/NOTARIZATION.md).
+> **Distribution note:** v4.0.0 has been rebuilt with a Developer ID signature and Apple-notarized DMG/ZIP assets. Older copies downloaded before the notarized assets were uploaded may still require Gatekeeper approval. The signed/notarized release pipeline is documented in [docs/NOTARIZATION.md](docs/NOTARIZATION.md).
 
 ## Social Preview
 
