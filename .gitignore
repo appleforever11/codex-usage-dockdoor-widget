@@ -1,6 +1,7 @@
 .DS_Store
 Build/
 build/
+.module-cache/
 *.bundle
 *.bundle.zip
 DerivedData/

@@ -37,7 +37,7 @@ for attempt in 1 2 3; do
     response_file="$work_dir/app-server-$attempt.jsonl"
     : >"$error_file"
     {
-        printf '%s\n' '{"id":1,"method":"initialize","params":{"clientInfo":{"name":"dockdoor-codex-usage-sync","title":"DockDoor Codex Usage Sync","version":"3.2.0"},"capabilities":{"experimentalApi":true,"requestAttestation":false}}}'
+        printf '%s\n' '{"id":1,"method":"initialize","params":{"clientInfo":{"name":"dockdoor-codex-usage-sync","title":"DockDoor Codex Usage Sync","version":"4.0.0"},"capabilities":{"experimentalApi":true,"requestAttestation":false}}}'
         sleep 0.25
         printf '%s\n' '{"method":"initialized","params":{}}'
         printf '%s\n' '{"id":2,"method":"account/rateLimits/read","params":null}'
@@ -81,8 +81,19 @@ reset_label() {
     fi
 }
 
+reset_at_iso() {
+    local epoch="$1"
+    if [[ "$epoch" == <-> ]]; then
+        /bin/date -u -r "$epoch" '+%Y-%m-%dT%H:%M:%SZ'
+    else
+        printf '%s' ""
+    fi
+}
+
 general_reset_label="$(reset_label "$general_reset")"
 spark_reset_label="$(reset_label "$spark_reset")"
+general_reset_at="$(reset_at_iso "$general_reset")"
+spark_reset_at="$(reset_at_iso "$spark_reset")"
 temporary_usage="$work_dir/usage.json"
 
 /usr/bin/jq -n \
@@ -90,6 +101,8 @@ temporary_usage="$work_dir/usage.json"
     --arg creditsBalance "\$$credits" \
     --arg generalReset "$general_reset_label" \
     --arg sparkReset "$spark_reset_label" \
+    --arg generalResetAt "$general_reset_at" \
+    --arg sparkResetAt "$spark_reset_at" \
     --argjson generalRemaining "$general_remaining" \
     --argjson sparkRemaining "$spark_remaining" \
     '{
@@ -102,6 +115,7 @@ temporary_usage="$work_dir/usage.json"
                 subtitle: "Weekly usage limit",
                 percentRemaining: $generalRemaining,
                 resetLabel: $generalReset,
+                resetAt: (if $generalResetAt == "" then null else $generalResetAt end),
                 systemImage: "gauge.with.dots.needle.67percent"
             },
             {
@@ -109,6 +123,7 @@ temporary_usage="$work_dir/usage.json"
                 subtitle: "Weekly usage limit",
                 percentRemaining: $sparkRemaining,
                 resetLabel: $sparkReset,
+                resetAt: (if $sparkResetAt == "" then null else $sparkResetAt end),
                 systemImage: "sparkles"
             }
         ]

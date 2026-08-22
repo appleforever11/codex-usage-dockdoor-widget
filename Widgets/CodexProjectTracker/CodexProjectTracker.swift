@@ -60,6 +60,29 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
                 label: "Rainbow Usage Ring",
                 defaultValue: true
             ),
+            .picker(
+                key: "primaryCard",
+                label: "Primary Dock Card",
+                options: ["Auto", "Usage", "Model", "Tasks", "Chats", "Credits"],
+                defaultValue: "Auto"
+            ),
+            .slider(
+                key: "rotationInterval",
+                label: "Card Rotation Seconds",
+                range: 2...12,
+                step: 1,
+                defaultValue: 4
+            ),
+            .toggle(
+                key: "pauseRotationOnHover",
+                label: "Pause Rotation on Hover",
+                defaultValue: true
+            ),
+            .toggle(
+                key: "showDataStatus",
+                label: "Show Data Freshness",
+                defaultValue: true
+            ),
         ]
     }
 
@@ -74,6 +97,11 @@ private struct CodexTrackerCompactView: View {
     @State private var snapshot = CodexSnapshot.empty
     @State private var now = Date()
     @State private var rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
+    @State private var primaryCard = CodexWidgetPreferences.primaryCard
+    @State private var rotationInterval = CodexWidgetPreferences.rotationInterval
+    @State private var pauseRotationOnHover = CodexWidgetPreferences.pauseRotationOnHover
+    @State private var isHovering = false
+    @State private var pausedAt = Date()
 
     private var dim: CGFloat { min(size.width, size.height) }
     private var gaugeSize: CGFloat { min(dim * 0.70, 35) }
@@ -84,7 +112,14 @@ private struct CodexTrackerCompactView: View {
     private var isExtended: Bool {
         isVertical ? size.height > size.width * 1.5 : size.width > size.height * 1.5
     }
-    private var card: CodexDockCard { snapshot.rotatingDockCard(at: now) }
+    private var card: CodexDockCard {
+        let rotationDate = isHovering && pauseRotationOnHover ? pausedAt : now
+        return snapshot.rotatingDockCard(
+            at: rotationDate,
+            interval: rotationInterval,
+            preferredKind: primaryCard
+        )
+    }
 
     var body: some View {
         Group {
@@ -100,6 +135,9 @@ private struct CodexTrackerCompactView: View {
                 snapshot = refreshed
                 CodexSnapshotCache.latest = refreshed
                 rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
+                primaryCard = CodexWidgetPreferences.primaryCard
+                rotationInterval = CodexWidgetPreferences.rotationInterval
+                pauseRotationOnHover = CodexWidgetPreferences.pauseRotationOnHover
                 try? await Task.sleep(for: .seconds(5))
             }
         }
@@ -125,6 +163,15 @@ private struct CodexTrackerCompactView: View {
                 .minimumScaleFactor(0.75)
         }
         .foregroundStyle(.primary)
+        .onHover { hovering in
+            if hovering && !isHovering {
+                pausedAt = now
+            }
+            isHovering = hovering
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Codex \(card.shortLabel) card")
+        .accessibilityValue(card.title)
     }
 
     private var extendedLayout: some View {
@@ -313,6 +360,7 @@ private struct CodexTrackerPanelView: View {
     @State private var snapshot: CodexSnapshot?
     @State private var now = Date()
     @State private var rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
+    @State private var isRefreshing = false
 
     init(dismiss: @escaping () -> Void) {
         self.dismiss = dismiss
@@ -335,13 +383,13 @@ private struct CodexTrackerPanelView: View {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(5))
                 guard !Task.isCancelled else { break }
-                await refreshSnapshot()
+                await refreshSnapshot(force: false)
             }
         }
         .task {
             while !Task.isCancelled {
                 now = Date()
-                try? await Task.sleep(for: .seconds(30))
+                try? await Task.sleep(for: .seconds(1))
             }
         }
     }
@@ -352,6 +400,16 @@ private struct CodexTrackerPanelView: View {
                 Label("Codex Usage", systemImage: "gauge.with.dots.needle.67percent")
                     .font(.headline)
                 Spacer()
+                Button {
+                    Task { await refreshSnapshot(force: true) }
+                } label: {
+                    Image(systemName: isRefreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
+                        .rotationEffect(.degrees(isRefreshing ? 180 : 0))
+                        .frame(width: 22, height: 22)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Refresh Codex data now")
                 Button {
                     toggleFastMode(current: snapshot.modelSettings)
                 } label: {
@@ -380,6 +438,24 @@ private struct CodexTrackerPanelView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
+            }
+
+            if CodexWidgetPreferences.showDataStatus {
+                DataStatusRow(usage: snapshot.usage, now: now)
+            }
+
+            if let warning = snapshot.usage.warning {
+                HStack(alignment: .top, spacing: 7) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text(warning)
+                        .font(.caption2.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 9)
+                .padding(.vertical, 7)
+                .background(.orange.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
 
             HStack(spacing: 12) {
@@ -461,7 +537,7 @@ private struct CodexTrackerPanelView: View {
             }
         }
         .padding(14)
-        .frame(width: 350)
+        .frame(width: 350, height: 640, alignment: .topLeading)
     }
 
     private var loadingContent: some View {
@@ -475,11 +551,17 @@ private struct CodexTrackerPanelView: View {
         .frame(width: 350, height: 640)
     }
 
-    private func refreshSnapshot() async {
-        let refreshed = await CodexTrackerStore.snapshot()
+    private func refreshSnapshot(force: Bool = false) async {
+        if force {
+            isRefreshing = true
+        }
+        let refreshed = await CodexTrackerStore.snapshot(forceRefresh: force)
         CodexSnapshotCache.latest = refreshed
         snapshot = refreshed
         rainbowUsageRing = CodexWidgetPreferences.rainbowUsageRing
+        if force {
+            isRefreshing = false
+        }
     }
 
     private func toggleFastMode(current: CodexModelSettings) {
@@ -534,6 +616,27 @@ private struct CodexSessionRow: View {
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
         .help("Open in Codex")
+    }
+}
+
+private struct DataStatusRow: View {
+    let usage: CodexUsageSnapshot
+    let now: Date
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(usage.statusTint)
+                .frame(width: 7, height: 7)
+            Text(usage.statusLabel(now: now))
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Codex data status")
+        .accessibilityValue(usage.statusLabel(now: now))
     }
 }
 
@@ -741,31 +844,53 @@ private struct CodexSnapshot {
         sessions: []
     )
 
-    func rotatingDockCard(at date: Date) -> CodexDockCard {
+    func rotatingDockCard(
+        at date: Date,
+        interval: Double = 4,
+        preferredKind: String = "Auto"
+    ) -> CodexDockCard {
         var cards = usage.dockCards
         cards.append(CodexDockCard(
             title: modelSettings.shortModelName,
             subtitle: "\(modelSettings.reasoningLabel) reasoning",
-            shortLabel: "Model"
+            shortLabel: "Model",
+            kind: CodexCardKind.model.rawValue
         ))
         cards.append(CodexDockCard(
             title: "\(taskCount) Tasks",
             subtitle: "\(projectCount) projects active",
-            shortLabel: "Tasks"
+            shortLabel: "Tasks",
+            kind: CodexCardKind.tasks.rawValue
         ))
         cards.append(CodexDockCard(
             title: "\(chatCount) Chats",
             subtitle: headline,
-            shortLabel: "Chats"
+            shortLabel: "Chats",
+            kind: CodexCardKind.chats.rawValue
         ))
 
         guard !cards.isEmpty else {
             return CodexDockCard(title: "Codex", subtitle: headline, shortLabel: "Codex")
         }
 
-        let index = Int(date.timeIntervalSinceReferenceDate / 4) % cards.count
+        let normalizedKind = preferredKind.lowercased()
+        if normalizedKind != "auto",
+           let preferred = cards.first(where: { $0.kind == normalizedKind }) {
+            return preferred
+        }
+
+        let safeInterval = max(interval, 2)
+        let index = Int(date.timeIntervalSinceReferenceDate / safeInterval) % cards.count
         return cards[index]
     }
+}
+
+private enum CodexCardKind: String {
+    case usage
+    case model
+    case tasks
+    case chats
+    case credits
 }
 
 private struct CodexModelSettings {
@@ -799,12 +924,20 @@ private struct CodexDockCard: Identifiable {
     let subtitle: String
     let shortLabel: String
     let percentRemaining: Double?
+    let kind: String
 
-    init(title: String, subtitle: String, shortLabel: String, percentRemaining: Double? = nil) {
+    init(
+        title: String,
+        subtitle: String,
+        shortLabel: String,
+        percentRemaining: Double? = nil,
+        kind: String = CodexCardKind.usage.rawValue
+    ) {
         self.title = title
         self.subtitle = subtitle
         self.shortLabel = shortLabel
         self.percentRemaining = percentRemaining
+        self.kind = kind
     }
 }
 
@@ -820,19 +953,72 @@ private struct CodexUsageSnapshot {
     var source: String
     var metrics: [CodexUsageMetric]
     var accountCards: [CodexDockCard]
+    var lastUpdated: Date?
+    var isStale: Bool
+    var warning: String?
+
+    init(
+        percentRemaining: Double,
+        primaryTitle: String,
+        primarySubtitle: String,
+        windowUsedTokens: Int64,
+        todayUsedTokens: Int64,
+        budgetTokens: Int64,
+        resetDate: Date?,
+        resetLabel: String?,
+        source: String,
+        metrics: [CodexUsageMetric],
+        accountCards: [CodexDockCard],
+        lastUpdated: Date? = nil,
+        isStale: Bool = false,
+        warning: String? = nil
+    ) {
+        self.percentRemaining = percentRemaining
+        self.primaryTitle = primaryTitle
+        self.primarySubtitle = primarySubtitle
+        self.windowUsedTokens = windowUsedTokens
+        self.todayUsedTokens = todayUsedTokens
+        self.budgetTokens = budgetTokens
+        self.resetDate = resetDate
+        self.resetLabel = resetLabel
+        self.source = source
+        self.metrics = metrics
+        self.accountCards = accountCards
+        self.lastUpdated = lastUpdated
+        self.isStale = isStale
+        self.warning = warning
+    }
 
     static let empty = CodexUsageSnapshot(
         percentRemaining: 1,
-        primaryTitle: "Usage Ready",
-        primarySubtitle: "Waiting for Codex activity",
+        primaryTitle: "Loading usage",
+        primarySubtitle: "Reading local Codex data",
         windowUsedTokens: 0,
         todayUsedTokens: 0,
         budgetTokens: 0,
         resetDate: nil,
         resetLabel: nil,
-        source: "loading",
+        source: "Loading",
         metrics: [],
-        accountCards: []
+        accountCards: [],
+        isStale: true,
+        warning: "Waiting for the first local usage snapshot."
+    )
+
+    static let unavailable = CodexUsageSnapshot(
+        percentRemaining: 0,
+        primaryTitle: "Usage unavailable",
+        primarySubtitle: "No authoritative usage data found",
+        windowUsedTokens: 0,
+        todayUsedTokens: 0,
+        budgetTokens: 0,
+        resetDate: nil,
+        resetLabel: nil,
+        source: "No account snapshot",
+        metrics: [],
+        accountCards: [],
+        isStale: true,
+        warning: "Launch Codex or install the local usage sync to provide current limits."
     )
 
     var windowUsedLabel: String { Self.compactTokens(windowUsedTokens) }
@@ -848,43 +1034,77 @@ private struct CodexUsageSnapshot {
                 title: "\(Int((percentRemaining * 100).rounded()))% Left",
                 subtitle: primarySubtitle,
                 shortLabel: "Left",
-                percentRemaining: percentRemaining
+                percentRemaining: percentRemaining,
+                kind: CodexCardKind.usage.rawValue
             ),
             CodexDockCard(
                 title: "Used \(windowUsedLabel)",
                 subtitle: source,
-                shortLabel: "Usage"
+                shortLabel: "Usage",
+                kind: CodexCardKind.usage.rawValue
             ),
             CodexDockCard(
                 title: resetTitle,
                 subtitle: resetDate == nil && resetLabel == nil ? "No reset time found" : "Usage limit countdown",
-                shortLabel: "Reset"
+                shortLabel: "Reset",
+                kind: CodexCardKind.usage.rawValue
             ),
         ]
     }
 
-    var resetTitle: String {
-        if let resetLabel {
-            return "Reset \(resetLabel)"
+    var statusTint: Color {
+        if source == "Loading" { return .secondary }
+        if isStale { return .orange }
+        if source.localizedCaseInsensitiveContains("estimate") { return .orange }
+        return .green
+    }
+
+    func statusLabel(now: Date) -> String {
+        let updateLabel: String
+        if let lastUpdated {
+            let age = max(0, now.timeIntervalSince(lastUpdated))
+            if age < 10 {
+                updateLabel = "Updated just now"
+            } else {
+                let formatter = RelativeDateTimeFormatter()
+                formatter.unitsStyle = .abbreviated
+                updateLabel = "Updated \(formatter.localizedString(for: lastUpdated, relativeTo: now))"
+            }
+        } else {
+            updateLabel = "No update timestamp"
         }
+
+        return "\(source) • \(updateLabel)"
+    }
+
+    var resetTitle: String {
         if let resetDate {
             return "Reset \(Self.relativeReset(resetDate))"
+        }
+        if let resetLabel {
+            return "Reset \(resetLabel)"
         }
         return "Reset Soon"
     }
 
     func resetSummary(now: Date) -> String {
+        if let resetDate {
+            let interval = max(0, resetDate.timeIntervalSince(now))
+            let days = Int(interval / 86_400)
+            let hours = Int((interval.truncatingRemainder(dividingBy: 86_400)) / 3600)
+            let minutes = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
+            if days > 0 {
+                return "Resets in \(days)d \(hours)h"
+            }
+            if hours > 0 {
+                return "Resets in \(hours)h \(minutes)m"
+            }
+            return "Resets in \(minutes)m"
+        }
         if let resetLabel {
             return "Resets \(resetLabel)"
         }
-        guard let resetDate else { return "No reset time exposed locally yet" }
-        let interval = max(0, resetDate.timeIntervalSince(now))
-        let hours = Int(interval / 3600)
-        let minutes = Int((interval.truncatingRemainder(dividingBy: 3600)) / 60)
-        if hours > 0 {
-            return "Resets in \(hours)h \(minutes)m"
-        }
-        return "Resets in \(minutes)m"
+        return "No reset time exposed locally yet"
     }
 
     static func compactTokens(_ tokens: Int64) -> String {
@@ -977,6 +1197,10 @@ private enum CodexWidgetPreferences {
     private static let rainbowKey = "rainbowUsageRing"
     private static let fastRestoreModelKey = "fastModeRestoreModel"
     private static let fastRestoreReasoningKey = "fastModeRestoreReasoning"
+    private static let primaryCardKey = "primaryCard"
+    private static let rotationIntervalKey = "rotationInterval"
+    private static let pauseRotationKey = "pauseRotationOnHover"
+    private static let showDataStatusKey = "showDataStatus"
 
     static var rainbowUsageRing: Bool {
         WidgetDefaults.bool(key: rainbowKey, widgetId: widgetId, default: true)
@@ -984,6 +1208,22 @@ private enum CodexWidgetPreferences {
 
     static func setRainbowUsageRing(_ value: Bool) {
         UserDefaults.standard.set(value, forKey: "widget.\(widgetId).\(rainbowKey)")
+    }
+
+    static var primaryCard: String {
+        WidgetDefaults.string(key: primaryCardKey, widgetId: widgetId, default: "Auto")
+    }
+
+    static var rotationInterval: Double {
+        min(max(WidgetDefaults.double(key: rotationIntervalKey, widgetId: widgetId, default: 4), 2), 12)
+    }
+
+    static var pauseRotationOnHover: Bool {
+        WidgetDefaults.bool(key: pauseRotationKey, widgetId: widgetId, default: true)
+    }
+
+    static var showDataStatus: Bool {
+        WidgetDefaults.bool(key: showDataStatusKey, widgetId: widgetId, default: true)
     }
 
     static var fastModeRestoreSettings: CodexModelSettings {
@@ -1063,6 +1303,20 @@ private enum CodexConfigStore {
     }
 }
 
+private actor CodexSnapshotBuildCache {
+    private var signature: String?
+    private var snapshot: CodexSnapshot?
+
+    func cachedSnapshot(for signature: String) -> CodexSnapshot? {
+        self.signature == signature ? snapshot : nil
+    }
+
+    func store(_ snapshot: CodexSnapshot, for signature: String) {
+        self.signature = signature
+        self.snapshot = snapshot
+    }
+}
+
 private enum CodexTrackerStore {
     static let defaultProjectsRoot = URL(fileURLWithPath: NSHomeDirectory())
         .appendingPathComponent(".codex/sessions")
@@ -1070,10 +1324,52 @@ private enum CodexTrackerStore {
     private static let codexHome = URL(fileURLWithPath: NSHomeDirectory())
         .appendingPathComponent(".codex")
 
-    static func snapshot() async -> CodexSnapshot {
-        await Task.detached(priority: .utility) {
+    private static let snapshotCache = CodexSnapshotBuildCache()
+
+    static func snapshot(forceRefresh: Bool = false) async -> CodexSnapshot {
+        let signature = inputSignature()
+        if !forceRefresh {
+            if let cached = await snapshotCache.cachedSnapshot(for: signature) {
+                return cached
+            }
+        }
+
+        let refreshed = await Task.detached(priority: .utility) {
             buildSnapshot()
         }.value
+
+        await snapshotCache.store(refreshed, for: signature)
+        return refreshed
+    }
+
+    private static func inputSignature() -> String {
+        let sessionsRoot = configuredProjectsRoot()
+        let files = sessionFiles(in: sessionsRoot)
+        let sessionStamp = files.prefix(500)
+            .map { "\($0.url.path):\($0.modified.timeIntervalSince1970)" }
+            .joined(separator: "|")
+        let historyStamp = modificationStamp(codexHome.appendingPathComponent("history.jsonl"))
+        let usageStamp = modificationStamp(configuredUsageURL())
+        let configStamp = modificationStamp(
+            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".codex/config.toml")
+        )
+        let settingsStamp = [
+            "\(recentLimit())",
+            "\(usageBudgetTokens())",
+            "\(usageWindowHours())",
+            sessionsRoot.path,
+            primaryCardSetting(),
+        ].joined(separator: ":")
+
+        let freshnessBucket = Int(Date().timeIntervalSince1970 / 60)
+        return "\(sessionStamp)|history=\(historyStamp)|usage=\(usageStamp)|config=\(configStamp)|settings=\(settingsStamp)|freshness=\(freshnessBucket)"
+    }
+
+    private static func modificationStamp(_ url: URL) -> String {
+        let values = try? url.resourceValues(forKeys: [.contentModificationDateKey, .fileSizeKey])
+        let modified = values?.contentModificationDate?.timeIntervalSince1970 ?? 0
+        let size = values?.fileSize ?? 0
+        return "\(modified):\(size)"
     }
 
     private static func buildSnapshot() -> CodexSnapshot {
@@ -1139,6 +1435,23 @@ private enum CodexTrackerStore {
             widgetId: "codex-project-tracker",
             default: 5
         )))
+    }
+
+    private static func primaryCardSetting() -> String {
+        WidgetDefaults.string(
+            key: "primaryCard",
+            widgetId: "codex-project-tracker",
+            default: "Auto"
+        )
+    }
+
+    private static func configuredUsageURL() -> URL {
+        let path = WidgetDefaults.string(
+            key: "usageStatePath",
+            widgetId: "codex-project-tracker",
+            default: "~/.codex/usage.json"
+        )
+        return URL(fileURLWithPath: NSString(string: path).expandingTildeInPath)
     }
 
     private static func recentProjects(from sessions: [CodexSessionRecord]) -> [CodexProject] {
@@ -1310,6 +1623,10 @@ private enum CodexTrackerStore {
             return live
         }
 
+        guard !sessionFiles.isEmpty else {
+            return .unavailable
+        }
+
         let budget = usageBudgetTokens()
         let windowHours = usageWindowHours()
         let now = Date()
@@ -1332,7 +1649,7 @@ private enum CodexTrackerStore {
             budgetTokens: budget,
             resetDate: resetDate,
             resetLabel: nil,
-            source: "Local Codex activity",
+            source: "Local activity estimate",
             metrics: [
                 CodexUsageMetric(
                     title: "Window budget",
@@ -1359,7 +1676,10 @@ private enum CodexTrackerStore {
                     tint: .orange
                 ),
             ],
-            accountCards: []
+            accountCards: [],
+            lastUpdated: sessionFiles.first?.modified,
+            isStale: true,
+            warning: "Using a local activity estimate; account snapshot unavailable."
         )
     }
 
@@ -1490,9 +1810,13 @@ private enum CodexTrackerStore {
             cards.append(CodexDockCard(
                 title: "\(creditsValue) Credits",
                 subtitle: "Current balance",
-                shortLabel: "Credits"
+                shortLabel: "Credits",
+                kind: CodexCardKind.credits.rawValue
             ))
         }
+
+        let lastUpdated = samples.map(\.timestamp).max()
+        let freshness = usageFreshness(updatedAt: lastUpdated, authoritative: false)
 
         return CodexUsageSnapshot(
             percentRemaining: primaryLimit.percentRemaining,
@@ -1503,9 +1827,12 @@ private enum CodexTrackerStore {
             budgetTokens: 0,
             resetDate: primaryLimit.resetDate,
             resetLabel: primaryLimit.resetLabel,
-            source: "Live Codex rate limits",
+            source: "Session telemetry fallback",
             metrics: metrics,
-            accountCards: cards
+            accountCards: cards,
+            lastUpdated: lastUpdated,
+            isStale: freshness.isStale,
+            warning: freshness.warning
         )
     }
 
@@ -1548,12 +1875,7 @@ private enum CodexTrackerStore {
     }
 
     private static func externalUsageSnapshot() -> CodexUsageSnapshot? {
-        let configuredPath = WidgetDefaults.string(
-            key: "usageStatePath",
-            widgetId: "codex-project-tracker",
-            default: "~/.codex/usage.json"
-        )
-        let url = URL(fileURLWithPath: NSString(string: configuredPath).expandingTildeInPath)
+        let url = configuredUsageURL()
         guard let data = try? Data(contentsOf: url),
               let state = try? JSONDecoder().decode(CodexExternalUsageState.self, from: data)
         else { return nil }
@@ -1578,6 +1900,8 @@ private enum CodexTrackerStore {
         let primaryReset = resetLabel.map { "Resets \($0)" } ?? "Account usage limit"
         let accountMetrics = externalMetrics(from: state, primaryPercent: percentRemaining)
         let accountCards = externalDockCards(from: state, primaryPercent: percentRemaining)
+        let lastUpdated = parseCodexDate(state.updatedAt) ?? modificationDate(for: url)
+        let freshness = usageFreshness(updatedAt: lastUpdated, authoritative: true)
 
         return CodexUsageSnapshot(
             percentRemaining: min(max(percentRemaining, 0), 1),
@@ -1590,7 +1914,10 @@ private enum CodexTrackerStore {
             resetLabel: resetLabel,
             source: state.source ?? "Codex account limits",
             metrics: accountMetrics,
-            accountCards: accountCards
+            accountCards: accountCards,
+            lastUpdated: lastUpdated,
+            isStale: freshness.isStale,
+            warning: freshness.warning
         )
     }
 
@@ -1631,7 +1958,8 @@ private enum CodexTrackerStore {
                 title: "\(Int((percent * 100).rounded()))% Left",
                 subtitle: "\(shortUsageLabel(for: limit.name)) • \(reset)",
                 shortLabel: shortUsageLabel(for: limit.name),
-                percentRemaining: percent
+                percentRemaining: percent,
+                kind: CodexCardKind.usage.rawValue
             )
         }
 
@@ -1639,7 +1967,8 @@ private enum CodexTrackerStore {
             cards.append(CodexDockCard(
                 title: "\(credits) Credits",
                 subtitle: "Current balance",
-                shortLabel: "Credits"
+                shortLabel: "Credits",
+                kind: CodexCardKind.credits.rawValue
             ))
         }
 
@@ -1687,6 +2016,29 @@ private enum CodexTrackerStore {
         }
 
         return ISO8601DateFormatter().date(from: value)
+    }
+
+    private static func modificationDate(for url: URL) -> Date? {
+        guard let values = try? url.resourceValues(forKeys: [.contentModificationDateKey]) else {
+            return nil
+        }
+        return values.contentModificationDate
+    }
+
+    private static func usageFreshness(
+        updatedAt: Date?,
+        authoritative: Bool
+    ) -> (isStale: Bool, warning: String?) {
+        guard authoritative else {
+            return (true, "Using recent session telemetry; account snapshot unavailable.")
+        }
+        guard let updatedAt else {
+            return (true, "The usage snapshot has no update timestamp.")
+        }
+        if Date().timeIntervalSince(updatedAt) > 15 * 60 {
+            return (true, "The usage snapshot is more than 15 minutes old.")
+        }
+        return (false, nil)
     }
 }
 
@@ -1739,6 +2091,7 @@ private struct CodexHistoryEntry: Decodable {
 }
 
 private struct CodexExternalUsageState: Decodable {
+    let updatedAt: String?
     let title: String?
     let subtitle: String?
     let source: String?

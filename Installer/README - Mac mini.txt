@@ -1,4 +1,4 @@
-CODEX USAGE FOR DOCKDOOR PRO v3.2.0
+CODEX USAGE FOR DOCKDOOR PRO v4.0.0
 ====================================
 
 QUICK INSTALL

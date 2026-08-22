@@ -2,11 +2,11 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** `3.2.0`
+**Current release:** `4.0.0`
 
 **Marketplace companion PR:** [ejbills/dockdoorpro-widgets#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21)
 
-The standalone v3.2.0 build contains the complete tracker, local account-sync tooling, model/reasoning defaults, and Mac mini updater. The marketplace companion is intentionally separate: it uses the new `codex-usage` identifier and only reads `~/.codex/usage.json`.
+The standalone v4.0.0 build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Mac mini updater. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and only reads `~/.codex/usage.json`.
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
@@ -21,18 +21,19 @@ Use this square cover image as the first Discord attachment when announcing the 
 ## Highlights
 
 - Usage countdown ring in the dock, with a built-in rainbow ring toggle.
-- Rotating dock cards for account limits, selected model, task count, and chat count.
+- Rotating dock cards for account limits, credits, selected model, task count, and chat count, with a selectable primary card, adjustable interval, and hover pause.
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
+- Freshness status, stale-data warnings, explicit refresh, and reset countdowns backed by timestamped account snapshots.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
 - Local model and reasoning default controls for Luna, Sol, Spark, Instant, Medium, and Max.
 - One-click Fast mode for switching new chats to Spark + Instant and restoring the previous defaults when disabled.
-- DockDoor settings schema for session folder, usage state file, recent session count, budget window, and rainbow mode.
+- DockDoor settings schema for session folder, usage state file, recent session count, budget window, rainbow mode, primary card, rotation interval, hover pause, and freshness status.
 
 ## Lightweight Design
 
 Codex Usage is intentionally thin. It reads a small local snapshot, renders with native SwiftUI, and refreshes on a modest interval. The optional live-sync agent performs one short local Codex app-server request per minute and exits; there is no persistent helper daemon or widget-side network activity.
 
-The compact dock card rotates every few seconds, session/usage snapshots refresh periodically, and the expanded panel uses a slower label refresh because the data does not require second-by-second updates. That keeps the widget visually alive while staying low on energy and memory use.
+The compact dock card rotates on a configurable interval, session/usage snapshots refresh when their source files change, and the expanded panel updates countdown labels once per second without rescanning the filesystem. That keeps the widget visually alive while staying low on energy and memory use.
 
 ## Important Boundary
 
@@ -40,15 +41,15 @@ The model and reasoning buttons update local Codex defaults in `~/.codex/config.
 
 ## Runtime Data
 
-The widget reads Codex session files from `~/.codex/sessions` by default. The live-sync companion requests the signed-in account limits from Codex's local app-server and writes them atomically to `~/.codex/usage.json`. That file is authoritative because legacy session telemetry may describe a different or expired usage window. If the file is unavailable or invalid, the widget falls back to the newest General and model-specific `rate_limits` events in session telemetry, then to local token-window estimates.
+The widget reads Codex session files from `~/.codex/sessions` by default. The live-sync companion requests the signed-in account limits from Codex's local app-server and writes them atomically to `~/.codex/usage.json`, including an update timestamp and ISO reset timestamps. That file is authoritative because legacy session telemetry may describe a different or expired usage window. The widget invalidates its snapshot cache when the usage file, Codex config, history, or session files change. If the account file is unavailable or older than 15 minutes, the UI marks the data as stale and clearly labels any session-based fallback instead of presenting it as authoritative.
 
 See [examples/usage.json](examples/usage.json) for the account-usage shape used by the current build.
 
 ## Easy Mac Installation
 
-For another Mac, including a Mac mini, download the DMG from the [v3.2.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v3.2.0):
+For another Mac, including a Mac mini, download the DMG from the [v4.0.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v4.0.0):
 
-1. Open `Codex Usage for DockDoor Pro v3.2.0.dmg`.
+1. Open `Codex Usage for DockDoor Pro v4.0.0.dmg`.
 2. Double-click `Install Codex Usage.command`.
 3. Choose **Open** if macOS asks for confirmation.
 4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.
@@ -74,7 +75,7 @@ Updater logs are stored at `~/Library/Logs/CodexUsageWidget/updater.log`. Run an
 "$HOME/Library/Application Support/CodexUsageWidget/update-codex-widget.sh"
 ```
 
-Release tags trigger `.github/workflows/release.yml`, which verifies `VERSION`, builds the universal widget and Mac installers, and creates or refreshes the GitHub release assets automatically.
+Release tags trigger `.github/workflows/release.yml`, which verifies `VERSION`, validates the usage fixture and bundle architectures, builds the universal widget and Mac installers, and creates or refreshes the GitHub release assets automatically.
 
 Build fresh DMG and ZIP transfer packages with:
 
@@ -110,6 +111,10 @@ DockDoor Pro exposes these widget settings:
 | Usage Window Hours | `5` | Fallback rolling-window length. |
 | Usage State File | `~/.codex/usage.json` | Authoritative current-account snapshot produced by the optional live-sync agent; session telemetry is the fallback. |
 | Rainbow Usage Ring | `On` | Uses the rainbow/glow usage ring instead of a single-color ring. |
+| Primary Dock Card | `Auto` | Keep the dock card rotating or pin it to Usage, Model, Tasks, Chats, or Credits. |
+| Card Rotation Seconds | `4` | Rotation interval from 2 to 12 seconds. |
+| Pause Rotation on Hover | `On` | Freeze the compact card while it is being inspected. |
+| Show Data Freshness | `On` | Show the source and last-update status in the expanded panel. |
 
 The panel also includes a small palette button in the header. That button toggles the same `Rainbow Usage Ring` preference without needing to open DockDoor Pro settings.
 
@@ -124,8 +129,8 @@ bash Scripts/build-widgets.sh Widgets/CodexProjectTracker
 Build output:
 
 ```text
-Build/CodexProjectTracker.bundle
-Build/CodexProjectTracker.bundle.zip
+build/CodexProjectTracker.bundle
+build/CodexProjectTracker.bundle.zip
 ```
 
 ## Install Locally
@@ -134,7 +139,7 @@ Copy the built bundle into DockDoor Pro's widget folder:
 
 ```bash
 mkdir -p "$HOME/Library/Application Support/DockDoorPro/Widgets"
-cp -R Build/CodexProjectTracker.bundle "$HOME/Library/Application Support/DockDoorPro/Widgets/"
+cp -R build/CodexProjectTracker.bundle "$HOME/Library/Application Support/DockDoorPro/Widgets/"
 ```
 
 Restart DockDoor Pro after replacing an installed bundle.

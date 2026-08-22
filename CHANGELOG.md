@@ -1,5 +1,23 @@
 # Changelog
 
+## 4.0.0 - Fresh Usage and Responsive Dock Release (2026-08-22)
+
+Codex Usage 4.0.0 is a major reliability and interaction release. It makes the widget much clearer about where its usage numbers come from, keeps the dock responsive during refreshes, and gives users more control over what the compact card shows.
+
+- Added timestamp-aware account snapshots with ISO reset timestamps and a visible freshness indicator.
+- Added stale-data warnings when the account snapshot is missing an update time or is more than 15 minutes old.
+- Removed the misleading local 100% default when no Codex session or authoritative account snapshot exists.
+- Labeled session telemetry and local token-window values as fallbacks or estimates instead of presenting them as account usage.
+- Added a cache invalidation signature for usage files, Codex config, history, and session files so updates appear without redundant full rescans.
+- Removed a duplicate snapshot build from the refresh path and moved the cache to Swift actor isolation for modern Swift toolchain compatibility.
+- Added an in-panel refresh button for an immediate authoritative-data check.
+- Added selectable primary dock cards for Usage, Model, Tasks, Chats, and Credits.
+- Added configurable card rotation speed, hover pause, and optional freshness display through DockDoor settings.
+- Added reset countdown formatting with day, hour, and minute precision when Codex provides a reset timestamp.
+- Kept the compact card and expanded panel on stable dimensions so loading and refreshes do not move the dock layout.
+- Preserved the v3.2 Max reasoning controls, Fast mode, rainbow ring, direct Codex chat links, updater, and Mac mini installer.
+- Kept the runtime local-first and lightweight: no widget-side network calls, no persistent helper daemon, and no new external dependencies.
+
 ## 3.2.0 - Max Reasoning and Mac Mini Update Pipeline
 
 - Replaced the High reasoning cell with Max and write Codex's native `max` reasoning value.

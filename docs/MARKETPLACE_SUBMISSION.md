@@ -8,11 +8,11 @@ Use this checklist when preparing a pull request against `ejbills/dockdoorpro-wi
 - Marketplace widget folder: `Widgets/CodexUsage`
 - Marketplace widget id: `codex-usage`
 - Widget name: `Codex Usage`
-- Standalone release: `3.2.0`
+- Standalone release: `4.0.0`
 - Marketplace PR: `https://github.com/ejbills/dockdoorpro-widgets/pull/21`
 - Canonical Discord discussion: `https://discord.com/channels/1312172160931856464/1532985348374659092`
 
-The standalone v3.2.0 project is intentionally broader than the marketplace submission. The marketplace contribution is a separate widget with a new identifier so it cannot silently replace the existing `codex-project-tracker` installation.
+The standalone v4.0.0 project is intentionally broader than the marketplace submission. The marketplace contribution is a separate widget with a new identifier so it cannot silently replace the existing `codex-project-tracker` installation.
 
 ## Pre-PR Checklist
 
@@ -31,11 +31,11 @@ Add separate read-only Codex Usage widget
 
 ## Suggested PR Summary
 
-This is a fresh marketplace submission for the separate `codex-usage` identifier. It leaves `codex-project-tracker` unchanged and adds a native SwiftUI usage widget that reads `~/.codex/usage.json` only. It shows General and model-specific percentages, credits, reset labels, reset countdowns, compact dock rotation, and a rainbow ring setting. The marketplace bundle contains only `widget.json` and Swift source: no config writes, process spawning, network calls, LaunchAgent, scripts, or installer. The full v3.2.0 project and optional local synchronization tooling remain in this standalone repository.
+This is a fresh marketplace submission for the separate `codex-usage` identifier. It leaves `codex-project-tracker` unchanged and adds a native SwiftUI usage widget that reads `~/.codex/usage.json` only. It shows General and model-specific percentages, credits, reset labels, reset countdowns, compact dock rotation, and a rainbow ring setting. The marketplace bundle contains only `widget.json` and Swift source: no config writes, process spawning, network calls, LaunchAgent, scripts, or installer. The full v4.0.0 project and optional local synchronization tooling remain in this standalone repository.
 
 ## Suggested Discord Patch Notes
 
-**Codex Usage Widget v3.2.0**
+**Codex Usage Widget v4.0.0**
 
 This is the big Codex Usage release for DockDoor Pro. The widget has evolved from a simple tracker into a polished, lightweight Codex command center right in the dock.
 
@@ -47,7 +47,9 @@ This is the big Codex Usage release for DockDoor Pro. The widget has evolved fro
 - Live account synchronization through Codex's official local app-server, fixing stale General and Spark percentages.
 - Atomic one-minute snapshots with bounded retries and preservation of the last valid reading.
 - Ultra-thin native SwiftUI implementation with local file reads, no persistent helper daemon, and tuned refresh intervals for low energy and RAM use.
-- Responsive dock rotation for usage, model, task, and chat cards without heavy polling.
+- Responsive dock rotation for usage, model, task, chat, and credit cards without heavy polling.
+- Freshness-aware account snapshots, explicit refresh, stale-data warnings, and reset countdowns so the displayed percentage is traceable to a current source.
+- Configurable primary card, rotation interval, hover pause, and data-status display.
 - Repo-ready package with screenshots, examples, changelog, and marketplace submission notes.
 
-Note: model/reasoning controls update Codex defaults for new work. They do not change already-running chats.
+Note: model/reasoning controls update Codex defaults for new work. They do not change already-running chats. The full v4.0.0 installer and updater remain standalone because marketplace widgets must stay read-only and contain only their widget manifest and source files.
