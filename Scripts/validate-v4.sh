@@ -45,5 +45,14 @@ PY
 /usr/bin/grep -q 'primaryCard' "$source_file"
 /usr/bin/grep -q 'resetAt' "$root_dir/Scripts/sync-codex-usage.sh"
 
+if [[ "${CODEX_REQUIRE_SIGNING:-0}" == "1" ]]; then
+    /usr/bin/codesign --verify --deep --strict --verbose=2 "$bundle"
+    authority="$(/usr/bin/codesign -dv --verbose=4 "$bundle" 2>&1 | /usr/bin/sed -n 's/^Authority=//p' | /usr/bin/head -n 1)"
+    [[ "$authority" == Developer\ ID\ Application:* ]] || {
+        print -u2 "Expected Developer ID Application signing, found: ${authority:-unsigned}"
+        exit 1
+    }
+fi
+
 zsh -n "$root_dir/Scripts/sync-codex-usage.sh"
 print "Codex Usage v$version validation passed ($architectures)."

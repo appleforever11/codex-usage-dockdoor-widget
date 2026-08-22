@@ -12,6 +12,8 @@ The standalone v4.0.0 build contains the complete tracker, freshness-aware accou
 
 ![Codex Usage panel](screenshots/codex-usage-panel.png)
 
+> **Distribution note:** v4.0.0 was published before a Developer ID certificate was available, so its DMG may require the one-time Gatekeeper approval described by Apple. The repository now contains the signed/notarized release pipeline for the next version; see [docs/NOTARIZATION.md](docs/NOTARIZATION.md).
+
 ## Social Preview
 
 Use this square cover image as the first Discord attachment when announcing the widget. The canonical Discord repost uses this file as its starter attachment and forum-card artwork:

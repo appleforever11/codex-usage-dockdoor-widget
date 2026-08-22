@@ -20,11 +20,36 @@ jobs:
           version="$(<VERSION)"
           [[ "${GITHUB_REF_NAME#v}" == "$version" ]]
 
+      - name: Import Developer ID signing certificate
+        env:
+          DEVELOPER_ID_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_ID_CERTIFICATE_BASE64 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+        shell: zsh {0}
+        run: |
+          [[ -n "$DEVELOPER_ID_CERTIFICATE_BASE64" ]] || { print -u2 "Missing DEVELOPER_ID_CERTIFICATE_BASE64 repository secret."; exit 1; }
+          [[ -n "$DEVELOPER_ID_CERTIFICATE_PASSWORD" ]] || { print -u2 "Missing DEVELOPER_ID_CERTIFICATE_PASSWORD repository secret."; exit 1; }
+          keychain_password="$(/usr/bin/openssl rand -hex 24)"
+          print -r -- "CODEX_BUILD_KEYCHAIN_PASSWORD=$keychain_password" >> "$GITHUB_ENV"
+          Scripts/import-developer-id-certificate.sh
+
       - name: Build universal widget and Mac installers
+        env:
+          CODEX_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION }}
+          CODEX_REQUIRE_SIGNING: "1"
         run: Scripts/build-mac-mini-installer.sh
 
       - name: Validate v4 package
+        env:
+          CODEX_REQUIRE_SIGNING: "1"
         run: Scripts/validate-v4.sh
+
+      - name: Notarize and staple release artifacts
+        env:
+          CODEX_SIGNING_IDENTITY: ${{ secrets.DEVELOPER_ID_APPLICATION }}
+          APPLE_ID: ${{ secrets.APPLE_NOTARY_APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_NOTARY_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_NOTARY_APP_SPECIFIC_PASSWORD }}
+        run: Scripts/notarize-release.sh
 
       - name: Publish release assets
         env:

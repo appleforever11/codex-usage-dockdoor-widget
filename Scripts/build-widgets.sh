@@ -134,6 +134,23 @@ for WIDGET_DIR in "${WIDGET_DIRS[@]}"; do
 </plist>
 PLIST
 
+    if [[ -n "${CODEX_SIGNING_IDENTITY:-}" ]]; then
+        echo "  Signing with Developer ID..."
+        codesign \
+            --force \
+            --deep \
+            --options runtime \
+            --timestamp \
+            --sign "$CODEX_SIGNING_IDENTITY" \
+            "$BUNDLE_DIR"
+        codesign --verify --deep --strict --verbose=2 "$BUNDLE_DIR"
+    elif [[ "${CODEX_REQUIRE_SIGNING:-0}" == "1" ]]; then
+        echo "  FAIL: CODEX_REQUIRE_SIGNING=1 but CODEX_SIGNING_IDENTITY is not set"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+        echo ""
+        continue
+    fi
+
     cd "$BUILD_DIR"
     zip -qr "${WIDGET_NAME}.bundle.zip" "${WIDGET_NAME}.bundle"
     cd "$ROOT_DIR"
