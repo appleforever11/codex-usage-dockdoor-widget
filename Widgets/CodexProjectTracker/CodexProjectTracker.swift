@@ -519,21 +519,30 @@ private struct CodexTrackerPanelView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
 
-                ForEach(snapshot.sessions) { session in
-                    CodexSessionRow(session: session)
-                }
-            }
+                ScrollView(.vertical, showsIndicators: true) {
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(snapshot.panelSessions) { session in
+                            CodexSessionRow(session: session)
+                        }
 
-            if let latest = snapshot.latestChat {
-                Divider()
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Latest Chat")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    Text(latest)
-                        .font(.caption)
-                        .lineLimit(2)
+                        if let latest = snapshot.latestChat {
+                            Divider()
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Latest Chat")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                Text(latest)
+                                    .font(.caption)
+                                    .lineLimit(2)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.trailing, 2)
                 }
+                .frame(height: 184)
+                .accessibilityLabel("Recent Codex chats")
             }
         }
         .padding(14)
@@ -582,6 +591,11 @@ private struct CodexTrackerPanelView: View {
 private struct CodexSessionRow: View {
     let session: CodexSession
     @State private var isHovering = false
+    @State private var resolvedTitle: String?
+
+    private var rowSubtitle: String {
+        resolvedTitle ?? session.title ?? session.relativeActivity
+    }
 
     var body: some View {
         Button {
@@ -595,7 +609,7 @@ private struct CodexSessionRow: View {
                     Text(session.projectName)
                         .font(.caption.weight(.semibold))
                         .lineLimit(1)
-                    Text(session.title ?? session.relativeActivity)
+                    Text(rowSubtitle)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -616,6 +630,17 @@ private struct CodexSessionRow: View {
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
         .help("Open in Codex")
+        .task(id: session.id) {
+            guard session.title == nil else { return }
+
+            let url = session.url
+            let title = await Task.detached(priority: .utility) {
+                CodexTrackerStore.sessionTitle(from: url)
+            }.value
+
+            guard !Task.isCancelled else { return }
+            resolvedTitle = title
+        }
     }
 }
 
@@ -830,6 +855,7 @@ private struct CodexSnapshot {
     var modelSettings: CodexModelSettings
     var projects: [CodexProject]
     var sessions: [CodexSession]
+    var panelSessions: [CodexSession]
 
     static let empty = CodexSnapshot(
         projectCount: 0,
@@ -841,7 +867,8 @@ private struct CodexSnapshot {
         usage: .empty,
         modelSettings: .default,
         projects: [],
-        sessions: []
+        sessions: [],
+        panelSessions: []
     )
 
     func rotatingDockCard(
@@ -1318,6 +1345,8 @@ private actor CodexSnapshotBuildCache {
 }
 
 private enum CodexTrackerStore {
+    private static let maxIndexedSessions = 500
+
     static let defaultProjectsRoot = URL(fileURLWithPath: NSHomeDirectory())
         .appendingPathComponent(".codex/sessions")
 
@@ -1345,7 +1374,7 @@ private enum CodexTrackerStore {
     private static func inputSignature() -> String {
         let sessionsRoot = configuredProjectsRoot()
         let files = sessionFiles(in: sessionsRoot)
-        let sessionStamp = files.prefix(500)
+        let sessionStamp = files.prefix(maxIndexedSessions)
             .map { "\($0.url.path):\($0.modified.timeIntervalSince1970)" }
             .joined(separator: "|")
         let historyStamp = modificationStamp(codexHome.appendingPathComponent("history.jsonl"))
@@ -1375,11 +1404,12 @@ private enum CodexTrackerStore {
     private static func buildSnapshot() -> CodexSnapshot {
         let sessionsRoot = configuredProjectsRoot()
         let sessionFiles = sessionFiles(in: sessionsRoot)
-        let records = sessionFiles.prefix(500).compactMap { file -> CodexSessionRecord? in
+        let records = sessionFiles.prefix(maxIndexedSessions).compactMap { file -> CodexSessionRecord? in
             guard let metadata = sessionMetadata(from: file.url) else { return nil }
             return CodexSessionRecord(file: file, metadata: metadata)
         }
-        let sessions = recentSessions(from: records)
+        let panelSessions = sessionModels(from: records, preloadTitleCount: recentLimit())
+        let sessions = Array(panelSessions.prefix(recentLimit()))
         let projects = recentProjects(from: records)
         let latestChat = latestHistoryPrompt()
         let activeCount = sessions.filter(\.isActive).count
@@ -1398,7 +1428,8 @@ private enum CodexTrackerStore {
             usage: usage,
             modelSettings: modelSettings,
             projects: projects,
-            sessions: sessions
+            sessions: sessions,
+            panelSessions: panelSessions
         )
     }
 
@@ -1480,30 +1511,27 @@ private enum CodexTrackerStore {
             .map { $0 }
     }
 
-    private static func recentSessions(from sessionRecords: [CodexSessionRecord]) -> [CodexSession] {
-        var sessions: [CodexSession] = []
-
-        for record in sessionRecords {
+    // Keep the full bounded history available to the panel while deferring
+    // larger transcript reads until a row is actually visible.
+    private static func sessionModels(
+        from sessionRecords: [CodexSessionRecord],
+        preloadTitleCount: Int
+    ) -> [CodexSession] {
+        sessionRecords.enumerated().map { index, record in
             let projectURL = URL(fileURLWithPath: record.metadata.cwd).standardizedFileURL
             let modified = record.metadata.timestamp ?? record.file.modified
             let projectName = projectURL.lastPathComponent.isEmpty ? projectURL.path : projectURL.lastPathComponent
 
-            sessions.append(CodexSession(
+            return CodexSession(
                 id: record.metadata.id ?? record.file.url.path,
                 url: record.file.url,
                 projectName: projectName,
                 projectURL: projectURL,
                 modified: modified,
-                title: sessionTitle(from: record.file.url),
+                title: index < preloadTitleCount ? sessionTitle(from: record.file.url) : nil,
                 isActive: Date().timeIntervalSince(modified) < 60 * 60 * 24 * 7
-            ))
-
-            if sessions.count >= recentLimit() {
-                break
-            }
+            )
         }
-
-        return sessions
     }
 
     private static func sessionFiles(in root: URL) -> [CodexSessionFile] {
@@ -1550,7 +1578,7 @@ private enum CodexTrackerStore {
         return nil
     }
 
-    private static func sessionTitle(from url: URL) -> String? {
+    static func sessionTitle(from url: URL) -> String? {
         guard let handle = try? FileHandle(forReadingFrom: url) else { return nil }
         defer { try? handle.close() }
 
