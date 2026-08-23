@@ -25,6 +25,7 @@ Use this square cover image as the first Discord attachment when announcing the 
 - Usage countdown ring in the dock, with a built-in rainbow ring toggle.
 - Rotating dock cards for account limits, credits, selected model, task count, and chat count, with a selectable primary card, adjustable interval, and hover pause.
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
+- Scrollable recent-chat history covering up to 500 indexed sessions, with older titles loaded as rows appear.
 - Freshness status, stale-data warnings, explicit refresh, and reset countdowns backed by timestamped account snapshots.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
 - Local model and reasoning default controls for Luna, Sol, Spark, Instant, Medium, and Max.
