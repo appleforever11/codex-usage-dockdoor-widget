@@ -5,11 +5,12 @@ QUICK INSTALL
 
 1. Install, launch, and activate DockDoor Pro on the Mac mini.
 2. Install and sign in to the Codex or ChatGPT desktop app.
-3. Double-click "Install Codex Usage.command".
-4. If macOS asks, choose Open.
+3. Double-click "Install Codex Usage.app".
+4. Click "Install Widget" in the small installer window.
 5. Hover over Codex Usage in the DockDoor Pro dock after the installer finishes.
 
-The installer does not need an administrator password. It will:
+The app-based installer does not open Terminal, does not require an administrator
+password, and is signed and notarized for Gatekeeper-friendly installation. It will:
 
 - Back up an existing Codex widget instead of deleting it.
 - Install the universal Apple Silicon and Intel widget bundle.
@@ -44,6 +45,3 @@ Usage snapshot:
 
 Widget backups:
 ~/Library/Application Support/DockDoorPro/WidgetInstallerBackups/
-
-To remove the widget without permanently deleting its bundle, double-click
-"Remove Codex Usage.command". The removed widget is moved into a backup folder.

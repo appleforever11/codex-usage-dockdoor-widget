@@ -1,6 +1,6 @@
 # Signed and Notarized Distribution
 
-The v4.0.0 assets were built before a Developer ID certificate was available and are unsigned. The release pipeline now supports the proper Gatekeeper-friendly path for the next release.
+The v4.0.0 package includes a Developer ID-signed installer app and is intended to be distributed as an Apple-notarized DMG/ZIP. This is the Gatekeeper-friendly path for Mac mini installation: users open the app in the DMG and click **Install Widget** instead of launching a `.command` file.
 
 ## Requirements
 
@@ -46,13 +46,14 @@ The release workflow expects these repository secrets:
 | `APPLE_NOTARY_TEAM_ID` | Apple Developer Team ID. |
 | `APPLE_NOTARY_APP_SPECIFIC_PASSWORD` | App-specific password for `notarytool`. |
 
-The workflow creates a temporary keychain, imports the certificate, builds a signed universal widget, submits both the DMG and ZIP to Apple, staples the DMG ticket, and verifies the signed output before publishing the release assets.
+The workflow creates a temporary keychain, imports the certificate, builds a signed universal widget and installer app, submits both the DMG and ZIP to Apple, staples the DMG ticket, and verifies the signed output before publishing the release assets.
 
 ## Verification
 
 After notarization, the release pipeline verifies:
 
 - The widget has a valid Developer ID signature.
+- The installer app has a valid Developer ID signature.
 - The widget contains both `arm64` and `x86_64` slices.
 - The DMG has a valid stapled ticket.
 - Apple reports the DMG and ZIP submissions as `Accepted`.

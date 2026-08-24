@@ -12,7 +12,7 @@ The standalone v4.0.0 build contains the complete tracker, freshness-aware accou
 
 ![Codex Usage panel](screenshots/codex-usage-panel.png)
 
-> **Distribution note:** v4.0.0 has been rebuilt with a Developer ID signature and Apple-notarized DMG/ZIP assets. Older copies downloaded before the notarized assets were uploaded may still require Gatekeeper approval. The signed/notarized release pipeline is documented in [docs/NOTARIZATION.md](docs/NOTARIZATION.md).
+> **Distribution note:** v4.0.0 includes a Developer ID-signed installer app inside the DMG. The release DMG/ZIP assets are notarized through Apple so Mac mini installation does not require launching a `.command` file. The signed/notarized release pipeline is documented in [docs/NOTARIZATION.md](docs/NOTARIZATION.md).
 
 ## Social Preview
 
@@ -53,11 +53,11 @@ See [examples/usage.json](examples/usage.json) for the account-usage shape used 
 For another Mac, including a Mac mini, download the DMG from the [v4.0.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v4.0.0):
 
 1. Open `Codex Usage for DockDoor Pro v4.0.0.dmg`.
-2. Double-click `Install Codex Usage.command`.
-3. Choose **Open** if macOS asks for confirmation.
+2. Double-click `Install Codex Usage.app`.
+3. Click **Install Widget** in the installer window.
 4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.
 
-The installer requires no administrator password. It preserves an existing widget as a recoverable backup, retains the marketplace identifier and dock placement, installs the universal Apple Silicon/Intel bundle, enables live account synchronization, and verifies the first snapshot. DockDoor Pro must be installed and activated on the destination Mac, and Codex or ChatGPT must be signed in for account usage data.
+The signed app installer does not open Terminal or require an administrator password. It preserves an existing widget as a recoverable backup, retains the marketplace identifier and dock placement, installs the universal Apple Silicon/Intel bundle, enables live account synchronization, and verifies the first snapshot. DockDoor Pro must be installed and activated on the destination Mac, and Codex or ChatGPT must be signed in for account usage data.
 
 ## Automatic Updates
 
@@ -80,7 +80,7 @@ Updater logs are stored at `~/Library/Logs/CodexUsageWidget/updater.log`. Run an
 
 Release tags trigger `.github/workflows/release.yml`, which verifies `VERSION`, validates the usage fixture and bundle architectures, builds the universal widget and Mac installers, and creates or refreshes the GitHub release assets automatically.
 
-Build fresh DMG and ZIP transfer packages with:
+Build fresh DMG and ZIP transfer packages with the signed installer app:
 
 ```bash
 Scripts/build-mac-mini-installer.sh

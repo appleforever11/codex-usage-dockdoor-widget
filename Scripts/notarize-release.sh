@@ -9,10 +9,12 @@ dist_dir="$root_dir/Dist"
 bundle="$root_dir/build/CodexProjectTracker.bundle"
 dmg="$dist_dir/Codex Usage for DockDoor Pro v$version.dmg"
 zip="$dist_dir/Codex Usage for DockDoor Pro v$version.zip"
+installer_app="$dist_dir/Codex Usage for DockDoor Pro v$version/Install Codex Usage.app"
 
 [[ -d "$bundle" ]] || { print -u2 "Missing built widget bundle: $bundle"; exit 1; }
 [[ -f "$dmg" ]] || { print -u2 "Missing DMG: $dmg"; exit 1; }
 [[ -f "$zip" ]] || { print -u2 "Missing ZIP: $zip"; exit 1; }
+[[ -d "$installer_app" ]] || { print -u2 "Missing installer app: $installer_app"; exit 1; }
 
 identity="${CODEX_SIGNING_IDENTITY:-}"
 [[ "$identity" == Developer\ ID\ Application:* ]] || {
@@ -21,6 +23,7 @@ identity="${CODEX_SIGNING_IDENTITY:-}"
 }
 
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$bundle"
+/usr/bin/codesign --verify --deep --strict --verbose=2 "$installer_app"
 
 submit() {
     local artifact="$1"
@@ -50,7 +53,8 @@ print "Stapling the notarization ticket to the DMG..."
 print "Submitting v$version ZIP for notarization..."
 submit "$zip"
 
-print "Verifying the signed widget and stapled DMG..."
+print "Verifying the signed widget, installer app, and stapled DMG..."
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$bundle"
+/usr/bin/codesign --verify --deep --strict --verbose=2 "$installer_app"
 /usr/bin/xcrun stapler validate "$dmg"
 print "Notarization complete for Codex Usage v$version."
