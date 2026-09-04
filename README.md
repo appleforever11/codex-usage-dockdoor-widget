@@ -1,18 +1,22 @@
+<img src="screenshots/codex-usage-discord-cover.png" width="112" alt="Codex Usage icon">
+
 # Codex Usage for DockDoor Pro
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** `4.0.0`
+**Current release:** `4.1.0` - Astra and Sparkle updates.
 
-**Marketplace companion PR:** [ejbills/dockdoorpro-widgets#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21)
+**Marketplace Astra review:** [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
-The standalone v4.0.0 build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Mac mini updater. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and only reads `~/.codex/usage.json`.
+The standalone build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Sparkle companion. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and reads local Codex session telemetry or an optional `~/.codex/usage.json` override. It has no model-setting controls, installer, or Sparkle dependency.
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
 ![Codex Usage panel](screenshots/codex-usage-panel.png)
 
-> **Distribution note:** v4.0.0 includes a Developer ID-signed installer app inside the DMG. The release DMG/ZIP assets are notarized through Apple so Mac mini installation does not require launching a `.command` file. The signed/notarized release pipeline is documented in [docs/NOTARIZATION.md](docs/NOTARIZATION.md).
+![Astra model controls rendered from the v4.1.0 SwiftUI source](screenshots/codex-astra-controls.png)
+
+> **Distribution note:** The DMG contains a Developer ID-signed, Apple-notarized companion app. No `.command` file needs to be opened. Install the v4.1.0 DMG once on each Mac to migrate from the legacy script updater to Sparkle. See [update and signing details](docs/NOTARIZATION.md).
 
 ## Social Preview
 
@@ -28,7 +32,9 @@ Use this square cover image as the first Discord attachment when announcing the 
 - Scrollable recent-chat history covering up to 500 indexed sessions, with older titles loaded as rows appear.
 - Freshness status, stale-data warnings, explicit refresh, and reset countdowns backed by timestamped account snapshots.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
-- Local model and reasoning default controls for Luna, Sol, Spark, Instant, Medium, and Max.
+- Local model and reasoning default controls for Luna, Sol, Spark, Astra, Instant, Medium, and Max.
+- Astra (`gpt-6-astra`) has a dark-purple glowing starfield that animates when selected or hovered and respects Reduce Motion.
+- A header update button opens Sparkle in the companion app; Sparkle is not loaded into DockDoor Pro.
 - One-click Fast mode for switching new chats to Spark + Instant and restoring the previous defaults when disabled.
 - DockDoor settings schema for session folder, usage state file, recent session count, budget window, rainbow mode, primary card, rotation interval, hover pause, and freshness status.
 
@@ -50,35 +56,29 @@ See [examples/usage.json](examples/usage.json) for the account-usage shape used 
 
 ## Easy Mac Installation
 
-For another Mac, including a Mac mini, download the DMG from the [v4.0.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v4.0.0):
+For another Mac, including a Mac mini, download the DMG from the [v4.1.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v4.1.0):
 
-1. Open `Codex Usage for DockDoor Pro v4.0.0.dmg`.
+1. Open the v4.1.0 DMG.
 2. Double-click `Install Codex Usage.app`.
-3. Click **Install Widget** in the installer window.
+3. The app moves itself into your user Applications folder. Click **Install Widget** for a fresh install; an older widget is updated automatically.
 4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.
 
 The signed app installer does not open Terminal or require an administrator password. It preserves an existing widget as a recoverable backup, retains the marketplace identifier and dock placement, installs the universal Apple Silicon/Intel bundle, enables live account synchronization, and verifies the first snapshot. DockDoor Pro must be installed and activated on the destination Mac, and Codex or ChatGPT must be signed in for account usage data.
 
 ## Automatic Updates
 
-The Mac installer adds a lightweight updater that runs at login and every six hours. It checks the latest stable GitHub release and exits immediately when the installed version is current. For an available update, it:
+Click the **Check for widget updates** icon in the widget header, or **Check for Updates** in `~/Applications/Install Codex Usage.app`.
 
-- Compares semantic versions and never downgrades a newer local build.
-- Downloads only `CodexProjectTracker.bundle.zip` from the official release.
-- Requires the archive SHA-256 to match GitHub's published asset digest.
-- Validates the property list and both `arm64` and `x86_64` architectures before touching the installed widget.
-- Stages the complete replacement before stopping DockDoor Pro.
-- Preserves the existing hashed bundle name, marketplace identifier, and dock placement.
-- Saves the previous bundle under `~/Library/Application Support/DockDoorPro/WidgetUpdaterBackups/`.
-- Restarts DockDoor Pro only when it was already running.
+- Sparkle 2.9.6 checks a signed appcast and verifies Ed25519 update signatures.
+- The companion downloads the signed/notarized application archive, asks before installing, and relaunches.
+- On relaunch, a newer bundled widget is staged and signature-checked before DockDoor Pro quits.
+- Existing widget filenames and dock placement are retained; backups are kept in `~/Library/Application Support/DockDoorPro/WidgetInstallerBackups/` and restored if installation fails.
+- DockDoor Pro restarts to load the update. The companion closes when you dismiss it.
+- A login/six-hour LaunchAgent performs short background checks and exits after each completed check. An available update can show Sparkle's update prompt.
 
-Updater logs are stored at `~/Library/Logs/CodexUsageWidget/updater.log`. Run an immediate check with:
+**One-time migration:** Users on v4.0.0 or earlier must open the v4.1.0 DMG once. Installing only the widget bundle cannot install Sparkle. The marketplace edition continues to use DockDoor Pro's own update system.
 
-```bash
-"$HOME/Library/Application Support/CodexUsageWidget/update-codex-widget.sh"
-```
-
-Release tags trigger `.github/workflows/release.yml`, which verifies `VERSION`, validates the usage fixture and bundle architectures, builds the universal widget and Mac installers, and creates or refreshes the GitHub release assets automatically.
+Release tags trigger `.github/workflows/release.yml`, which builds universal packages, notarizes and staples the app and DMG, signs the appcast, and publishes immutable release assets. Already-published releases are skipped so their signatures and downloads cannot be silently replaced.
 
 Build fresh DMG and ZIP transfer packages with the signed installer app:
 
@@ -154,7 +154,7 @@ This repository is the full-featured release and documentation home for marketpl
 Marketplace companion checklist:
 
 - The original tracker remains under `codex-project-tracker`.
-- The separate marketplace widget uses `codex-usage` and reads `~/.codex/usage.json` only.
+- The separate marketplace widget uses `codex-usage` and reads Codex session telemetry or an optional `~/.codex/usage.json` override.
 - The marketplace widget contains only `widget.json` and Swift source files.
 - The full installer, updater, live-sync helper, screenshots, and release notes remain standalone assets in this repository.
 - Use [docs/MARKETPLACE_SUBMISSION.md](docs/MARKETPLACE_SUBMISSION.md) for the boundary and review checklist.

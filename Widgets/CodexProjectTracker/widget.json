@@ -6,5 +6,5 @@
     "iconSymbol": "gauge.with.dots.needle.67percent",
     "orientations": ["horizontal", "vertical"],
     "principalClass": "CodexProjectTrackerPlugin",
-    "sources": ["CodexProjectTracker.swift"]
+    "sources": ["CodexProjectTracker.swift", "CodexModelControls.swift"]
 }

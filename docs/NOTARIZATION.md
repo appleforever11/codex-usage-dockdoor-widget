@@ -1,6 +1,6 @@
 # Signed and Notarized Distribution
 
-The v4.0.0 package includes a Developer ID-signed installer app and is intended to be distributed as an Apple-notarized DMG/ZIP. This is the Gatekeeper-friendly path for Mac mini installation: users open the app in the DMG and click **Install Widget** instead of launching a `.command` file.
+The v4.1.0 package contains a Developer ID-signed, notarized Sparkle companion app. Users open the app in the DMG instead of launching a `.command` file. It copies itself to the user's Applications folder so future updates have a writable, stable destination.
 
 ## Requirements
 
@@ -29,6 +29,7 @@ xcrun notarytool store-credentials codex-notary \
 export CODEX_NOTARY_PROFILE=codex-notary
 Scripts/notarize-release.sh
 Scripts/validate-v4.sh
+Scripts/generate-appcast.sh
 ```
 
 The notarization profile is stored in the macOS keychain. Do not commit certificates, private keys, app-specific passwords, or API keys.
@@ -45,8 +46,13 @@ The release workflow expects these repository secrets:
 | `APPLE_NOTARY_APPLE_ID` | Apple ID used for notarization. |
 | `APPLE_NOTARY_TEAM_ID` | Apple Developer Team ID. |
 | `APPLE_NOTARY_APP_SPECIFIC_PASSWORD` | App-specific password for `notarytool`. |
+| `SPARKLE_PRIVATE_KEY` | Dedicated Sparkle Ed25519 private key exported securely from the release keychain. Never commit it. |
 
-The workflow creates a temporary keychain, imports the certificate, builds a signed universal widget and installer app, submits both the DMG and ZIP to Apple, staples the DMG ticket, and verifies the signed output before publishing the release assets.
+The workflow creates a temporary keychain, builds the universal widget and companion, signs nested Sparkle components, notarizes the app archive, staples the app, then recreates the distribution archives. It notarizes and staples the DMG, verifies Gatekeeper acceptance, and signs the final app-only ZIP with Sparkle's dedicated key. Only the public key is stored in `Config/sparkle-public-key.txt`.
+
+`Scripts/fetch-sparkle.sh` pins Sparkle 2.9.6 and verifies its published SHA-256. The app's feed points to the latest release's `appcast.xml`; its enclosure points to the immutable `CodexUsage-v<version>.zip` asset. Do not regenerate or replace an archive after signing its appcast. Existing published releases are skipped by CI.
+
+The local signing account is `codex-usage-widget`. `Scripts/generate-appcast.sh` uses that Keychain item locally or the dedicated GitHub secret in CI. Keychain may ask the release operator to grant access to Sparkle's signing tool.
 
 ## Verification
 
@@ -55,5 +61,6 @@ After notarization, the release pipeline verifies:
 - The widget has a valid Developer ID signature.
 - The installer app has a valid Developer ID signature.
 - The widget contains both `arm64` and `x86_64` slices.
-- The DMG has a valid stapled ticket.
+- The companion and DMG have valid stapled tickets and pass Gatekeeper assessment.
 - Apple reports the DMG and ZIP submissions as `Accepted`.
+- The Sparkle enclosure signature and byte length match the final app-only archive.

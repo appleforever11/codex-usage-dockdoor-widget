@@ -22,6 +22,7 @@ cat >"$launch_agent" <<PLIST
     <key>ProgramArguments</key>
     <array>
         <string>$installed_updater</string>
+        <string>--background</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -40,8 +41,7 @@ PLIST
 /usr/bin/plutil -lint "$launch_agent"
 /bin/launchctl bootout "gui/$UID" "$launch_agent" >/dev/null 2>&1 || true
 /bin/launchctl bootstrap "gui/$UID" "$launch_agent"
-/bin/launchctl kickstart -k "gui/$UID/com.appleforever11.codex-widget-updater"
 
-print "Installed Codex Usage updater."
+print "Installed Codex Usage Sparkle update checks."
 print "Schedule: at login and every 6 hours"
 print "Logs: $log_dir/updater.log"

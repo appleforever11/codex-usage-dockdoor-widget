@@ -1,55 +1,23 @@
-# Marketplace Submission Notes
+# Marketplace Submission
 
-Use this checklist when preparing a pull request against `ejbills/dockdoorpro-widgets`.
+Current Astra review: [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24).
 
-## Target
+The read-only `codex-usage` widget was merged in [PR #21](https://github.com/ejbills/dockdoorpro-widgets/pull/21). The Astra proposal builds on that widget; it does not replace the original `codex-project-tracker` or modify the separate chat-scrolling PR.
 
-- Marketplace repo: `https://github.com/ejbills/dockdoorpro-widgets`
-- Marketplace widget folder: `Widgets/CodexUsage`
-- Marketplace widget id: `codex-usage`
-- Widget name: `Codex Usage`
-- Standalone release: `4.0.0`
-- Marketplace PR: `https://github.com/ejbills/dockdoorpro-widgets/pull/21`
-- Canonical Discord discussion: `https://discord.com/channels/1312172160931856464/1532985348374659092`
+## Astra Scope
 
-The standalone v4.0.0 project is intentionally broader than the marketplace submission. The marketplace contribution is a separate widget with a new identifier so it cannot silently replace the existing `codex-project-tracker` installation.
+- Recognize Astra names from user-maintained usage snapshots and named rate-limit records in Codex session logs.
+- Render actual Astra limits with a dark-purple starfield, a sparkle icon, and a short dock label.
+- Keep low-budget orange/red warnings and respect Reduce Motion.
+- Animate a fixed 12-star Canvas only while the row is visible, at up to 18 frames per second. No performance benchmark is claimed.
+- Preserve identity, both dock orientations, existing data sources, and the host's update mechanism.
 
-## Pre-PR Checklist
+## Boundaries
 
-- Build the marketplace checkout with `bash scripts/build-widgets.sh Widgets/CodexProjectTracker Widgets/CodexUsage`.
-- Confirm `CodexProjectTracker` is unchanged from marketplace `main`.
-- Confirm `CodexUsage` has its own `codex-usage` identifier and supports both dock orientations.
-- Verify the marketplace widget reads `~/.codex/usage.json` without writing it.
-- Verify DockDoor settings exposes only the `Rainbow Usage Ring` preference for the marketplace widget.
-- Confirm the marketplace widget contains no scripts, LaunchAgent, process spawning, network calls, or Codex config writes.
-- Test the read-only bundle in the current DockDoor Pro build.
-- Keep the full installer, live-sync helper, updater, screenshots, and release notes in the standalone repository only.
+The marketplace folder contains only `widget.json` and Swift source. It does not write Codex configuration, spawn processes, perform network calls, install a LaunchAgent, or embed Sparkle. Astra is not shown as an independent allowance unless the source data labels it that way.
 
-## Suggested PR Title
+The full v4.1.0 model controls, live-sync helper, Sparkle companion, notarized installer, screenshots, and release notes remain in this standalone repository. Users of the personal build install its DMG once per Mac; marketplace users continue updating through DockDoor Pro.
 
-Add separate read-only Codex Usage widget
+## Checks
 
-## Suggested PR Summary
-
-This is a fresh marketplace submission for the separate `codex-usage` identifier. It leaves `codex-project-tracker` unchanged and adds a native SwiftUI usage widget that reads `~/.codex/usage.json` only. It shows General and model-specific percentages, credits, reset labels, reset countdowns, compact dock rotation, and a rainbow ring setting. The marketplace bundle contains only `widget.json` and Swift source: no config writes, process spawning, network calls, LaunchAgent, scripts, or installer. The full v4.0.0 project and optional local synchronization tooling remain in this standalone repository.
-
-## Suggested Discord Patch Notes
-
-**Codex Usage Widget v4.0.0**
-
-This is the big Codex Usage release for DockDoor Pro. The widget has evolved from a simple tracker into a polished, lightweight Codex command center right in the dock.
-
-- New usage countdown ring built for quick scanning from the dock.
-- Optional rainbow/glow usage tracking toggle from the widget panel and DockDoor settings.
-- Credits, general limits, model-specific limits, reset dates, tasks, and chats in one compact view.
-- Smooth gradient model and reasoning selectors for Codex defaults.
-- Recent chats stay selectable and open Codex tasks directly when possible.
-- Live account synchronization through Codex's official local app-server, fixing stale General and Spark percentages.
-- Atomic one-minute snapshots with bounded retries and preservation of the last valid reading.
-- Ultra-thin native SwiftUI implementation with local file reads, no persistent helper daemon, and tuned refresh intervals for low energy and RAM use.
-- Responsive dock rotation for usage, model, task, chat, and credit cards without heavy polling.
-- Freshness-aware account snapshots, explicit refresh, stale-data warnings, and reset countdowns so the displayed percentage is traceable to a current source.
-- Configurable primary card, rotation interval, hover pause, and data-status display.
-- Repo-ready package with screenshots, examples, changelog, and marketplace submission notes.
-
-Note: model/reasoning controls update Codex defaults for new work. They do not change already-running chats. The full v4.0.0 installer and updater remain standalone because marketplace widgets must stay read-only and contain only their widget manifest and source files.
+Build with `bash scripts/build-widgets.sh Widgets/CodexUsage`. Verify the new sources match the manifest, the binary contains arm64 and x86_64 slices, and the unsafe-API lint passes. Use `Scripts/test-marketplace-astra.sh <marketplace-checkout>` from the standalone repository for focused decoding and label checks.

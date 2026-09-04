@@ -5,13 +5,16 @@ Codex Usage is designed to stay thin inside DockDoor Pro.
 ## Runtime Shape
 
 - Native SwiftUI rendering.
+- Astra's 12-star Canvas schedules up to 18 updates per second while visible and selected or hovered. It pauses when inactive or hidden and respects Reduce Motion. Its energy and memory impact have not been benchmarked.
 - Widget-side local file reads only.
 - No widget-side network calls or subprocess launches.
 - No persistent helper daemon.
-- No external package dependencies.
+- No external package dependencies in the widget. Sparkle 2.9.6 is embedded only in the standalone companion application.
 - No persistent background process outside DockDoor Pro's widget host.
 
 The optional live-sync LaunchAgent runs one short Codex app-server request every 60 seconds, writes the result atomically, and exits. It uses Codex's existing signed-in local service rather than making a separate web request.
+
+The update LaunchAgent opens the companion at login and every six hours for a Sparkle check. The companion exits when a background update cycle finishes; a manual check or an installation keeps its window open until dismissed. Sparkle performs network downloads outside DockDoor Pro. End-to-end energy and RAM costs have not been benchmarked.
 
 ## Refresh Behavior
 

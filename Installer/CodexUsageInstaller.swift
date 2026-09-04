@@ -25,6 +25,7 @@ private struct ProcessResult {
 }
 
 private final class InstallerViewController: NSViewController {
+    var updates: CompanionUpdates?
     private let statusLabel = NSTextField(labelWithString: "Ready to install the latest Codex Usage widget.")
     private let detailLabel = NSTextField(labelWithString: "")
     private let installButton = NSButton(title: "Install Widget", target: nil, action: nil)
@@ -53,7 +54,8 @@ private final class InstallerViewController: NSViewController {
         let titleLabel = NSTextField(labelWithString: "Codex Usage for DockDoor Pro")
         titleLabel.font = .systemFont(ofSize: 22, weight: .semibold)
 
-        let subtitleLabel = NSTextField(labelWithString: "Install the current widget on this Mac")
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+        let subtitleLabel = NSTextField(labelWithString: "Version \(version)")
         subtitleLabel.font = .systemFont(ofSize: 14)
         subtitleLabel.textColor = .secondaryLabelColor
 
@@ -106,7 +108,9 @@ private final class InstallerViewController: NSViewController {
         cancelButton.action = #selector(cancel)
         cancelButton.bezelStyle = .rounded
 
-        let buttonStack = NSStackView(views: [cancelButton, installButton])
+        let updateButton = NSButton(title: "Check for Updates…", target: updates, action: #selector(CompanionUpdates.checkForUpdates))
+        updateButton.bezelStyle = .rounded
+        let buttonStack = NSStackView(views: [updateButton, cancelButton, installButton])
         buttonStack.orientation = .horizontal
         buttonStack.spacing = 10
         buttonStack.alignment = .centerY
@@ -136,10 +140,11 @@ private final class InstallerViewController: NSViewController {
         NSApp.terminate(nil)
     }
 
-    @objc private func install() {
+    @objc func install() {
         guard !isInstalling else { return }
 
         isInstalling = true
+        updates?.isInstallingWidget = true
         installButton.isEnabled = false
         cancelButton.isEnabled = false
         statusLabel.stringValue = "Installing…"
@@ -188,6 +193,7 @@ private final class InstallerViewController: NSViewController {
 
     private func finishSuccessfully(output: String) {
         isInstalling = false
+        updates?.isInstallingWidget = false
         cancelButton.isEnabled = true
         installButton.isEnabled = true
         installButton.title = "Close"
@@ -200,6 +206,7 @@ private final class InstallerViewController: NSViewController {
 
     private func finishWithError(_ error: Error) {
         isInstalling = false
+        updates?.isInstallingWidget = false
         cancelButton.isEnabled = true
         installButton.isEnabled = true
         statusLabel.stringValue = "Installation could not be completed."
@@ -221,9 +228,28 @@ private final class InstallerViewController: NSViewController {
 
 final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow?
+    private var updates: CompanionUpdates?
+    private var pendingCheck = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        do {
+            if try CompanionUpdates.relocateIfNeeded(completion: { error in
+                if let error { NSAlert(error: error).runModal() }
+                NSApp.terminate(nil)
+            }) { return }
+        } catch {
+            NSAlert(error: error).runModal()
+            NSApp.terminate(nil)
+            return
+        }
+        let updates = CompanionUpdates()
+        updates.backgroundOnly = CommandLine.arguments.contains("--background")
+        self.updates = updates
+        do { try updates.start() } catch {
+            NSAlert(error: error).runModal()
+        }
         let controller = InstallerViewController()
+        controller.updates = updates
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 520, height: 350),
             styleMask: [.titled, .closable],
@@ -234,9 +260,30 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
         window.isReleasedWhenClosed = false
         window.contentViewController = controller
         window.center()
-        window.makeKeyAndOrderFront(nil)
         self.window = window
-        NSApp.activate(ignoringOtherApps: true)
+        let shouldInstall = CompanionUpdates.hasNewerWidgetPayload && !CommandLine.arguments.contains("--no-relocate")
+        if !updates.backgroundOnly || shouldInstall {
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+        } else {
+            NSApp.setActivationPolicy(.accessory)
+        }
+        DispatchQueue.main.async {
+            if shouldInstall {
+                updates.backgroundOnly = false
+                controller.install()
+            } else if self.pendingCheck || CommandLine.arguments.contains("--check-for-updates") {
+                updates.checkForUpdates()
+            } else if updates.backgroundOnly {
+                updates.checkInBackground()
+            }
+        }
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard urls.contains(where: { $0.scheme == "codexusage" && $0.host == "check-for-updates" }) else { return }
+        pendingCheck = true
+        updates?.checkForUpdates()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -244,8 +291,13 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-let application = NSApplication.shared
-let delegate = InstallerAppDelegate()
-application.delegate = delegate
-application.setActivationPolicy(.regular)
-application.run()
+@main
+enum InstallerMain {
+    static func main() {
+        let application = NSApplication.shared
+        let delegate = InstallerAppDelegate()
+        application.delegate = delegate
+        application.setActivationPolicy(.regular)
+        withExtendedLifetime(delegate) { application.run() }
+    }
+}

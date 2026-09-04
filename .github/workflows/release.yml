@@ -9,7 +9,24 @@ permissions:
   contents: write
 
 jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.check.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo 'publish=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'publish=true' >> "$GITHUB_OUTPUT"
+          fi
   build-and-publish:
+    needs: check-release
+    if: needs.check-release.outputs.publish == 'true'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +68,13 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_NOTARY_APP_SPECIFIC_PASSWORD }}
         run: Scripts/notarize-release.sh
 
+      - name: Sign Sparkle update feed
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          test -n "$SPARKLE_PRIVATE_KEY"
+          Scripts/generate-appcast.sh
+
       - name: Publish release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -58,6 +82,8 @@ jobs:
         run: |
           version="$(<VERSION)"
           assets=(
+            "Dist/CodexUsage-v$version.zip"
+            "Dist/appcast.xml"
             "Dist/Codex Usage for DockDoor Pro v$version.dmg"
             "Dist/Codex Usage for DockDoor Pro v$version.zip"
             "build/CodexProjectTracker.bundle.zip"
@@ -69,11 +95,7 @@ jobs:
             "Scripts/uninstall-widget-updater.sh"
           )
 
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
-          else
-            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+          gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
               --title "Codex Usage Widget v$version" \
               --generate-notes \
               --verify-tag
-          fi

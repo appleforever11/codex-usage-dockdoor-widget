@@ -401,6 +401,16 @@ private struct CodexTrackerPanelView: View {
                     .font(.headline)
                 Spacer()
                 Button {
+                    CodexAppLauncher.checkForUpdates()
+                } label: {
+                    Image(systemName: "arrow.down.circle")
+                        .frame(width: 22, height: 22)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help("Check for widget updates")
+                .accessibilityLabel("Check for widget updates")
+                Button {
                     Task { await refreshSnapshot(force: true) }
                 } label: {
                     Image(systemName: isRefreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
@@ -665,166 +675,6 @@ private struct DataStatusRow: View {
     }
 }
 
-private struct ModelControlSection: View {
-    let settings: CodexModelSettings
-    let onChange: (String, String) -> Void
-
-    private let models: [CodexPickerOption] = [
-        CodexPickerOption(
-            label: "Luna",
-            value: "gpt-5.6-luna",
-            colors: [Color(red: 0.18, green: 0.50, blue: 1.00), Color(red: 0.36, green: 0.22, blue: 0.95)]
-        ),
-        CodexPickerOption(
-            label: "Sol",
-            value: "gpt-5.6-sol",
-            colors: [Color(red: 1.00, green: 0.60, blue: 0.20), Color(red: 0.95, green: 0.24, blue: 0.44)]
-        ),
-        CodexPickerOption(
-            label: "Spark",
-            value: "gpt-5.3-codex-spark",
-            colors: [Color(red: 0.20, green: 0.84, blue: 0.48), Color(red: 0.05, green: 0.66, blue: 0.92)]
-        ),
-    ]
-
-    private let reasoning: [CodexPickerOption] = [
-        CodexPickerOption(
-            label: "Instant",
-            value: "instant",
-            colors: [Color(red: 0.12, green: 0.62, blue: 1.00), Color(red: 0.20, green: 0.82, blue: 0.80)]
-        ),
-        CodexPickerOption(
-            label: "Medium",
-            value: "medium",
-            colors: [Color(red: 0.58, green: 0.44, blue: 1.00), Color(red: 0.78, green: 0.38, blue: 0.96)]
-        ),
-        CodexPickerOption(
-            label: "Max",
-            value: "max",
-            colors: [Color(red: 1.00, green: 0.46, blue: 0.24), Color(red: 0.92, green: 0.18, blue: 0.56)]
-        ),
-    ]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Codex Defaults")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.primary.opacity(0.86))
-                Spacer()
-                Text("\(settings.shortModelName) • \(settings.reasoningLabel)")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack(spacing: 6) {
-                ForEach(models, id: \.value) { option in
-                    CodexChoiceButton(
-                        option: option,
-                        isSelected: settings.model == option.value
-                    ) {
-                        onChange(option.value, settings.reasoningEffort)
-                    }
-                }
-            }
-
-            HStack(spacing: 6) {
-                ForEach(reasoning, id: \.value) { option in
-                    CodexChoiceButton(
-                        option: option,
-                        isSelected: settings.reasoningEffort == option.value
-                    ) {
-                        onChange(settings.model, option.value)
-                    }
-                }
-            }
-        }
-        .padding(10)
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.white.opacity(0.070))
-                .overlay {
-                    LinearGradient(
-                        colors: [.white.opacity(0.090), .white.opacity(0.025)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                }
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(.white.opacity(0.105), lineWidth: 1)
-        }
-        .help("Updates ~/.codex/config.toml defaults for new Codex work.")
-    }
-}
-
-private struct CodexPickerOption {
-    let label: String
-    let value: String
-    let colors: [Color]
-}
-
-private struct CodexChoiceButton: View {
-    let option: CodexPickerOption
-    let isSelected: Bool
-    let action: () -> Void
-    @State private var isHovering = false
-
-    var body: some View {
-        Button(action: action) {
-            Text(option.label)
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(.white.opacity(isSelected ? 0.98 : 0.88))
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-                .frame(maxWidth: .infinity)
-                .frame(height: 34)
-                .background(buttonFill)
-                .overlay(buttonStroke)
-                .shadow(color: selectedGlow, radius: isSelected ? 8 : 0, y: isSelected ? 2 : 0)
-                .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
-    }
-
-    private var buttonFill: some View {
-        RoundedRectangle(cornerRadius: 11, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: isSelected
-                        ? option.colors
-                        : option.colors.map { $0.opacity(isHovering ? 0.32 : 0.18) },
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 11, style: .continuous)
-                    .fill(.white.opacity(isSelected ? 0.08 : (isHovering ? 0.055 : 0.025)))
-            }
-    }
-
-    private var buttonStroke: some View {
-        RoundedRectangle(cornerRadius: 11, style: .continuous)
-            .stroke(
-                LinearGradient(
-                    colors: isSelected
-                        ? [.white.opacity(0.55), option.colors.last?.opacity(0.65) ?? .white.opacity(0.30)]
-                        : [.white.opacity(isHovering ? 0.25 : 0.12), .white.opacity(0.05)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                lineWidth: isSelected ? 1.25 : 1
-            )
-    }
-
-    private var selectedGlow: Color {
-        (option.colors.last ?? .accentColor).opacity(0.38)
-    }
-}
 
 private struct StatPill: View {
     let title: String
@@ -920,30 +770,6 @@ private enum CodexCardKind: String {
     case credits
 }
 
-private struct CodexModelSettings {
-    var model: String
-    var reasoningEffort: String
-
-    static let `default` = CodexModelSettings(model: "gpt-5.6-luna", reasoningEffort: "medium")
-    static let fast = CodexModelSettings(model: "gpt-5.3-codex-spark", reasoningEffort: "instant")
-
-    var isFastMode: Bool {
-        model == Self.fast.model && reasoningEffort == Self.fast.reasoningEffort
-    }
-
-    var shortModelName: String {
-        if model.localizedCaseInsensitiveContains("spark") { return "Spark" }
-        if model.localizedCaseInsensitiveContains("luna") { return "Luna" }
-        if model.localizedCaseInsensitiveContains("sol") { return "Sol" }
-        if model.count > 14 { return String(model.prefix(14)) }
-        return model
-    }
-
-    var reasoningLabel: String {
-        if reasoningEffort == "max" { return "Max" }
-        return reasoningEffort.prefix(1).uppercased() + reasoningEffort.dropFirst()
-    }
-}
 
 private struct CodexDockCard: Identifiable {
     let id = UUID()
@@ -1196,6 +1022,16 @@ private struct CodexSession: Identifiable {
 }
 
 private enum CodexAppLauncher {
+    static func checkForUpdates() {
+        let companion = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Applications/Install Codex Usage.app")
+        if FileManager.default.fileExists(atPath: companion.path) {
+            NSWorkspace.shared.open(URL(string: "codexusage://check-for-updates")!)
+        } else {
+            NSWorkspace.shared.open(URL(string: "https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest")!)
+        }
+    }
+
     private static let codexAppURLs = [
         URL(fileURLWithPath: "/Applications/Codex.app"),
         URL(fileURLWithPath: "/Applications/ChatGPT.app"),
@@ -1286,7 +1122,7 @@ private enum CodexConfigStore {
     }
 
     static func update(model: String, reasoningEffort: String) {
-        let allowedModels = ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.3-codex-spark"]
+        let allowedModels = ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.3-codex-spark", CodexModelSettings.astraModel]
         let allowedReasoning = ["instant", "medium", "max"]
         guard allowedModels.contains(model), allowedReasoning.contains(reasoningEffort) else { return }
 

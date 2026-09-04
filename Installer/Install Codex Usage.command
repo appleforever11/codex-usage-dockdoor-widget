@@ -11,10 +11,20 @@ version="$(tr -d '[:space:]' < "$package_dir/VERSION")"
 widgets_dir="$HOME/Library/Application Support/DockDoorPro/Widgets"
 backup_root="$HOME/Library/Application Support/DockDoorPro/WidgetInstallerBackups"
 timestamp="$(/bin/date '+%Y%m%d-%H%M%S')"
-backup_dir="$backup_root/$timestamp"
+backup_dir="$backup_root/$timestamp-$$"
+staging=""
+replacement_pending=0
 
 finish() {
     local exit_code="$1"
+    if [[ "$exit_code" -ne 0 && "$replacement_pending" -eq 1 ]]; then
+        /bin/rm -rf "$widgets_dir/$target_name"
+        for saved in "$backup_dir"/*.bundle(N); do
+            /usr/bin/ditto "$saved" "$widgets_dir/${saved:t}"
+        done
+        /usr/bin/open -a "DockDoor Pro" || true
+    fi
+    [[ -z "$staging" ]] || /bin/rm -rf "$staging"
     printf '\n'
     if [[ "$exit_code" -eq 0 ]]; then
         print "Installation complete. You can close this window."
@@ -43,12 +53,22 @@ if [[ ! -d "$payload_bundle" || ! -x "$sync_installer" || ! -x "$updater_install
     exit 1
 fi
 
+/usr/bin/codesign --verify --deep --strict "$payload_bundle"
+/bin/mkdir -p "$widgets_dir" "$backup_dir"
+staging="$(/usr/bin/mktemp -d "$widgets_dir/.codex-install.XXXXXX")"
+/usr/bin/ditto "$payload_bundle" "$staging/CodexProjectTracker.bundle"
+/usr/bin/codesign --verify --deep --strict "$staging/CodexProjectTracker.bundle"
+
 print "1. Closing DockDoor Pro..."
 /usr/bin/osascript -e 'tell application "DockDoor Pro" to quit' >/dev/null 2>&1 || true
 for _ in {1..20}; do
     /usr/bin/pgrep -x "DockDoor Pro" >/dev/null 2>&1 || break
     sleep 0.25
 done
+if /usr/bin/pgrep -x "DockDoor Pro" >/dev/null 2>&1; then
+    print -u2 "DockDoor Pro did not quit. Close it and try again; the installed widget was not changed."
+    exit 1
+fi
 
 /bin/mkdir -p "$widgets_dir" "$backup_dir"
 existing_bundles=("$widgets_dir"/CodexProjectTracker*.bundle(N))
@@ -58,15 +78,18 @@ if (( ${#existing_bundles[@]} > 0 )); then
     target_name="${existing_bundles[1]:t}"
     print "2. Backing up the existing widget..."
     for existing_bundle in "${existing_bundles[@]}"; do
-        /bin/mv "$existing_bundle" "$backup_dir/"
+        /usr/bin/ditto "$existing_bundle" "$backup_dir/${existing_bundle:t}"
     done
 else
     print "2. No previous Codex widget found; installing fresh."
 fi
 
 print "3. Installing the universal Codex Usage widget..."
-/usr/bin/ditto "$payload_bundle" "$widgets_dir/$target_name"
-/usr/bin/xattr -dr com.apple.quarantine "$widgets_dir/$target_name" 2>/dev/null || true
+replacement_pending=1
+for existing_bundle in "${existing_bundles[@]}"; do
+    /bin/rm -rf "$existing_bundle"
+done
+/bin/mv "$staging/CodexProjectTracker.bundle" "$widgets_dir/$target_name"
 
 print "4. Installing live Codex account synchronization..."
 "$sync_installer"
@@ -93,6 +116,7 @@ fi
 
 print "7. Starting DockDoor Pro..."
 /usr/bin/open -a "DockDoor Pro"
+replacement_pending=0
 
 print ""
 print "Widget installed at: $widgets_dir/$target_name"

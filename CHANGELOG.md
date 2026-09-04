@@ -1,5 +1,25 @@
 # Changelog
 
+## 4.1.0 - Astra and Signed Sparkle Updates (2026-09-04)
+
+This focused feature release adds Astra as a first-class next-chat model while preserving the tracker's local-first performance and existing DockDoor Pro layout.
+
+- Added Astra (`gpt-6-astra`) to the Codex Defaults model picker.
+- Added a dark-purple glowing starfield treatment with deterministic twinkle animation for the Astra button.
+- Paused Astra animation when the control is neither selected nor hovered to avoid unnecessary wakeups.
+- Respect macOS Reduce Motion and stop the starfield timeline when the control disappears.
+- Reflowed the model controls into a four-column grid so Astra joins Luna, Sol, and Spark without cramped labels or edge collisions.
+- Added a sparkle glyph and stronger selected-state edge treatment so Astra remains recognizable in a translucent DockDoor panel.
+- Added Astra name resolution to the compact model card and accepted Astra in the local defaults writer.
+- Kept the existing Max reasoning option and Fast mode behavior unchanged; Astra applies to new Codex work only.
+- Use a fixed 12-star SwiftUI Canvas at a maximum schedule of 18 updates per second. Energy and memory impact have not been benchmarked.
+- Added a widget-header update button and Sparkle 2.9.6 in the standalone companion app, not in DockDoor Pro's process.
+- Added signed Ed25519 update archives, a release appcast, notarized application payloads, and a notarized DMG.
+- The companion installs itself in the user's Applications folder; after a Sparkle update it applies the bundled widget and restarts DockDoor Pro.
+- Stage and verify the widget before replacement, preserve its existing filename, and restore the backup on installation failure.
+- Replaced the legacy direct-download updater with short Sparkle checks at login and every six hours. Existing users need one v4.1.0 DMG installation per Mac.
+- The separate marketplace proposal adds read-only Astra usage styling only. It contains no Sparkle framework, configuration writes, or helper installer.
+
 ## 4.0.0 - Fresh Usage and Responsive Dock Release (2026-08-22)
 
 Codex Usage 4.0.0 is a major reliability and interaction release. It makes the widget much clearer about where its usage numbers come from, keeps the dock responsive during refreshes, and gives users more control over what the compact card shows.

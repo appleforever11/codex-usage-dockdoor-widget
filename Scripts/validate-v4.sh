@@ -12,11 +12,29 @@ source_file="$root_dir/Widgets/CodexProjectTracker/CodexProjectTracker.swift"
 widget_json="$root_dir/Widgets/CodexProjectTracker/widget.json"
 usage_fixture="$root_dir/examples/usage.json"
 
-[[ "$version" == "4.0.0" ]] || { print -u2 "Expected VERSION 4.0.0, found $version"; exit 1; }
+[[ "$version" == "4.1.0" ]] || { print -u2 "Expected VERSION 4.1.0, found $version"; exit 1; }
 [[ -f "$bundle/Contents/MacOS/CodexProjectTracker" ]] || { print -u2 "Built widget bundle is missing."; exit 1; }
 [[ -f "$installer_app/Contents/MacOS/CodexUsageInstaller" ]] || { print -u2 "Installer app is missing."; exit 1; }
 /usr/bin/plutil -lint "$plist" >/dev/null
 /usr/bin/plutil -lint "$installer_app/Contents/Info.plist" >/dev/null
+installer_architectures="$(/usr/bin/lipo -archs "$installer_app/Contents/MacOS/CodexUsageInstaller")"
+[[ "$installer_architectures" == *arm64* && "$installer_architectures" == *x86_64* ]] || exit 1
+/usr/bin/python3 - "$installer_app" "$root_dir/Config/sparkle-public-key.txt" "$version" <<'PY'
+import pathlib
+import plistlib
+import sys
+
+app, key, version = sys.argv[1:]
+contents = pathlib.Path(app) / "Contents"
+with (contents / "Info.plist").open("rb") as stream:
+    info = plistlib.load(stream)
+assert info["CFBundleVersion"] == version
+assert info["SUPublicEDKey"] == pathlib.Path(key).read_text().strip()
+assert info["SUVerifyUpdateBeforeExtraction"] is True
+assert info["SUFeedURL"] == "https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest/download/appcast.xml"
+assert (contents / "Frameworks/Sparkle.framework/Sparkle").is_file()
+assert (contents / "Resources/Payload/CodexProjectTracker.bundle").is_dir()
+PY
 
 bundle_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")"
 [[ "$bundle_version" == "$version" ]] || { print -u2 "Bundle version $bundle_version does not match VERSION $version."; exit 1; }
@@ -36,6 +54,7 @@ fixture = json.load(open(sys.argv[2], encoding="utf-8"))
 
 assert widget["id"] == "codex-project-tracker"
 assert "CodexProjectTracker.swift" in widget["sources"]
+assert "CodexModelControls.swift" in widget["sources"]
 assert isinstance(fixture["updatedAt"], str)
 limits = fixture["limits"]
 assert len(limits) >= 2
@@ -64,4 +83,6 @@ if [[ "${CODEX_REQUIRE_SIGNING:-0}" == "1" ]]; then
 fi
 
 zsh -n "$root_dir/Scripts/sync-codex-usage.sh"
+zsh -n "$root_dir/Installer/Install Codex Usage.command"
+zsh -n "$root_dir/Scripts/generate-appcast.sh"
 print "Codex Usage v$version validation passed ($architectures)."

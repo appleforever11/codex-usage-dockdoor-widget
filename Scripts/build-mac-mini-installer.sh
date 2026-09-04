@@ -15,6 +15,9 @@ installer_app="$installer_build_dir/Install Codex Usage.app"
 installer_macos="$installer_app/Contents/MacOS"
 installer_resources="$installer_app/Contents/Resources"
 installer_source="$root_dir/Installer/CodexUsageInstaller.swift"
+sparkle_dir="$root_dir/build/sparkle"
+public_key="$(tr -d '[:space:]' < "$root_dir/Config/sparkle-public-key.txt")"
+zsh "$script_dir/fetch-sparkle.sh"
 
 "$script_dir/build-widgets.sh" "$root_dir/Widgets/CodexProjectTracker"
 
@@ -26,8 +29,11 @@ for arch in arm64 x86_64; do
     swiftc \
         -target "${arch}-apple-macosx14.0" \
         -framework AppKit \
+        -F "$sparkle_dir" -framework Sparkle \
+        -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
+        -parse-as-library \
         -o "$installer_macos/CodexUsageInstaller_${arch}" \
-        "$installer_source"
+        "$installer_source" "$root_dir/Installer/CompanionUpdates.swift"
 done
 lipo -create \
     "$installer_macos/CodexUsageInstaller_arm64" \
@@ -36,6 +42,8 @@ lipo -create \
 /bin/rm "$installer_macos/CodexUsageInstaller_arm64" "$installer_macos/CodexUsageInstaller_x86_64"
 /bin/cp "$root_dir/Installer/Install Codex Usage.command" "$installer_resources/"
 /bin/cp "$root_dir/VERSION" "$installer_resources/"
+/bin/mkdir -p "$installer_app/Contents/Frameworks"
+/usr/bin/ditto "$sparkle_dir/Sparkle.framework" "$installer_app/Contents/Frameworks/Sparkle.framework"
 /bin/mkdir -p "$installer_resources/Payload" "$installer_resources/Scripts"
 /usr/bin/ditto "$root_dir/build/CodexProjectTracker.bundle" "$installer_resources/Payload/CodexProjectTracker.bundle"
 for helper in \
@@ -76,12 +84,29 @@ done
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>SUFeedURL</key>
+    <string>https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest/download/appcast.xml</string>
+    <key>SUPublicEDKey</key>
+    <string>${public_key}</string>
+    <key>SUEnableAutomaticChecks</key>
+    <false/>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
+    <key>CFBundleURLTypes</key>
+    <array><dict>
+        <key>CFBundleURLName</key><string>Codex Usage Updates</string>
+        <key>CFBundleURLSchemes</key><array><string>codexusage</string></array>
+    </dict></array>
 </dict>
 </plist>
 PLIST
 
 if [[ -n "${CODEX_SIGNING_IDENTITY:-}" ]]; then
     print "Signing installer app with Developer ID..."
+    framework="$installer_app/Contents/Frameworks/Sparkle.framework/Versions/B"
+    for nested in "$framework/XPCServices/Downloader.xpc" "$framework/XPCServices/Installer.xpc" "$framework/Autoupdate" "$framework/Updater.app" "$installer_app/Contents/Frameworks/Sparkle.framework"; do
+        /usr/bin/codesign --force --options runtime --timestamp --sign "$CODEX_SIGNING_IDENTITY" "$nested"
+    done
     /usr/bin/codesign \
         --force \
         --deep \
