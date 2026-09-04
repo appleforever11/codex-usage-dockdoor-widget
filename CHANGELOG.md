@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.1 - Installer launch handoff (2026-09-04)
+
+- Launch the installed companion in a distinct process so Launch Services cannot reuse the DMG launcher and then quit it.
+- Mark the installed-copy handoff to avoid repeated relocation if macOS translocates the application.
+- Show an actionable error when an older companion is still running, and reopen the installer window when a background instance is activated.
+- The widget and marketplace edition are otherwise unchanged.
+
+
 ## 5.0.0 - Model Themes and Astra Sparkles (2026-09-04)
 
 - Added Astra, Luna, Sol, Terra, and Rainbow themes for the ring and expanded widget, selectable through the palette button.

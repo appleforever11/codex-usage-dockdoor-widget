@@ -256,10 +256,14 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         do {
             if try CompanionUpdates.relocateIfNeeded(completion: { error in
-                if let error { NSAlert(error: error).runModal() }
+                if let error {
+                    NSApp.activate(ignoringOtherApps: true)
+                    NSAlert(error: error).runModal()
+                }
                 NSApp.terminate(nil)
             }) { return }
         } catch {
+            NSApp.activate(ignoringOtherApps: true)
             NSAlert(error: error).runModal()
             NSApp.terminate(nil)
             return
@@ -300,6 +304,14 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
                 updates.checkInBackground()
             }
         }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        updates?.backgroundOnly = false
+        NSApp.setActivationPolicy(.regular)
+        window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        return true
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {

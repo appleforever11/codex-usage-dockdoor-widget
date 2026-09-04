@@ -59,7 +59,8 @@ final class CompanionUpdates: NSObject, SPUUpdaterDelegate {
     static func relocateIfNeeded(completion: @escaping (Error?) -> Void) throws -> Bool {
         let source = Bundle.main.bundleURL.standardizedFileURL
         let target = installedAppURL.standardizedFileURL
-        if source == target || CommandLine.arguments.contains("--no-relocate") { return false }
+        if source == target || CommandLine.arguments.contains("--no-relocate")
+            || CommandLine.arguments.contains("--installed-copy") { return false }
         let fm = FileManager.default
         try fm.createDirectory(at: target.deletingLastPathComponent(), withIntermediateDirectories: true)
         if fm.fileExists(atPath: target.path) {
@@ -70,7 +71,12 @@ final class CompanionUpdates: NSObject, SPUUpdaterDelegate {
             let incomingVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
             let running = NSRunningApplication.runningApplications(withBundleIdentifier: existing.bundleIdentifier ?? "")
                 .contains { $0.bundleURL?.standardizedFileURL == target }
-            if running || SUStandardVersionComparator.default.compareVersion(existingVersion, toVersion: incomingVersion) != .orderedAscending {
+            let existingIsCurrent = SUStandardVersionComparator.default.compareVersion(existingVersion, toVersion: incomingVersion) != .orderedAscending
+            if running && !existingIsCurrent {
+                throw NSError(domain: "CodexUsageInstaller", code: 2, userInfo: [NSLocalizedDescriptionKey:
+                    "An older Codex Usage installer is still running. Close that installer, then open this one again."])
+            }
+            if existingIsCurrent {
                 launch(target, completion: completion)
                 return true
             }
@@ -98,7 +104,11 @@ final class CompanionUpdates: NSObject, SPUUpdaterDelegate {
 
     private static func launch(_ url: URL, completion: @escaping (Error?) -> Void) {
         let configuration = NSWorkspace.OpenConfiguration()
-        configuration.arguments = Array(CommandLine.arguments.dropFirst())
+        // Without this, Launch Services can return the source process for the same
+        // bundle identifier. The source then exits and no installer window remains.
+        configuration.createsNewApplicationInstance = true
+        configuration.activates = !CommandLine.arguments.contains("--background")
+        configuration.arguments = CommandLine.arguments.dropFirst().filter { $0 != "--installed-copy" } + ["--installed-copy"]
         NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, error in
             DispatchQueue.main.async { completion(error) }
         }

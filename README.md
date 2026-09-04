@@ -4,7 +4,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Private installer:** `5.0.0` - model themes, Terra, Light reasoning, and Astra-only animated ring sparkles.
+**Private installer:** `5.0.1` - model themes, Terra, Light reasoning, and Astra-only animated ring sparkles.
 
 **Published update feed:** `4.1.0`. The 5.0.0 private installers are distributed locally; marketplace updates remain managed by DockDoor Pro.
 
