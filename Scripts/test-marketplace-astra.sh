@@ -11,5 +11,7 @@ swiftc -parse-as-library -target arm64-apple-macosx14.0 \
     -module-name DockDoorWidgetSDK \
     "$marketplace/Sources/DockDoorWidgetSDK/"*.swift \
     "$marketplace/Widgets/CodexUsage/AstraUsageBackground.swift" \
+    "$marketplace/Widgets/CodexUsage/CodexTheme.swift" \
+    "$marketplace/Widgets/CodexUsage/AstraRingSparkles.swift" \
     "$scratch/Test.swift" -o "$scratch/test"
 "$scratch/test"

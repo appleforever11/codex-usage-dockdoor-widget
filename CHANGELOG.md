@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.0.0 - Model Themes and Astra Sparkles (2026-09-04)
+
+- Added Astra, Luna, Sol, Terra, and Rainbow themes for the ring and expanded widget, selectable through the palette button.
+- Added Astra-only live sparkle animation on the filled progress arc, with a static Reduce Motion path.
+- Added Terra model controls, removed Spark selection and its shortcut, and mapped Light reasoning to Codex's supported low value.
+- Added matching companion app palettes. Sparkle remains exclusive to the private companion; the marketplace edition uses DockDoor Pro updates.
+- Refactored the widget into focused files, repaired extended-layout hover pausing and chat-list sizing, and improved refresh and configuration-write handling.
+- One signed universal installer supports MacBook, MacBook Neo, and Mac mini on macOS 14 or later.
+
+
 ## 4.1.0 - Astra and Signed Sparkle Updates (2026-09-04)
 
 This focused feature release adds Astra as a first-class next-chat model while preserving the tracker's local-first performance and existing DockDoor Pro layout.

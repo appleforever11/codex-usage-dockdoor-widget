@@ -33,7 +33,8 @@ for arch in arm64 x86_64; do
         -Xlinker -rpath -Xlinker @executable_path/../Frameworks \
         -parse-as-library \
         -o "$installer_macos/CodexUsageInstaller_${arch}" \
-        "$installer_source" "$root_dir/Installer/CompanionUpdates.swift"
+        "$installer_source" "$root_dir/Installer/CompanionUpdates.swift" \
+        "$root_dir/Installer/CompanionTheme.swift" "$root_dir/Widgets/CodexProjectTracker/CodexTheme.swift"
 done
 lipo -create \
     "$installer_macos/CodexUsageInstaller_arm64" \
@@ -126,7 +127,7 @@ fi
 /usr/bin/ditto "$installer_app" "$stage_dir/Install Codex Usage.app"
 /bin/cp "$root_dir/Installer/README - Mac mini.txt" "$stage_dir/"
 /bin/cp "$root_dir/VERSION" "$stage_dir/"
-/bin/cp "$root_dir/screenshots/codex-usage-discord-cover.png" "$stage_dir/Codex Usage Preview.png"
+/bin/cp "$root_dir/screenshots/codex-astra-theme.png" "$stage_dir/Codex Usage Preview.png"
 /usr/bin/xattr -cr "$stage_dir" 2>/dev/null || true
 
 if [[ -n "${CODEX_SIGNING_IDENTITY:-}" ]]; then

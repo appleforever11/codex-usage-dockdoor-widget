@@ -12,7 +12,7 @@ source_file="$root_dir/Widgets/CodexProjectTracker/CodexProjectTracker.swift"
 widget_json="$root_dir/Widgets/CodexProjectTracker/widget.json"
 usage_fixture="$root_dir/examples/usage.json"
 
-[[ "$version" == "4.1.0" ]] || { print -u2 "Expected VERSION 4.1.0, found $version"; exit 1; }
+[[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { print -u2 "Invalid semantic version: $version"; exit 1; }
 [[ -f "$bundle/Contents/MacOS/CodexProjectTracker" ]] || { print -u2 "Built widget bundle is missing."; exit 1; }
 [[ -f "$installer_app/Contents/MacOS/CodexUsageInstaller" ]] || { print -u2 "Installer app is missing."; exit 1; }
 /usr/bin/plutil -lint "$plist" >/dev/null
@@ -62,8 +62,8 @@ assert all(isinstance(limit.get("percentRemaining"), (int, float)) for limit in 
 assert all(isinstance(limit.get("resetAt"), str) for limit in limits)
 PY
 
-/usr/bin/grep -q 'CodexSnapshotBuildCache' "$source_file"
-/usr/bin/grep -q 'usageFreshness' "$source_file"
+/usr/bin/grep -q 'CodexSnapshotBuildCache' "$root_dir/Widgets/CodexProjectTracker/CodexTrackerStore.swift"
+/usr/bin/grep -q 'usageFreshness' "$root_dir/Widgets/CodexProjectTracker/CodexTrackerStore.swift"
 /usr/bin/grep -q 'primaryCard' "$source_file"
 /usr/bin/grep -q 'resetAt' "$root_dir/Scripts/sync-codex-usage.sh"
 

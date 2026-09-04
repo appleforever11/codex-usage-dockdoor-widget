@@ -29,7 +29,7 @@ ET.SubElement(item, "pubDate").text = email.utils.format_datetime(datetime.datet
 ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
-ET.SubElement(item, "description").text = "Astra model controls with purple star animation, plus signed Sparkle updates through the companion app. The companion applies the bundled widget to DockDoor Pro after updating."
+ET.SubElement(item, "description").text = "Model themes, Astra-only animated ring sparkles, Terra controls, and Light reasoning. Private-edition signed Sparkle updates remain in the companion app. The companion applies the bundled widget to DockDoor Pro after updating."
 ET.SubElement(item, "enclosure", {
     "url": f"https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/download/v{version}/CodexUsage-v{version}.zip",
     "length": str(pathlib.Path(archive).stat().st_size),

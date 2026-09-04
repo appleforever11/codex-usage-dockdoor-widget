@@ -1,9 +1,11 @@
-CODEX USAGE FOR DOCKDOOR PRO v4.1.0
+CODEX USAGE FOR DOCKDOOR PRO v5.0.0
 ====================================
+
+ONE UNIVERSAL INSTALLER FOR ALL THREE MACS
 
 QUICK INSTALL
 
-1. Install, launch, and activate DockDoor Pro on the Mac mini.
+1. Install, launch, and activate DockDoor Pro on your MacBook, MacBook Neo, or Mac mini.
 2. Install and sign in to the Codex or ChatGPT desktop app.
 3. Double-click "Install Codex Usage.app".
 4. The companion copies itself to your user Applications folder. Click "Install

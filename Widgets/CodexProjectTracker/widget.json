@@ -4,7 +4,24 @@
     "author": "appleforever11",
     "description": "Tracks Codex usage countdowns, credits, recent chats, tasks, and local Codex defaults from DockDoor Pro.",
     "iconSymbol": "gauge.with.dots.needle.67percent",
-    "orientations": ["horizontal", "vertical"],
+    "orientations": [
+        "horizontal",
+        "vertical"
+    ],
     "principalClass": "CodexProjectTrackerPlugin",
-    "sources": ["CodexProjectTracker.swift", "CodexModelControls.swift"]
+    "sources": [
+        "CodexProjectTracker.swift",
+        "CodexCompactView.swift",
+        "CodexUsageRing.swift",
+        "CodexPanelView.swift",
+        "CodexSessionViews.swift",
+        "CodexSnapshot.swift",
+        "CodexPreferences.swift",
+        "CodexTrackerStore.swift",
+        "CodexUsageDecoding.swift",
+        "CodexModelControls.swift",
+        "CodexTheme.swift",
+        "CodexConfigStore.swift",
+        "AstraRingSparkles.swift"
+    ]
 }

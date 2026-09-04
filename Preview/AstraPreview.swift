@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 private struct AstraPreview: View {
-    @State private var settings = CodexModelSettings(model: CodexModelSettings.astraModel, reasoningEffort: "max")
+    @State private var settings = CodexModelSettings(model: "gpt-5.6-terra", reasoningEffort: "medium")
 
     var body: some View {
         ModelControlSection(settings: settings) { model, reasoning in
@@ -30,10 +30,10 @@ private final class AstraPreviewApp: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         let host = NSHostingView(rootView: AstraPreview())
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 350, height: 145),
+            contentRect: NSRect(x: 0, y: 0, width: 350, height: 185),
             styleMask: [.titled, .closable], backing: .buffered, defer: false
         )
-        window.title = "Astra Button Preview"
+        window.title = "Model Controls • Design Preview"
         window.contentView = host
         window.center()
         window.makeKeyAndOrderFront(nil)

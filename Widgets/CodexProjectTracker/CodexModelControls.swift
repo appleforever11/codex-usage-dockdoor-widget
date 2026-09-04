@@ -16,9 +16,9 @@ struct ModelControlSection: View {
             colors: [Color(red: 1.00, green: 0.60, blue: 0.20), Color(red: 0.95, green: 0.24, blue: 0.44)]
         ),
         CodexPickerOption(
-            label: "Spark",
-            value: "gpt-5.3-codex-spark",
-            colors: [Color(red: 0.20, green: 0.84, blue: 0.48), Color(red: 0.05, green: 0.66, blue: 0.92)]
+            label: "Terra",
+            value: "gpt-5.6-terra",
+            colors: [Color(red: 0.48, green: 0.27, blue: 0.14), Color(red: 0.12, green: 0.62, blue: 0.40)]
         ),
         CodexPickerOption(
             label: "Astra",
@@ -29,8 +29,8 @@ struct ModelControlSection: View {
 
     private let reasoning: [CodexPickerOption] = [
         CodexPickerOption(
-            label: "Instant",
-            value: "instant",
+            label: "Light",
+            value: "low",
             colors: [Color(red: 0.12, green: 0.62, blue: 1.00), Color(red: 0.20, green: 0.82, blue: 0.80)]
         ),
         CodexPickerOption(
@@ -48,11 +48,11 @@ struct ModelControlSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Codex Defaults")
+                Text("New chat defaults")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.primary.opacity(0.86))
                 Spacer()
-                Text("\(settings.shortModelName) • \(settings.reasoningLabel)")
+                Text("\(settings.shortModelName) · \(settings.reasoningLabel)")
                     .font(.caption2.weight(.bold))
                     .foregroundStyle(.secondary)
             }
@@ -70,6 +70,12 @@ struct ModelControlSection: View {
                     }
                 }
             }
+
+            Text("REASONING")
+                .font(.system(size: 8, weight: .semibold, design: .rounded))
+                .tracking(1.2)
+                .foregroundStyle(.secondary)
+                .padding(.top, 4)
 
             HStack(spacing: 6) {
                 ForEach(reasoning, id: \.value) { option in
@@ -99,7 +105,7 @@ struct ModelControlSection: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(.white.opacity(0.105), lineWidth: 1)
         }
-        .help("Updates ~/.codex/config.toml defaults for new Codex work.")
+        .help("Choose the model and reasoning for new chats.")
     }
 }
 
@@ -113,13 +119,14 @@ private struct CodexChoiceButton: View {
     let option: CodexPickerOption
     let isSelected: Bool
     let action: () -> Void
+    @Environment(\.codexTheme) private var theme
     @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: isAstra ? 4 : 0) {
-                if isAstra {
-                    Image(systemName: "sparkles")
+            HStack(spacing: 5) {
+                if isModel {
+                    Image(systemName: isAstra ? "sparkles" : (option.label == "Luna" ? "moon.fill" : (option.label == "Terra" ? "globe.americas.fill" : "sun.max.fill")))
                         .font(.caption2.weight(.bold))
                         .symbolRenderingMode(.hierarchical)
                 }
@@ -130,10 +137,14 @@ private struct CodexChoiceButton: View {
             }
             .foregroundStyle(.white.opacity(isSelected ? 0.98 : 0.88))
             .frame(maxWidth: .infinity)
-                .frame(height: 34)
+                .frame(height: isModel ? 48 : 28)
                 .background {
                     if isAstra {
                         AstraButtonBackground(isSelected: isSelected, isHovering: isHovering)
+                    } else if option.label == "Terra" {
+                        TerraButtonBackground(isActive: isSelected || isHovering)
+                    } else if isModel {
+                        CelestialButtonBackground(isSun: option.label == "Sol", isActive: isSelected || isHovering)
                     } else {
                         buttonFill
                     }
@@ -152,6 +163,8 @@ private struct CodexChoiceButton: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
+    private var isModel: Bool { option.value.hasPrefix("gpt-") }
+
     private var isAstra: Bool {
         option.value == CodexModelSettings.astraModel
     }
@@ -161,7 +174,7 @@ private struct CodexChoiceButton: View {
             .fill(
                 LinearGradient(
                     colors: isSelected
-                        ? option.colors
+                        ? theme.colors.map { $0.opacity(0.48) }
                         : option.colors.map { $0.opacity(isHovering ? 0.32 : 0.18) },
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -192,6 +205,116 @@ private struct CodexChoiceButton: View {
     private var selectedGlow: Color {
         (isAstra ? Color(red: 0.54, green: 0.20, blue: 0.90) : (option.colors.last ?? .accentColor))
             .opacity(isAstra ? 0.52 : 0.38)
+    }
+}
+
+private struct TerraButtonBackground: View {
+    let isActive: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isVisible = false
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 18.0,
+                                paused: reduceMotion || !isVisible || !isActive)) { timeline in
+            Canvas { context, size in
+                let shape = Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 11)
+                context.clip(to: shape)
+                context.fill(shape, with: .linearGradient(Gradient(colors: [
+                    Color(red: 0.13, green: 0.075, blue: 0.045),
+                    Color(red: 0.28, green: 0.16, blue: 0.09),
+                    Color(red: 0.055, green: 0.22, blue: 0.15)
+                ]), startPoint: .zero, endPoint: CGPoint(x: size.width, y: size.height)))
+                let center = CGPoint(x: size.width * 0.85, y: size.height * 0.24)
+                let time = reduceMotion || !isActive ? 0 : timeline.date.timeIntervalSinceReferenceDate
+                let pulse = 0.25 + 0.08 * sin(time * 0.9)
+                for ring in 0..<4 {
+                    let radius = CGFloat(14 + ring * 7)
+                    let rect = CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
+                    context.stroke(Path(ellipseIn: rect), with: .color(Color(red: 0.70, green: 0.43, blue: 0.24).opacity(0.24)), lineWidth: 0.7)
+                }
+                let planet = CGRect(x: center.x - 11, y: center.y - 11, width: 22, height: 22)
+                var glow = context
+                glow.addFilter(.blur(radius: 5))
+                glow.fill(Path(ellipseIn: planet.insetBy(dx: -3, dy: -3)), with: .color(.green.opacity(pulse)))
+                context.fill(Path(ellipseIn: planet), with: .linearGradient(Gradient(colors: [
+                    Color(red: 0.34, green: 0.73, blue: 0.49),
+                    Color(red: 0.075, green: 0.32, blue: 0.21),
+                    Color(red: 0.07, green: 0.13, blue: 0.10)
+                ]), startPoint: CGPoint(x: planet.minX, y: planet.minY), endPoint: CGPoint(x: planet.maxX, y: planet.maxY)))
+                var surface = context
+                surface.clip(to: Path(ellipseIn: planet))
+                for stripe in 0..<3 {
+                    var contour = Path()
+                    let y = center.y - 7 + CGFloat(stripe * 6)
+                    contour.move(to: CGPoint(x: center.x - 12, y: y))
+                    contour.addCurve(to: CGPoint(x: center.x + 12, y: y + 3),
+                                     control1: CGPoint(x: center.x - 3, y: y - 7),
+                                     control2: CGPoint(x: center.x + 2, y: y + 9))
+                    surface.stroke(contour, with: .color(Color(red: 0.83, green: 0.64, blue: 0.37).opacity(0.65)), lineWidth: 1.2)
+                }
+                context.stroke(Path(ellipseIn: planet), with: .color(.mint.opacity(0.5)), lineWidth: 0.7)
+            }
+        }
+        .onAppear { isVisible = true }
+        .onDisappear { isVisible = false }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct CelestialButtonBackground: View {
+    let isSun: Bool
+    let isActive: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isVisible = false
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 18.0,
+                                paused: reduceMotion || !isVisible || !isActive)) { timeline in
+            Canvas { context, size in
+                let bounds = CGRect(origin: .zero, size: size)
+                let shape = Path(roundedRect: bounds, cornerRadius: 11)
+                context.clip(to: shape)
+                let colors: [Color] = isSun
+                    ? [Color(red: 0.20, green: 0.055, blue: 0.015), Color(red: 0.43, green: 0.16, blue: 0.025)]
+                    : [Color(red: 0.025, green: 0.07, blue: 0.20), Color(red: 0.075, green: 0.19, blue: 0.40)]
+                context.fill(shape, with: .linearGradient(Gradient(colors: colors), startPoint: .zero,
+                                                         endPoint: CGPoint(x: size.width, y: size.height)))
+                let time = reduceMotion || !isActive ? 0 : timeline.date.timeIntervalSinceReferenceDate
+                let center = CGPoint(x: size.width * 0.87, y: size.height * 0.23)
+                let tint: Color = isSun ? .orange : .cyan
+                for ring in 0..<4 {
+                    let radius = CGFloat(13 + ring * 9)
+                    let rect = CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
+                    context.stroke(Path(ellipseIn: rect), with: .color(tint.opacity(0.10 + Double(3 - ring) * 0.035)), lineWidth: isSun ? 3 : 0.7)
+                }
+                if isSun {
+                    for ray in 0..<16 {
+                        let angle = Double(ray) * .pi / 8 + time * 0.035
+                        var path = Path()
+                        path.move(to: CGPoint(x: center.x + cos(angle) * 12, y: center.y + sin(angle) * 12))
+                        path.addLine(to: CGPoint(x: center.x + cos(angle) * 20, y: center.y + sin(angle) * 20))
+                        context.stroke(path, with: .color(.orange.opacity(0.45)), lineWidth: 1)
+                    }
+                    context.fill(Path(ellipseIn: CGRect(x: center.x - 9, y: center.y - 9, width: 18, height: 18)),
+                                 with: .radialGradient(Gradient(colors: [.yellow, .orange]), center: center, startRadius: 0, endRadius: 11))
+                } else {
+                    let moon = CGRect(x: center.x - 10, y: center.y - 10, width: 20, height: 20)
+                    context.fill(Path(ellipseIn: moon), with: .color(Color(red: 0.72, green: 0.88, blue: 1)))
+                    context.fill(Path(ellipseIn: moon.offsetBy(dx: 6, dy: -4)), with: .color(colors[1]))
+                    for star in 0..<9 {
+                        let x = CGFloat((star * 31 + 7) % 100) / 100 * size.width
+                        let y = CGFloat((star * 17 + 11) % 47)
+                        let alpha = 0.35 + 0.2 * sin(time + Double(star))
+                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 1.2, height: 1.2)), with: .color(.white.opacity(alpha)))
+                    }
+                }
+            }
+        }
+        .onAppear { isVisible = true }
+        .onDisappear { isVisible = false }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -309,15 +432,10 @@ struct CodexModelSettings {
 
     static let astraModel = "gpt-6-astra"
     static let `default` = CodexModelSettings(model: "gpt-5.6-luna", reasoningEffort: "medium")
-    static let fast = CodexModelSettings(model: "gpt-5.3-codex-spark", reasoningEffort: "instant")
-
-    var isFastMode: Bool {
-        model == Self.fast.model && reasoningEffort == Self.fast.reasoningEffort
-    }
-
     var shortModelName: String {
         if model.localizedCaseInsensitiveContains("astra") { return "Astra" }
         if model.localizedCaseInsensitiveContains("spark") { return "Spark" }
+        if model.localizedCaseInsensitiveContains("terra") { return "Terra" }
         if model.localizedCaseInsensitiveContains("luna") { return "Luna" }
         if model.localizedCaseInsensitiveContains("sol") { return "Sol" }
         if model.count > 14 { return String(model.prefix(14)) }
@@ -325,6 +443,7 @@ struct CodexModelSettings {
     }
 
     var reasoningLabel: String {
+        if reasoningEffort == "low" || reasoningEffort == "instant" { return "Light" }
         if reasoningEffort == "max" { return "Max" }
         return reasoningEffort.prefix(1).uppercased() + reasoningEffort.dropFirst()
     }

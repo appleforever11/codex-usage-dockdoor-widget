@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import SwiftUI
 
 private enum InstallerError: LocalizedError {
     case missingPackage
@@ -24,8 +25,9 @@ private struct ProcessResult {
     let output: String
 }
 
-private final class InstallerViewController: NSViewController {
+final class InstallerViewController: NSViewController {
     var updates: CompanionUpdates?
+    var isDesignPreview = false
     private let statusLabel = NSTextField(labelWithString: "Ready to install the latest Codex Usage widget.")
     private let detailLabel = NSTextField(labelWithString: "")
     private let installButton = NSButton(title: "Install Widget", target: nil, action: nil)
@@ -35,15 +37,27 @@ private final class InstallerViewController: NSViewController {
     private var isInstalling = false
 
     override func loadView() {
-        view = NSView(frame: NSRect(x: 0, y: 0, width: 520, height: 350))
+        view = NSView(frame: NSRect(x: 0, y: 0, width: 560, height: 350))
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.appearance = NSAppearance(named: .darkAqua)
+        view.widthAnchor.constraint(equalToConstant: 560).isActive = true
+        let themeSurface = NSHostingView(rootView: CompanionThemeSurface())
+        themeSurface.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(themeSurface)
+        NSLayoutConstraint.activate([
+            themeSurface.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            themeSurface.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            themeSurface.topAnchor.constraint(equalTo: view.topAnchor),
+            themeSurface.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
 
         let iconView = NSImageView()
         iconView.image = NSImage(systemSymbolName: "shippingbox.fill", accessibilityDescription: "Codex Usage installer")
-        iconView.contentTintColor = .systemBlue
+        iconView.contentTintColor = .systemPurple
         iconView.imageScaling = .scaleProportionallyUpOrDown
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.setContentHuggingPriority(.required, for: .horizontal)
@@ -52,10 +66,11 @@ private final class InstallerViewController: NSViewController {
         iconView.heightAnchor.constraint(equalToConstant: 42).isActive = true
 
         let titleLabel = NSTextField(labelWithString: "Codex Usage for DockDoor Pro")
-        titleLabel.font = .systemFont(ofSize: 22, weight: .semibold)
+        titleLabel.font = .systemFont(ofSize: 20, weight: .semibold)
+        titleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        let subtitleLabel = NSTextField(labelWithString: "Version \(version)")
+        let subtitleLabel = NSTextField(labelWithString: version.isEmpty ? "Design preview" : "Version \(version)")
         subtitleLabel.font = .systemFont(ofSize: 14)
         subtitleLabel.textColor = .secondaryLabelColor
 
@@ -64,12 +79,17 @@ private final class InstallerViewController: NSViewController {
         titleStack.alignment = .leading
         titleStack.spacing = 4
 
-        let headingStack = NSStackView(views: [iconView, titleStack])
+        let themePicker = NSHostingView(rootView: CompanionThemePicker())
+        themePicker.translatesAutoresizingMaskIntoConstraints = false
+        themePicker.widthAnchor.constraint(equalToConstant: 28).isActive = true
+        themePicker.heightAnchor.constraint(equalToConstant: 28).isActive = true
+        let headingStack = NSStackView(views: [iconView, titleStack, themePicker])
         headingStack.orientation = .horizontal
         headingStack.alignment = .centerY
         headingStack.spacing = 14
 
         let explanationLabel = NSTextField(labelWithString: "This installs the widget, keeps a dated backup of any existing copy, enables live usage sync, installs the automatic updater, and restarts DockDoor Pro. No Terminal or .command file is required.")
+        explanationLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         explanationLabel.font = .systemFont(ofSize: 13)
         explanationLabel.textColor = .secondaryLabelColor
         explanationLabel.lineBreakMode = .byWordWrapping
@@ -110,6 +130,8 @@ private final class InstallerViewController: NSViewController {
 
         let updateButton = NSButton(title: "Check for Updates…", target: updates, action: #selector(CompanionUpdates.checkForUpdates))
         updateButton.bezelStyle = .rounded
+        updateButton.isEnabled = !isDesignPreview
+        installButton.isEnabled = !isDesignPreview
         let buttonStack = NSStackView(views: [updateButton, cancelButton, installButton])
         buttonStack.orientation = .horizontal
         buttonStack.spacing = 10
@@ -251,7 +273,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
         let controller = InstallerViewController()
         controller.updates = updates
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 350),
+            contentRect: NSRect(x: 0, y: 0, width: 560, height: 350),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -291,6 +313,7 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+#if !WIDGET_DESIGN_PREVIEW
 @main
 enum InstallerMain {
     static func main() {
@@ -301,3 +324,5 @@ enum InstallerMain {
         withExtendedLifetime(delegate) { application.run() }
     }
 }
+
+#endif
