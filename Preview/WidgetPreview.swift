@@ -36,7 +36,7 @@ private struct WidgetPreview: View {
             CodexTrackerPanelView(dismiss: {}, previewSnapshot: previewSnapshot())
         }
         .padding(20)
-        .background(Color(red: 0.06, green: 0.055, blue: 0.08))
+
         .environment(\.colorScheme, .dark)
     }
 }
@@ -55,7 +55,10 @@ private final class WidgetPreviewApp: NSObject, NSApplicationDelegate {
         let host = NSHostingView(rootView: WidgetPreview())
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 390, height: 705),
                           styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "Codex Usage • Theme Preview"
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.titlebarAppearsTransparent = true
+        window.title = "Codex Usage • Transparency Preview"
         window.contentView = host
         window.center()
         window.makeKeyAndOrderFront(nil)

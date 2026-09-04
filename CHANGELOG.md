@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.2 - Local transparency controls (2026-09-04)
+
+- Added a 20–100% background-opacity slider and Frosted glass toggle to the palette popover.
+- Text, controls, and ring sparkles remain fully visible while the panel background changes.
+- Defaults to 75% opacity with native frosted material; respects macOS Reduce Transparency.
+- Local widget update only; existing installers and marketplace submission are unchanged.
+
+
 ## 5.0.1 - Installer launch handoff (2026-09-04)
 
 - Launch the installed companion in a distinct process so Launch Services cannot reuse the DMG launcher and then quit it.

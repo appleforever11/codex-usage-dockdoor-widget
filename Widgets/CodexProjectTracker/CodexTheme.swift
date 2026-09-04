@@ -1,9 +1,12 @@
 import SwiftUI
+import AppKit
 
 // Shared by the panel and dock: AppStorage propagates palette changes immediately.
 enum CodexTheme: String, CaseIterable, Identifiable {
     case astra = "Astra", luna = "Luna", sol = "Sol", terra = "Terra", rainbow = "Rainbow"
     static let storageKey = "widget.codex-project-tracker.modelTheme"
+    static let opacityKey = "widget.codex-project-tracker.backgroundOpacity"
+    static let glassKey = "widget.codex-project-tracker.frostedGlass"
     var id: String { rawValue }
     var symbol: String {
         switch self {
@@ -47,36 +50,93 @@ extension EnvironmentValues {
 
 struct CodexThemeMenu: View {
     @Binding var selection: String
+    @AppStorage(CodexTheme.opacityKey) private var opacity = 0.75
+    @AppStorage(CodexTheme.glassKey) private var frosted = true
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @State private var isPresented = false
     private var theme: CodexTheme { CodexTheme(rawValue: selection) ?? .astra }
     var body: some View {
-        Menu {
-            Picker("Widget theme", selection: $selection) {
-                ForEach(CodexTheme.allCases) { theme in
-                    Label(theme.rawValue, systemImage: theme.symbol).tag(theme.rawValue)
-                }
-            }
-            Text("Changes appearance only")
-        } label: {
+        Button { isPresented.toggle() } label: {
             Image(systemName: "paintpalette.fill")
                 .foregroundStyle(theme.accent)
                 .frame(width: 24, height: 24)
                 .background(theme.accent.opacity(0.12), in: Circle())
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .help("Choose widget theme • \(theme.rawValue)")
-        .accessibilityLabel("Widget theme")
+        .buttonStyle(.plain)
+        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Appearance").font(.headline)
+                ForEach(CodexTheme.allCases) { option in
+                    Button { selection = option.rawValue } label: {
+                        HStack {
+                            Image(systemName: option.symbol).foregroundStyle(option.accent).frame(width: 18)
+                            Text(option.rawValue)
+                            Spacer()
+                            if selection == option.rawValue { Image(systemName: "checkmark").foregroundStyle(option.accent) }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(selection == option.rawValue ? .isSelected : [])
+                }
+                Divider()
+                HStack {
+                    Text("Background opacity")
+                    Spacer()
+                    Text("\(Int((opacity * 100).rounded()))%")
+                        .monospacedDigit().foregroundStyle(.secondary)
+                }
+                Slider(value: $opacity, in: 0.2...1, step: 0.05)
+                    .accessibilityLabel("Background opacity")
+                    .disabled(reduceTransparency)
+                HStack {
+                    Text("More transparent")
+                    Spacer()
+                    Text("Solid")
+                }
+                .font(.caption2).foregroundStyle(.secondary)
+                Toggle("Frosted glass", isOn: $frosted)
+                    .disabled(reduceTransparency)
+                if reduceTransparency {
+                    Text("Reduce Transparency is enabled in macOS.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                Text("Text and controls stay fully visible.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(16)
+            .frame(width: 250)
+            .tint(theme.accent)
+        }
+        .help("Choose theme and transparency")
+        .accessibilityLabel("Widget appearance")
         .accessibilityValue(theme.rawValue)
     }
 }
 
+// Native behind-window material lets the desktop show through a transparent host.
+private struct CodexFrostedBackdrop: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.blendingMode = .behindWindow
+        view.material = .hudWindow
+        view.state = .active
+        return view
+    }
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
+}
+
 struct CodexThemeBackground: View {
     let theme: CodexTheme
+    @AppStorage(CodexTheme.opacityKey) private var opacity = 0.75
+    @AppStorage(CodexTheme.glassKey) private var frosted = true
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     var body: some View {
         ZStack {
-            theme.base.opacity(reduceTransparency ? 1 : 0.94)
+            if frosted && !reduceTransparency {
+                CodexFrostedBackdrop()
+            }
+            theme.base.opacity(reduceTransparency ? 1 : min(max(opacity, 0.2), 1))
             RadialGradient(colors: [theme.accent.opacity(0.20), .clear], center: .topTrailing,
                            startRadius: 10, endRadius: 360)
             // Static points keep the main surface quiet; only model buttons animate.
