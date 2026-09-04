@@ -154,4 +154,3 @@ struct CodexAppIconView: View {
         .shadow(color: .black.opacity(0.22), radius: 3, y: 1)
     }
 }
-

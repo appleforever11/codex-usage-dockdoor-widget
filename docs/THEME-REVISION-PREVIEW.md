@@ -33,7 +33,7 @@ The user approved this revision for 5.0.0 packaging and local installation. The 
 
 ## Remaining release gates
 
-User review of the revised design, testing the approved build inside DockDoor Pro, packaging/signing/notarization, updater regression checks, and updating the existing marketplace proposal. Performance has not been benchmarked. The read-only marketplace edition must retain its host-compatible boundary when these visual changes are ported.
+Design approval, signing/notarization, local installation, loaded-binary verification, private updater check, and the marketplace PR replacement are complete. Maintainer review and marketplace rollout remain external steps. Other-Mac installers are prepared but not installed remotely. Performance has not been benchmarked.
 
 ## Astra ring sparkles
 

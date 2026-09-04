@@ -90,4 +90,3 @@ enum CodexAppIconProvider {
         return nil
     }()
 }
-

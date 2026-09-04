@@ -100,4 +100,3 @@ struct StatPill: View {
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
     }
 }
-

@@ -329,4 +329,3 @@ struct CodexSession: Identifiable {
         return URL(string: "codex://threads/\(id)")
     }
 }
-
