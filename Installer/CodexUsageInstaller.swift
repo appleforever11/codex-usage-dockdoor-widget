@@ -56,8 +56,9 @@ final class InstallerViewController: NSViewController {
 
 
         let iconView = NSImageView()
-        iconView.image = NSImage(systemSymbolName: "shippingbox.fill", accessibilityDescription: "Codex Usage installer")
-        iconView.contentTintColor = .systemPurple
+        iconView.image = Bundle.main.url(forResource: "CodexUsage", withExtension: "icns")
+            .flatMap { NSImage(contentsOf: $0) } ?? NSApp.applicationIconImage
+        iconView.setAccessibilityLabel("Codex Usage")
         iconView.imageScaling = .scaleProportionallyUpOrDown
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.setContentHuggingPriority(.required, for: .horizontal)

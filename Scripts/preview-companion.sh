@@ -2,7 +2,8 @@
 set -euo pipefail
 root_dir="${0:A:h:h}"
 preview_dir="$root_dir/build/CompanionThemePreview.app/Contents"
-mkdir -p "$preview_dir/MacOS"
+mkdir -p "$preview_dir/MacOS" "$preview_dir/Resources"
+cp "$root_dir/Assets/CodexUsage.icns" "$preview_dir/Resources/"
 cp "$root_dir/Preview/Info.plist" "$preview_dir/Info.plist"
 /usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier com.appleforever11.codex-companion-preview' "$preview_dir/Info.plist"
 /usr/libexec/PlistBuddy -c 'Set :CFBundleExecutable CompanionThemePreview' "$preview_dir/Info.plist"

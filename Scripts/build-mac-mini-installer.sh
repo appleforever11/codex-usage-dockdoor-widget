@@ -43,6 +43,7 @@ lipo -create \
 /bin/rm "$installer_macos/CodexUsageInstaller_arm64" "$installer_macos/CodexUsageInstaller_x86_64"
 /bin/cp "$root_dir/Installer/Install Codex Usage.command" "$installer_resources/"
 /bin/cp "$root_dir/VERSION" "$installer_resources/"
+/bin/cp "$root_dir/Assets/CodexUsage.icns" "$installer_resources/"
 /bin/mkdir -p "$installer_app/Contents/Frameworks"
 /usr/bin/ditto "$sparkle_dir/Sparkle.framework" "$installer_app/Contents/Frameworks/Sparkle.framework"
 /bin/mkdir -p "$installer_resources/Payload" "$installer_resources/Scripts"
@@ -73,6 +74,8 @@ done
     <string>6.0</string>
     <key>CFBundleName</key>
     <string>Install Codex Usage</string>
+    <key>CFBundleIconFile</key>
+    <string>CodexUsage</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
