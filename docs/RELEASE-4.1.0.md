@@ -31,3 +31,7 @@ Model controls change local defaults for new Codex work, not a running chat. Ava
 - App and DMG notarization accepted; tickets stapled and Gatekeeper assessments accepted.
 - Marketplace universal build, unsafe-API lint, and five focused usage-decoding checks passed.
 - Astra controls were visually inspected and their selection behavior tested in the native preview.
+- End-to-end Sparkle test passed: an older-version companion found the published 4.1.0 feed, downloaded and verified the update, relaunched as 4.1.0, and installed the widget with its existing hashed filename preserved.
+- The installed widget binary matched the released payload. The downloaded companion passed Gatekeeper assessment.
+- The widget's update URL opened the current-version dialog; a background check exited successfully after reporting that the app was up to date.
+- Marketplace PR #24 passed upstream CI. Maintainer approval and marketplace rollout remain pending.
