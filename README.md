@@ -4,9 +4,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Private installer:** `5.0.1` - model themes, Terra, Light reasoning, and Astra-only animated ring sparkles.
-
-**Published update feed:** `4.1.0`. The 5.0.0 private installers are distributed locally; marketplace updates remain managed by DockDoor Pro.
+**Current release:** [5.0.3](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest) — model themes, adjustable transparency, and a custom Astra app icon.
 
 **Marketplace Astra review:** [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
@@ -14,9 +12,9 @@ The standalone build contains the complete tracker, freshness-aware account sync
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
-## New design preview · 5.0.3
+## New design · 5.0.3
 
-The screenshots below show the latest private build, rendered from the native SwiftUI interface with sample data. **The public download remains [v4.1.0](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest); these new visuals are not included in that download yet.**
+The screenshots below show version 5.0.3, rendered from the native SwiftUI interface with sample data.
 
 Astra leads with a deep-purple glow and exclusive animated sparkles on the usage ring. Custom Luna, Sol, Terra, and Astra buttons sit alongside Light, Medium, and Max reasoning controls.
 
@@ -44,29 +42,28 @@ The private companion and its Sparkle update dialog now use our custom Astra usa
 
 <img src="screenshots/codex-companion-v5.png" width="560" alt="Native companion design preview with the new custom Codex Usage icon">
 
-## Published version · 4.1.0
+## Current release features
 
 The highlights and installation instructions below describe the currently published build. The marketplace edition uses DockDoor Pro's own update path; Sparkle belongs to the private companion.
 
 ## Highlights
 
-- Usage countdown ring in the dock, with a built-in rainbow ring toggle.
+- Usage countdown ring in the dock, with Astra, Luna, Sol, Terra, and Rainbow themes.
 - Rotating dock cards for account limits, credits, selected model, task count, and chat count, with a selectable primary card, adjustable interval, and hover pause.
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
 - Scrollable recent-chat history covering up to 500 indexed sessions, with older titles loaded as rows appear.
 - Freshness status, stale-data warnings, explicit refresh, and reset countdowns backed by timestamped account snapshots.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
-- Local model and reasoning default controls for Luna, Sol, Spark, Astra, Instant, Medium, and Max.
+- Local model and reasoning default controls for Luna, Sol, Terra, Astra, Light, Medium, and Max.
 - Astra (`gpt-6-astra`) has a dark-purple glowing starfield that animates when selected or hovered and respects Reduce Motion.
 - A header update button opens Sparkle in the companion app; Sparkle is not loaded into DockDoor Pro.
-- One-click Fast mode for switching new chats to Spark + Instant and restoring the previous defaults when disabled.
 - DockDoor settings schema for session folder, usage state file, recent session count, budget window, rainbow mode, primary card, rotation interval, hover pause, and freshness status.
 
 ## Lightweight Design
 
 Codex Usage is intentionally thin. It reads a small local snapshot, renders with native SwiftUI, and refreshes on a modest interval. The optional live-sync agent performs one short local Codex app-server request per minute and exits; there is no persistent helper daemon or widget-side network activity.
 
-The compact dock card rotates on a configurable interval, session/usage snapshots refresh when their source files change, and the expanded panel updates countdown labels once per second without rescanning the filesystem. That keeps the widget visually alive while staying low on energy and memory use.
+The compact dock card rotates on a configurable interval, session/usage snapshots refresh when their source files change, and the expanded panel updates countdown labels every 15 seconds without rescanning the filesystem. That keeps the widget visually alive while staying low on energy and memory use.
 
 ## Important Boundary
 
@@ -80,9 +77,9 @@ See [examples/usage.json](examples/usage.json) for the account-usage shape used 
 
 ## Easy Mac Installation
 
-For another Mac, including a Mac mini, download the DMG from the [v4.1.0 release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v4.1.0):
+For another Mac, including a Mac mini, download the DMG from the [latest release](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest):
 
-1. Open the v4.1.0 DMG.
+1. Open the downloaded DMG.
 2. Double-click `Install Codex Usage.app`.
 3. The app moves itself into your user Applications folder. Click **Install Widget** for a fresh install; an older widget is updated automatically.
 4. Wait for DockDoor Pro to restart, then hover over the Codex Usage dock widget.
@@ -143,7 +140,7 @@ DockDoor Pro exposes these widget settings:
 | Pause Rotation on Hover | `On` | Freeze the compact card while it is being inspected. |
 | Show Data Freshness | `On` | Show the source and last-update status in the expanded panel. |
 
-The panel also includes a small palette button in the header. That button toggles the same `Rainbow Usage Ring` preference without needing to open DockDoor Pro settings.
+The panel also includes a small palette button in the header. That button opens model themes, background opacity, and Frosted glass controls.
 
 ## Build
 
