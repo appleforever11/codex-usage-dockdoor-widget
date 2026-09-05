@@ -1,4 +1,4 @@
-<img src="screenshots/codex-usage-discord-cover.png" width="112" alt="Codex Usage icon">
+<img src="screenshots/codex-usage-icon.png" width="112" alt="Codex Usage icon">
 
 # Codex Usage for DockDoor Pro
 
@@ -14,17 +14,39 @@ The standalone build contains the complete tracker, freshness-aware account sync
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
-![Codex Usage panel](screenshots/codex-usage-panel.png)
+## New design preview · 5.0.3
 
-![Astra model controls rendered from the v4.1.0 SwiftUI source](screenshots/codex-astra-controls.png)
+The screenshots below show the latest private build, rendered from the native SwiftUI interface with sample data. **The public download remains [v4.1.0](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest); these new visuals are not included in that download yet.**
 
-> **Distribution note:** The DMG contains a Developer ID-signed, Apple-notarized companion app. No `.command` file needs to be opened. Install the v4.1.0 DMG once on each Mac to migrate from the legacy script updater to Sparkle. See [update and signing details](docs/NOTARIZATION.md).
+Astra leads with a deep-purple glow and exclusive animated sparkles on the usage ring. Custom Luna, Sol, Terra, and Astra buttons sit alongside Light, Medium, and Max reasoning controls.
 
-## Social Preview
+<img src="screenshots/codex-astra-v5.png" width="390" alt="Astra theme with purple sparkling usage ring and custom Luna, Sol, Terra, and Astra model buttons">
 
-Use this square cover image as the first Discord attachment when announcing the widget. The canonical Discord repost uses this file as its starter attachment and forum-card artwork:
+### Model themes
 
-![Codex Usage Discord cover](screenshots/codex-usage-discord-cover.png)
+Choose a theme independently of your selected model: Luna blue, Sol amber, Terra earth and green, Astra purple, or Rainbow.
+
+| Luna | Sol | Terra |
+| --- | --- | --- |
+| <img src="screenshots/codex-luna-v5.png" width="260" alt="Luna blue widget theme"> | <img src="screenshots/codex-sol-v5.png" width="260" alt="Sol amber widget theme"> | <img src="screenshots/codex-terra-v5.png" width="260" alt="Terra earth and green widget theme"> |
+
+### Appearance controls
+
+The palette button opens theme selection, a 20–100% background opacity slider, and a Frosted glass toggle. Labels and controls stay readable as the background becomes more transparent.
+
+<img src="screenshots/codex-appearance-v5.png" width="450" alt="Appearance chooser with model themes, background opacity slider, and Frosted glass toggle">
+
+### Custom companion icon
+
+The private companion and its Sparkle update dialog now use our custom Astra usage-ring icon.
+
+<img src="screenshots/codex-usage-icon.png" width="128" alt="Custom Codex Usage icon with a purple progress ring and white Astra sparkles">
+
+<img src="screenshots/codex-companion-v5.png" width="560" alt="Native companion design preview with the new custom Codex Usage icon">
+
+## Published version · 4.1.0
+
+The highlights and installation instructions below describe the currently published build. The marketplace edition uses DockDoor Pro's own update path; Sparkle belongs to the private companion.
 
 ## Highlights
 
