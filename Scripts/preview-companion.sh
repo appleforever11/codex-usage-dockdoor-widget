@@ -1,7 +1,10 @@
 #!/bin/zsh
 set -euo pipefail
 root_dir="${0:A:h:h}"
+case "${1:-}" in ''|--capture) ;; *) echo 'Usage: preview-companion.sh [--capture]' >&2; exit 2 ;; esac
 preview_dir="$root_dir/build/CompanionThemePreview.app/Contents"
+source "$root_dir/Scripts/app_instance.sh"
+require_app_stopped "$preview_dir/MacOS/CompanionThemePreview"
 mkdir -p "$preview_dir/MacOS" "$preview_dir/Resources"
 cp "$root_dir/Assets/CodexUsage.icns" "$preview_dir/Resources/"
 cp "$root_dir/Preview/Info.plist" "$preview_dir/Info.plist"
