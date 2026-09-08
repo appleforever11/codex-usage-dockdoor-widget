@@ -10,8 +10,7 @@ struct AstraRingSparkles: View {
     @State private var isVisible = false
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 18.0,
-                                paused: reduceMotion || forceReducedMotion || !isVisible)) { timeline in
+        TimelineView(animationSchedule) { timeline in
             Canvas { context, size in
                 let time = reduceMotion || forceReducedMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
                 let count = ringSize < 45 ? 5 : 12
@@ -51,5 +50,12 @@ struct AstraRingSparkles: View {
         .onDisappear { isVisible = false }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+
+    private var animationSchedule: AnimationTimelineSchedule {
+        AnimationTimelineSchedule(
+            minimumInterval: 1.0 / 18.0,
+            paused: reduceMotion || forceReducedMotion || !isVisible
+        )
     }
 }
