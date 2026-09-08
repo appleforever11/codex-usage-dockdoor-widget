@@ -43,6 +43,7 @@ enum CodexWidgetPreferences {
     private static let rotationIntervalKey = "rotationInterval"
     private static let pauseRotationKey = "pauseRotationOnHover"
     private static let showDataStatusKey = "showDataStatus"
+    private static let showTokenTelemetryKey = "showTokenTelemetry"
 
     static var primaryCard: String {
         WidgetDefaults.string(key: primaryCardKey, widgetId: widgetId, default: "Auto")
@@ -58,6 +59,10 @@ enum CodexWidgetPreferences {
 
     static var showDataStatus: Bool {
         WidgetDefaults.bool(key: showDataStatusKey, widgetId: widgetId, default: true)
+    }
+
+    static var showTokenTelemetry: Bool {
+        WidgetDefaults.bool(key: showTokenTelemetryKey, widgetId: widgetId, default: true)
     }
 
 }

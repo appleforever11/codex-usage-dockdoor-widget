@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.0.4 - Local token activity (2026-09-07)
+
+- Added local session token parsing for input, cached input, output, reasoning output, and total-token deltas.
+- Added near-real-time burn rates, context-window percentage, freshness state, and a compact burn dock card.
+- Added per-model and reasoning-level breakdowns for Astra, Terra, Luna, Sol, and unknown metadata buckets.
+- Made the Token activity panel collapsible, keeping the live burn summary visible while the chart and details stay out of the way until expanded.
+- Kept telemetry private and bounded: the widget reads small head/tail slices of local JSONL files and sends no token data over the network.
+
 ## 5.0.2 - Local transparency controls (2026-09-04)
 
 - Added a 20–100% background-opacity slider and Frosted glass toggle to the palette popover.

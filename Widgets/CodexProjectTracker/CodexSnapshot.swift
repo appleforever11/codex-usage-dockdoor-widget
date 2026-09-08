@@ -11,6 +11,7 @@ struct CodexSnapshot {
     var headline: String
     var latestChat: String?
     var usage: CodexUsageSnapshot
+    var tokenTelemetry: CodexTokenTelemetry
     var modelSettings: CodexModelSettings
     var projects: [CodexProject]
     var sessions: [CodexSession]
@@ -24,6 +25,7 @@ struct CodexSnapshot {
         headline: "Loading",
         latestChat: nil,
         usage: .empty,
+        tokenTelemetry: .empty,
         modelSettings: .default,
         projects: [],
         sessions: [],
@@ -54,6 +56,14 @@ struct CodexSnapshot {
             shortLabel: "Chats",
             kind: CodexCardKind.chats.rawValue
         ))
+        if tokenTelemetry.hasData {
+            cards.append(CodexDockCard(
+                title: tokenTelemetry.burnLabel(now: date),
+                subtitle: tokenTelemetry.currentModelLabel + " · " + tokenTelemetry.currentReasoningLabel,
+                shortLabel: "Burn",
+                kind: CodexCardKind.burn.rawValue
+            ))
+        }
 
         guard !cards.isEmpty else {
             return CodexDockCard(title: "Codex", subtitle: headline, shortLabel: "Codex")
@@ -77,6 +87,7 @@ enum CodexCardKind: String {
     case tasks
     case chats
     case credits
+    case burn
 }
 
 

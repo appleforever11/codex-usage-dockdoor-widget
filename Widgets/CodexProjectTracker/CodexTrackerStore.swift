@@ -88,6 +88,16 @@ enum CodexTrackerStore {
         let activeCount = sessions.filter(\.isActive).count
         let headline = sessions.first?.projectName ?? projects.first?.name ?? "No sessions"
         let usage = usageSnapshot(projects: projects, sessions: sessions, sessionFiles: sessionFiles)
+        let tokenTelemetry = CodexTokenTelemetryReader.read(
+            sources: records.map { record in
+                CodexTokenLogSource(
+                    id: record.metadata.id ?? record.file.url.path,
+                    projectName: URL(fileURLWithPath: record.metadata.cwd).lastPathComponent,
+                    url: record.file.url,
+                    modified: record.file.modified
+                )
+            }
+        )
         let taskCount = localTaskCount(sessions: sessions)
         let modelSettings = CodexConfigStore.read()
 
@@ -99,6 +109,7 @@ enum CodexTrackerStore {
             headline: headline,
             latestChat: latestChat,
             usage: usage,
+            tokenTelemetry: tokenTelemetry,
             modelSettings: modelSettings,
             projects: projects,
             sessions: sessions,

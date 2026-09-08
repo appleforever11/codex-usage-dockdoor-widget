@@ -7,7 +7,7 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
     var id: String { "codex-project-tracker" }
     var name: String { "Codex Usage" }
     var iconSymbol: String { "gauge.with.dots.needle.67percent" }
-    var widgetDescription: String { "Shows Codex usage countdowns, recent projects, tasks, and chats" }
+    var widgetDescription: String { "Shows Codex limits, local token burn, model activity, projects, tasks, and chats" }
     var supportedOrientations: [WidgetOrientation] { [.horizontal, .vertical] }
 
     @MainActor
@@ -64,7 +64,7 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
             .picker(
                 key: "primaryCard",
                 label: "Primary Dock Card",
-                options: ["Auto", "Usage", "Model", "Tasks", "Chats", "Credits"],
+                options: ["Auto", "Usage", "Model", "Burn", "Tasks", "Chats", "Credits"],
                 defaultValue: "Auto"
             ),
             .slider(
@@ -82,6 +82,11 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
             .toggle(
                 key: "showDataStatus",
                 label: "Show Data Freshness",
+                defaultValue: true
+            ),
+            .toggle(
+                key: "showTokenTelemetry",
+                label: "Show Local Token Activity",
                 defaultValue: true
             ),
         ]

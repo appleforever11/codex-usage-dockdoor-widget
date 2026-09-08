@@ -4,17 +4,19 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** [5.0.3](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest) — model themes, adjustable transparency, and a custom Astra app icon.
+**Current release:** [5.0.4](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest) — local token activity, model themes, adjustable transparency, and a custom Astra app icon.
 
 **Marketplace Astra review:** [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
 The standalone build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Sparkle companion. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and reads local Codex session telemetry or an optional `~/.codex/usage.json` override. It has no model-setting controls, installer, or Sparkle dependency.
 
+The private build includes bounded local token telemetry. It reports observed burn rates, context-window usage, and per-model/reasoning totals from Codex session events. The Token activity panel is collapsible so the compact summary stays visible without crowding the rest of the widget. Token data stays on the Mac; account percentage limits remain a separate authoritative surface.
+
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
-## New design · 5.0.3
+## New design · 5.0.4
 
-The screenshots below show version 5.0.3, rendered from the native SwiftUI interface with sample data.
+The screenshots below show the 5.0.4 design, rendered from the native SwiftUI interface with sample data.
 
 Astra leads with a deep-purple glow and exclusive animated sparkles on the usage ring. Custom Luna, Sol, Terra, and Astra buttons sit alongside Light, Medium, and Max reasoning controls.
 
@@ -51,6 +53,7 @@ The highlights and installation instructions below describe the currently publis
 - Usage countdown ring in the dock, with Astra, Luna, Sol, Terra, and Rainbow themes.
 - Rotating dock cards for account limits, credits, selected model, task count, and chat count, with a selectable primary card, adjustable interval, and hover pause.
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
+- Private local token telemetry with a 60-second burn chart, context percentage, freshness state, and per-model/reasoning breakdown.
 - Scrollable recent-chat history covering up to 500 indexed sessions, with older titles loaded as rows appear.
 - Freshness status, stale-data warnings, explicit refresh, and reset countdowns backed by timestamped account snapshots.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
@@ -135,10 +138,11 @@ DockDoor Pro exposes these widget settings:
 | Usage Window Hours | `5` | Fallback rolling-window length. |
 | Usage State File | `~/.codex/usage.json` | Authoritative current-account snapshot produced by the optional live-sync agent; session telemetry is the fallback. |
 | Rainbow Usage Ring | `On` | Uses the rainbow/glow usage ring instead of a single-color ring. |
-| Primary Dock Card | `Auto` | Keep the dock card rotating or pin it to Usage, Model, Tasks, Chats, or Credits. |
+| Primary Dock Card | `Auto` | Keep the dock card rotating or pin it to Usage, Model, Burn, Tasks, Chats, or Credits. |
 | Card Rotation Seconds | `4` | Rotation interval from 2 to 12 seconds. |
 | Pause Rotation on Hover | `On` | Freeze the compact card while it is being inspected. |
 | Show Data Freshness | `On` | Show the source and last-update status in the expanded panel. |
+| Show Local Token Activity | `On` | Show observed local token burn and model/reasoning telemetry in the expanded panel. |
 
 The panel also includes a small palette button in the header. That button opens model themes, background opacity, and Frosted glass controls.
 

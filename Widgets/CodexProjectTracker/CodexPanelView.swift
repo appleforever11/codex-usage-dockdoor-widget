@@ -62,7 +62,8 @@ struct CodexTrackerPanelView: View {
     }
 
     private func panelContent(_ snapshot: CodexSnapshot) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label("Codex Usage", systemImage: "gauge.with.dots.needle.67percent")
                     .font(.headline)
@@ -162,6 +163,10 @@ struct CodexTrackerPanelView: View {
                 }
             }
 
+            if CodexWidgetPreferences.showTokenTelemetry {
+                CodexTokenTelemetrySection(telemetry: snapshot.tokenTelemetry, now: now)
+            }
+
             ModelControlSection(
                 settings: snapshot.modelSettings,
                 onChange: { model, reasoning in
@@ -211,11 +216,12 @@ struct CodexTrackerPanelView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.trailing, 2)
                 }
-                .frame(minHeight: 70, maxHeight: .infinity)
+                .frame(minHeight: 70, maxHeight: 170)
                 .accessibilityLabel("Recent Codex chats")
             }
+            }
+            .padding(14)
         }
-        .padding(14)
         .frame(width: 350, height: 640, alignment: .topLeading)
     }
 

@@ -19,6 +19,8 @@
         "CodexPreferences.swift",
         "CodexTrackerStore.swift",
         "CodexUsageDecoding.swift",
+        "CodexTokenTelemetry.swift",
+        "CodexTokenTelemetryView.swift",
         "CodexModelControls.swift",
         "CodexTheme.swift",
         "CodexConfigStore.swift",
