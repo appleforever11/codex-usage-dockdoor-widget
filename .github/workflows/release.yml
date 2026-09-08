@@ -46,6 +46,7 @@ jobs:
           [[ -n "$DEVELOPER_ID_CERTIFICATE_BASE64" ]] || { print -u2 "Missing DEVELOPER_ID_CERTIFICATE_BASE64 repository secret."; exit 1; }
           [[ -n "$DEVELOPER_ID_CERTIFICATE_PASSWORD" ]] || { print -u2 "Missing DEVELOPER_ID_CERTIFICATE_PASSWORD repository secret."; exit 1; }
           keychain_password="$(/usr/bin/openssl rand -hex 24)"
+          export CODEX_BUILD_KEYCHAIN_PASSWORD="$keychain_password"
           print -r -- "CODEX_BUILD_KEYCHAIN_PASSWORD=$keychain_password" >> "$GITHUB_ENV"
           Scripts/import-developer-id-certificate.sh
 
