@@ -1,4 +1,5 @@
 import SwiftUI
+import Darwin
 
 /// Small, deterministic stars follow the filled arc rather than the empty track.
 struct AstraRingSparkles: View {
@@ -56,14 +57,14 @@ private struct AstraRingSparklesCanvas: View {
         for index in 0..<count {
             let seed = Double(index) * 2.39996
             let pulseRate = 1.3 + Double(index % 3) * 0.25
-            let pulse = (sin(time * pulseRate + seed) + 1) / 2
-            let drift = 0.18 * sin(time * 0.35 + seed)
+            let pulse = (Darwin.sin(time * pulseRate + seed) + 1) / 2
+            let drift = 0.18 * Darwin.sin(time * 0.35 + seed)
             let position = (Double(index) + 0.5 + drift) / Double(count)
             let angle = position * progress * .pi * 2 - .pi / 2
-            let orbit = radius + sin(seed) * lineWidth * 0.22
+            let orbit = radius + CGFloat(Darwin.sin(seed)) * lineWidth * 0.22
             let point = CGPoint(
-                x: center.x + cos(angle) * orbit,
-                y: center.y + sin(angle) * orbit
+                x: center.x + CGFloat(Darwin.cos(angle)) * orbit,
+                y: center.y + CGFloat(Darwin.sin(angle)) * orbit
             )
             let arm = max(1.1, lineWidth * 0.38) * (0.65 + pulse * 0.65)
             drawHalo(in: &context, at: point, arm: arm, pulse: pulse)
