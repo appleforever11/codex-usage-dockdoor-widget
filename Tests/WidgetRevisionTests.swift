@@ -30,7 +30,7 @@ enum WidgetRevisionTests {
         precondition(CodexConfigStore.normalizedReasoningEffort("low") == "low")
 
         let telemetryFixture = """
-        {"timestamp":"2026-09-07T16:00:00Z","ordinal":1,"type":"event_msg","payload":{"type":"thread_settings_applied","thread_settings":{"model":"gpt-6-astra","reasoning_effort":"low"}}}
+        {"timestamp":"2026-09-07T16:00:00Z","ordinal":1,"type":"turn_context","payload":{"model":"gpt-6-astra","effort":"low"}}
         {"timestamp":"2026-09-07T16:00:10Z","ordinal":2,"type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":90,"cached_input_tokens":20,"output_tokens":10,"reasoning_output_tokens":2,"total_tokens":100},"total_token_usage":{"input_tokens":90,"cached_input_tokens":20,"output_tokens":10,"reasoning_output_tokens":2,"total_tokens":100},"model_context_window":1000}}}
         {"timestamp":"2026-09-07T16:00:40Z","ordinal":3,"type":"event_msg","payload":{"type":"thread_settings_applied","thread_settings":{"model":"gpt-5.6-terra","reasoning_effort":"max"}}}
         {"timestamp":"2026-09-07T16:00:50Z","ordinal":4,"type":"event_msg","payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":120,"cached_input_tokens":30,"output_tokens":20,"reasoning_output_tokens":6,"total_tokens":140},"total_token_usage":{"input_tokens":220,"cached_input_tokens":60,"output_tokens":40,"reasoning_output_tokens":8,"total_tokens":260},"model_context_window":1000}}}

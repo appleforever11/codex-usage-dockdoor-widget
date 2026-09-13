@@ -152,11 +152,41 @@ struct CodexTokenLogEnvelope: Decodable {
         let type: String?
         let info: Info?
         let threadSettings: ThreadSettings?
+        let model: String?
+        let effort: String?
+        let reasoningEffort: String?
+        let collaborationMode: CollaborationMode?
 
         enum CodingKeys: String, CodingKey {
             case type
             case info
             case threadSettings = "thread_settings"
+            case model
+            case effort
+            case reasoningEffort = "reasoning_effort"
+            case collaborationMode = "collaboration_mode"
+        }
+
+        struct CollaborationMode: Decodable {
+            let settings: Settings?
+
+            struct Settings: Decodable {
+                let model: String?
+                let reasoningEffort: String?
+
+                enum CodingKeys: String, CodingKey {
+                    case model
+                    case reasoningEffort = "reasoning_effort"
+                }
+            }
+        }
+
+        var contextModel: String? {
+            model ?? collaborationMode?.settings?.model
+        }
+
+        var contextEffort: String? {
+            effort ?? reasoningEffort ?? collaborationMode?.settings?.reasoningEffort
         }
     }
 
@@ -398,10 +428,23 @@ enum CodexTokenTelemetryReader {
                 for line in lines {
                     guard let data = line.data(using: .utf8),
                           let envelope = try? JSONDecoder().decode(CodexTokenLogEnvelope.self, from: data),
-                          envelope.type == "event_msg",
-                          let payload = envelope.payload,
-                          let payloadType = payload.type
+                          let payload = envelope.payload
                     else { continue }
+
+                    // Current Codex sessions record the active model and
+                    // reasoning level on `turn_context`, rather than emitting
+                    // the older `thread_settings_applied` event.
+                    if envelope.type == "turn_context" {
+                        if let value = payload.contextModel?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty {
+                            model = value
+                        }
+                        if let value = payload.contextEffort?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty {
+                            effort = value.lowercased()
+                        }
+                        continue
+                    }
+
+                    guard envelope.type == "event_msg", let payloadType = payload.type else { continue }
 
                     if payloadType == "thread_settings_applied" {
                         if let value = payload.threadSettings?.model?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty {

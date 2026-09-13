@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.0.5 - Model attribution fix (2026-09-13)
+
+- Fixed local token telemetry for current Codex session logs by reading the active model and reasoning level from `turn_context` records.
+- Preserved compatibility with older `thread_settings_applied` telemetry and added regression coverage for both formats.
+
 ## 5.0.4 - Local token activity (2026-09-07)
 
 - Added local session token parsing for input, cached input, output, reasoning output, and total-token deltas.

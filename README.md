@@ -4,7 +4,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** [5.0.4](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest) — local token activity, model themes, adjustable transparency, and a custom Astra app icon.
+**Current release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest) — fixes current-session model/reasoning attribution in local token activity while retaining the 5.0.4 design and telemetry features.
 
 **Marketplace Astra review:** [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
