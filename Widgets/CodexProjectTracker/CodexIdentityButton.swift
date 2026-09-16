@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 /// Shared artwork and selection treatment for model defaults and page themes.
 struct CodexIdentityButton: View {
@@ -120,8 +121,8 @@ private struct CodexIdentityArtwork: View {
                     for ray in 0..<16 {
                         let angle = Double(ray) * .pi / 8 + time * 0.035
                         var path = Path()
-                        path.move(to: CGPoint(x: center.x + cos(angle) * radius * 1.2, y: center.y + sin(angle) * radius * 1.2))
-                        path.addLine(to: CGPoint(x: center.x + cos(angle) * radius * 1.75, y: center.y + sin(angle) * radius * 1.75))
+                        path.move(to: CGPoint(x: center.x + CGFloat(Foundation.cos(angle)) * radius * 1.2, y: center.y + CGFloat(Foundation.sin(angle)) * radius * 1.2))
+                        path.addLine(to: CGPoint(x: center.x + CGFloat(Foundation.cos(angle)) * radius * 1.75, y: center.y + CGFloat(Foundation.sin(angle)) * radius * 1.75))
                         context.stroke(path, with: .color(.yellow.opacity(0.6)), lineWidth: ray.isMultiple(of: 2) ? 1.4 : 0.7)
                     }
                     context.fill(Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)),
@@ -205,7 +206,7 @@ private struct CodexIdentityArtwork: View {
         for index in 0..<8 {
             let angle = Double(index) * .pi / 4 - .pi / 2
             let r = index.isMultiple(of: 2) ? radius * 2 : radius * 0.38
-            let point = CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
+            let point = CGPoint(x: center.x + CGFloat(Foundation.cos(angle)) * r, y: center.y + CGFloat(Foundation.sin(angle)) * r)
             if index == 0 { path.move(to: point) } else { path.addLine(to: point) }
         }
         path.closeSubpath()
