@@ -30,12 +30,10 @@ ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
 ET.SubElement(item, "description").text = (
-    f"🚀 Codex Usage {version} beta brings the personal build's living dashboard to the dock. "
-    "🧭 Four swipeable pages cover Overview, Activity, Models, and Health, with reorderable cards and focused detail views. "
-    "🎨 Astra, Luna, Sol, Terra, and Rainbow themes now carry through rings, bars, charts, surfaces, breathing atmosphere, and floating sparkles. "
-    "🖱️ Two-finger trackpad swipes and keyboard navigation move between pages, while 🧲 model and page actions can provide haptic feedback. "
-    "🫧 Transparent compact, extended horizontal, and extended vertical previews are ready for DockDoor Pro's optional Reflective Shelf beta. "
-    "🔒 This is the personal companion edition; the marketplace variant keeps its separate read-only update path."
+    f"Codex Usage {version} refines the personal 6.0 dashboard with cleaner spacing, "
+    "illustrated model and Appearance buttons, clearer settings, and optional double-pulse hover feedback. "
+    "Move cards between pages using their context menu; native cross-page dragging remains experimental. "
+    "This is the personal companion edition; marketplace delivery is reviewed separately."
 )
 ET.SubElement(item, "enclosure", {
     "url": f"https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/download/v{version}/CodexUsage-v{version}.zip",

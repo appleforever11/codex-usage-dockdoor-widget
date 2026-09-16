@@ -38,10 +38,10 @@ enum CodexV6Page: String, CaseIterable, Hashable, Identifiable {
 
     var defaultCards: [CodexV6CardID] {
         switch self {
-        case .overview: return [.quota, .quotaBudget, .sessionPulse, .pace, .burn, .context, .contextRunway]
+        case .overview: return [.quota, .modelControls, .quotaBudget, .sessionPulse, .pace, .burn, .context, .contextRunway]
         case .activity: return [.dailyActivity, .hourlyActivity, .projectHeatmap, .turnTimeline, .streaksGoals, .cost]
         case .models: return [.modelMix, .modelScorecard, .efficiency, .projectMix, .sessionHealth]
-        case .health: return [.officialActivity, .reliability, .dataHealth, .workspaceHealth, .recentChats, .modelControls]
+        case .health: return [.officialActivity, .reliability, .dataHealth, .workspaceHealth, .recentChats]
         }
     }
 
@@ -521,13 +521,75 @@ enum CodexV6PageThemeStore {
 }
 
 enum CodexV6CardOrderStore {
+    // One snapshot owns placement across all pages, so a move cannot be restored
+    // to its old page by per-page normalization on the next launch.
+    static let layoutKey = "widget.codex-project-tracker.v6.card-layout"
+
+    static func loadLayout() -> [CodexV6Page: [CodexV6CardID]] {
+        if let saved = CodexV6Preferences.defaults.dictionary(forKey: layoutKey) as? [String: [String]] {
+            let decoded = Dictionary(uniqueKeysWithValues: CodexV6Page.allCases.map { page in
+                (page, (saved[page.rawValue] ?? []).compactMap(CodexV6CardID.init(rawValue:)))
+            })
+            return normalizedLayout(decoded)
+        }
+        // Preserve existing arrangements when upgrading from page-local ordering.
+        return normalizedLayout(Dictionary(uniqueKeysWithValues: CodexV6Page.allCases.map {
+            ($0, load(for: $0))
+        }))
+    }
+
+    static func saveLayout(_ layout: [CodexV6Page: [CodexV6CardID]]) {
+        let layout = normalizedLayout(layout)
+        let encoded = Dictionary(uniqueKeysWithValues: CodexV6Page.allCases.map {
+            ($0.rawValue, (layout[$0] ?? []).map(\.rawValue))
+        })
+        CodexV6Preferences.defaults.set(encoded, forKey: layoutKey)
+    }
+
+    static func normalizedLayout(_ layout: [CodexV6Page: [CodexV6CardID]]) -> [CodexV6Page: [CodexV6CardID]] {
+        var seen = Set<CodexV6CardID>()
+        var result: [CodexV6Page: [CodexV6CardID]] = [:]
+        for page in CodexV6Page.allCases {
+            result[page] = (layout[page] ?? []).filter { seen.insert($0).inserted }
+        }
+        // Add newly introduced or missing cards only if absent from every page.
+        for page in CodexV6Page.allCases {
+            for card in page.defaultCards where seen.insert(card).inserted {
+                result[page, default: []].append(card)
+            }
+        }
+        return result
+    }
+
+    static func moving(_ card: CodexV6CardID, to page: CodexV6Page,
+                       before target: CodexV6CardID? = nil,
+                       in layout: [CodexV6Page: [CodexV6CardID]]) -> [CodexV6Page: [CodexV6CardID]] {
+        var result = normalizedLayout(layout)
+        guard target != card else { return result }
+        for source in CodexV6Page.allCases {
+            result[source]?.removeAll { $0 == card }
+        }
+        var destination = result[page] ?? []
+        let index = target.flatMap { destination.firstIndex(of: $0) } ?? destination.endIndex
+        destination.insert(card, at: index)
+        result[page] = destination
+        return result
+    }
+
+    private static let overviewModelControlsPlacementKey = "widget.codex-project-tracker.v6.card-order-migration.overview-model-controls"
+
     static func load(for page: CodexV6Page) -> [CodexV6CardID] {
         let key = "widget.codex-project-tracker.v6.card-order.\(page.rawValue)"
         guard let values = CodexV6Preferences.defaults.array(forKey: key) as? [String] else {
             return page.defaultCards
         }
         let decoded = values.compactMap(CodexV6CardID.init(rawValue:))
-        return normalized(decoded, for: page)
+        let normalizedCards = normalized(decoded, for: page)
+        let migratedCards = migrateNewOverviewCard(normalizedCards, page: page)
+        if migratedCards != decoded {
+            CodexV6Preferences.defaults.set(migratedCards.map(\.rawValue), forKey: key)
+        }
+        return migratedCards
     }
 
     static func save(_ cards: [CodexV6CardID], for page: CodexV6Page) {
@@ -542,6 +604,21 @@ enum CodexV6CardOrderStore {
         for card in page.defaultCards where !result.contains(card) {
             result.append(card)
         }
+        return result
+    }
+
+    private static func migrateNewOverviewCard(_ cards: [CodexV6CardID], page: CodexV6Page) -> [CodexV6CardID] {
+        guard page == .overview,
+              !CodexV6Preferences.defaults.bool(forKey: overviewModelControlsPlacementKey),
+              cards.last == .modelControls
+        else { return cards }
+
+        CodexV6Preferences.defaults.set(true, forKey: overviewModelControlsPlacementKey)
+
+        var result = cards
+        result.removeAll { $0 == .modelControls }
+        let insertionIndex = min((result.firstIndex(of: .quota) ?? -1) + 1, result.count)
+        result.insert(.modelControls, at: insertionIndex)
         return result
     }
 }

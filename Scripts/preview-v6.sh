@@ -23,5 +23,5 @@ swiftc -parse-as-library -target arm64-apple-macosx14.0 \
     "$root_dir/Preview/V6Demo.swift" \
     -o "$contents_dir/MacOS/CodexV6Demo"
 
-open -n "$app_dir"
+open -n "$app_dir" --args "$@"
 echo "Launched $app_dir"

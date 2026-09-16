@@ -5,7 +5,9 @@ struct CodexV6CardShell<Content: View>: View {
     let card: CodexV6CardID
     let isEditing: Bool
     let density: CodexV6CardDensity
+    let showsHeader: Bool
     let onOpenDetails: () -> Void
+    let onMoveToPage: (CodexV6Page) -> Void
     private let content: Content
     @Environment(\.codexTheme) private var theme
     @State private var isHovering = false
@@ -14,50 +16,74 @@ struct CodexV6CardShell<Content: View>: View {
         card: CodexV6CardID,
         isEditing: Bool,
         density: CodexV6CardDensity = .standard,
+        showsHeader: Bool = true,
         onOpenDetails: @escaping () -> Void = {},
+        onMoveToPage: @escaping (CodexV6Page) -> Void = { _ in },
         @ViewBuilder content: () -> Content
     ) {
         self.card = card
         self.isEditing = isEditing
         self.density = density
+        self.showsHeader = showsHeader
         self.onOpenDetails = onOpenDetails
+        self.onMoveToPage = onMoveToPage
         self.content = content()
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            HStack(spacing: 6) {
-                Image(systemName: card.symbol)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(theme.accent)
-                Text(card.title)
-                    .font(card.isHero ? Font.subheadline.weight(.bold) : Font.caption.weight(.bold))
-                Spacer(minLength: 0)
-                if !isEditing {
-                    Button(action: onOpenDetails) {
-                        Image(systemName: "info.circle")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(isHovering ? theme.accent : .secondary)
-                            .frame(width: 18, height: 18)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Open \(card.title) details")
-                    .accessibilityLabel("Open \(card.title) details")
-                }
-                if isEditing {
-                    Image(systemName: "line.3.horizontal")
+        VStack(alignment: .leading, spacing: showsHeader ? 9 : 0) {
+            if showsHeader {
+                HStack(spacing: 6) {
+                    Image(systemName: card.symbol)
                         .font(.caption.weight(.bold))
                         .foregroundStyle(theme.accent)
-                        .accessibilityHidden(true)
+                    Text(card.title)
+                        .font(card.isHero ? Font.subheadline.weight(.bold) : Font.caption.weight(.bold))
+                    Spacer(minLength: 0)
+                    if !isEditing {
+                        Button(action: onOpenDetails) {
+                            Image(systemName: "info.circle")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(isHovering ? theme.accent : .secondary)
+                                .frame(width: 18, height: 18)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Open \(card.title) details")
+                        .accessibilityLabel("Open \(card.title) details")
+                    }
+                    if isEditing {
+                        Image(systemName: "line.3.horizontal")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(theme.accent)
+                            .accessibilityHidden(true)
+                    }
                 }
             }
             content
         }
-        .padding(card.isHero ? density.cardPadding + 1 : density.cardPadding)
-        .background(CodexThemeCardSurface(theme: theme, cornerRadius: 14))
-        .overlay(CodexThemeCardGlow(theme: theme, cornerRadius: 14, isEditing: isEditing, isHighlighted: isHovering))
+        .padding(card == .quota ? 4 : density.cardPadding)
+        .background {
+            if card != .quota {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(.white.opacity(card == .modelControls ? 0.10 : 0.035))
+            }
+        }
+        .overlay {
+            if card != .quota || isEditing {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(isEditing ? theme.accent.opacity(0.6) : .white.opacity(0.10), lineWidth: 0.8)
+            }
+        }
         .modifier(CodexV6WiggleModifier(isActive: isEditing, seed: wiggleSeed))
         .onHover { isHovering = $0 }
+        .contextMenu {
+            Button("Open \(card.title) details", action: onOpenDetails)
+            Menu("Move to page") {
+                ForEach(CodexV6Page.allCases) { page in
+                    Button(page.title) { onMoveToPage(page) }
+                }
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(card.title)
         .accessibilityHint("Use the info button to open details")
@@ -72,13 +98,14 @@ struct CodexV6WiggleModifier: ViewModifier {
     let isActive: Bool
     let seed: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.codexVisualTuning) private var tuning
 
     func body(content: Content) -> some View {
         TimelineView(.animation(minimumInterval: 1.0 / 24.0,
-                                paused: reduceMotion || !isActive)) { timeline in
+                                paused: reduceMotion || !tuning.animationsEnabled || !isActive)) { timeline in
             let time = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
-            let rotation = isActive && !reduceMotion ? sin(time * 7.0 + seed) * 1.25 : 0
-            let xOffset = isActive && !reduceMotion ? sin(time * 7.0 + seed) * 0.35 : 0
+            let rotation = isActive && !reduceMotion && tuning.animationsEnabled ? sin(time * 7.0 + seed) * 1.25 : 0
+            let xOffset = isActive && !reduceMotion && tuning.animationsEnabled ? sin(time * 7.0 + seed) * 0.35 : 0
             content
                 .rotationEffect(.degrees(rotation))
                 .offset(x: xOffset)
@@ -96,6 +123,17 @@ struct CodexV6QuotaCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(usage.isStale ? theme.dataColor(1) : theme.dataColor(2))
+                    .frame(width: 6, height: 6)
+                Text(usage.statusLabel(now: now))
+                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .padding(.top, 2)
+
             HStack(spacing: 12) {
                 CodexV6ProgressRing(value: usage.percentRemaining, theme: theme, size: 68)
                 VStack(alignment: .leading, spacing: 3) {
@@ -114,13 +152,16 @@ struct CodexV6QuotaCard: View {
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.bottom, 2)
+            .padding(10)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(theme.accent.opacity(0.065), in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(theme.accent.opacity(0.18), lineWidth: 0.8))
 
             HStack(spacing: 7) {
-                CodexV6Metric(value: usage.windowUsedLabel, label: "Window", tint: theme.dataColor(0), treatment: .outlined)
-                CodexV6Metric(value: usage.todayUsedLabel, label: "Today", tint: theme.dataColor(1), treatment: .outlined)
-                CodexV6Metric(value: "\(taskCount)", label: "Tasks", tint: theme.dataColor(2), treatment: .outlined)
-                CodexV6Metric(value: "\(chatCount)", label: "Chats", tint: theme.dataColor(3), treatment: .outlined)
+                CodexV6Metric(value: usage.windowUsedLabel, label: "Window", tint: theme.dataColor(0), treatment: .soft)
+                CodexV6Metric(value: usage.todayUsedLabel, label: "Today", tint: theme.dataColor(1), treatment: .soft)
+                CodexV6Metric(value: "\(taskCount)", label: "Tasks", tint: theme.dataColor(2), treatment: .soft)
+                CodexV6Metric(value: "\(chatCount)", label: "Chats", tint: theme.dataColor(3), treatment: .soft)
             }
             .padding(.vertical, 1)
 
@@ -130,7 +171,7 @@ struct CodexV6QuotaCard: View {
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .padding(.bottom, 2)
-                    ForEach(usage.metrics.prefix(2)) { metric in
+                    ForEach(usage.metrics) { metric in
                         HStack(spacing: 6) {
                             Image(systemName: metric.systemImage)
                                 .foregroundStyle(theme.accent)
@@ -147,16 +188,7 @@ struct CodexV6QuotaCard: View {
                 .padding(.top, 2)
             }
 
-            HStack(spacing: 5) {
-                Circle()
-                    .fill(usage.isStale ? theme.dataColor(1) : theme.dataColor(2))
-                    .frame(width: 6, height: 6)
-                Text(usage.statusLabel(now: now))
-                    .font(.system(size: 9, weight: .medium, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            .padding(.top, 2)
+
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue("\(Int((usage.percentRemaining * 100).rounded())) percent remaining, \(usage.resetSummary(now: now))")
@@ -596,7 +628,14 @@ struct CodexV6Metric: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 6)
         .padding(.vertical, 6)
-        .background(CodexThemeMetricSurface(theme: theme, tint: tint, showsOutline: treatment == .outlined))
+        .background {
+            if treatment == .soft {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(.white.opacity(0.09))
+            } else {
+                CodexThemeMetricSurface(theme: theme, tint: tint, showsOutline: true)
+            }
+        }
         .help("\(label): \(value)")
         .accessibilityLabel(label)
         .accessibilityValue(value)

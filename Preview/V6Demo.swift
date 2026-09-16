@@ -61,9 +61,9 @@ private func v6DemoSnapshot() -> CodexSnapshot {
         attributedEventCount: 126
     )
     snapshot.panelSessions = [
-        ("Widget design", "Explore the new model themes"),
+        ("Codex workspace", "Review usage and reset timing"),
         ("Native app", "Refine the sidebar and search"),
-        ("Release preparation", "Review the latest changes"),
+        ("Release checklist", "Review the latest changes"),
         ("Usage dashboard", "Improve status and accessibility")
     ].enumerated().map { index, item in
         CodexSession(
@@ -83,6 +83,7 @@ private struct V6DemoRoot: View {
     var body: some View {
         CodexTrackerPanelView(dismiss: { NSApp.terminate(nil) }, previewSnapshot: v6DemoSnapshot())
             .padding(14)
+
     }
 }
 
@@ -100,6 +101,11 @@ private final class V6DemoApp: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         CodexV6Preferences.defaults = UserDefaults(suiteName: "com.appleforever11.codex-v6-demo") ?? .standard
+        if ProcessInfo.processInfo.arguments.contains("--reduce-motion") {
+            CodexV6Preferences.defaults.setVolatileDomain(
+                [CodexV6Preferences.animationsEnabledKey: false], forName: UserDefaults.argumentDomain
+            )
+        }
         let host = NSHostingView(rootView: V6DemoRoot())
         window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 390, height: 705),

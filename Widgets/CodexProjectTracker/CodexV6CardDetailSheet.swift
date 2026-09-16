@@ -160,7 +160,7 @@ struct CodexV6CardDetailSheet: View {
         case .modelControls:
             CodexV6DetailRow(label: "Model", value: snapshot.modelSettings.shortModelName, tint: theme.accent)
             CodexV6DetailRow(label: "Reasoning", value: snapshot.modelSettings.reasoningLabel, tint: theme.dataColor(1))
-            CodexV6DetailSource(text: "Use the Health page controls to change defaults.", tint: theme.dataColor(2))
+            CodexV6DetailSource(text: "Use the Overview page controls to change defaults.", tint: theme.dataColor(2))
 
         default:
             CodexV6DetailMetric(value: detailValue, label: "Current signal", tint: theme.accent)

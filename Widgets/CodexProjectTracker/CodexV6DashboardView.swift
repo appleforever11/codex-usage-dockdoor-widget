@@ -14,6 +14,7 @@ struct CodexV6DashboardView: View {
 
     @State private var page: CodexV6Page = .overview
     @State private var isEditing = false
+    @State private var dragOrigin: CodexV6Page?
     @State private var cardOrders: [CodexV6Page: [CodexV6CardID]]
     @State private var pageThemes: [CodexV6Page: CodexTheme]
     @State private var hapticsEnabled: Bool
@@ -23,7 +24,6 @@ struct CodexV6DashboardView: View {
     @State private var activityWindow: CodexV6AnalyticsWindow = .sevenDays
     @State private var modelFilter: String?
     @State private var selectedCard: CodexV6CardID?
-    @State private var pageDragOffset: CGFloat = 0
     @State private var isAppearancePresented = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -45,9 +45,7 @@ struct CodexV6DashboardView: View {
         self.onCheckUpdates = onCheckUpdates
         self.onModelChange = onModelChange
         self.dismiss = dismiss
-        _cardOrders = State(initialValue: Dictionary(uniqueKeysWithValues: CodexV6Page.allCases.map {
-            ($0, CodexV6CardOrderStore.load(for: $0))
-        }))
+        _cardOrders = State(initialValue: CodexV6CardOrderStore.loadLayout())
         _pageThemes = State(initialValue: Dictionary(uniqueKeysWithValues: CodexV6Page.allCases.map {
             ($0, CodexV6PageThemeStore.load(for: $0))
         }))
@@ -73,8 +71,6 @@ struct CodexV6DashboardView: View {
 
             ZStack {
                 activePage
-                    .id(page)
-                    .transition(.opacity)
 
                 CodexTrackpadSwipeBridge { offset in
                     navigatePage(by: offset)
@@ -84,28 +80,15 @@ struct CodexV6DashboardView: View {
                 .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 18)
-                    .onChanged { value in
-                        guard !isEditing else {
-                            pageDragOffset = 0
-                            return
-                        }
-                        pageDragOffset = value.translation.width
-                    }
-                    .onEnded { value in
-                        defer { pageDragOffset = 0 }
-                        let horizontal = value.translation.width
-                        let vertical = value.translation.height
-                        guard abs(horizontal) > 42, abs(horizontal) > abs(vertical) * 1.25 else { return }
-                        navigatePage(by: horizontal < 0 ? 1 : -1)
-                    }
-            )
+            .overlay(alignment: .leading) { edgeDropZone(direction: -1) }
+            .overlay(alignment: .trailing) { edgeDropZone(direction: 1) }
+            // Native card drags own mouse movement. Trackpad page swipes are
+            // handled by CodexTrackpadSwipeBridge without competing gestures.
 
             pageFooter
         }
         .padding(.horizontal, 10)
-        .padding(.top, 8)
+        .padding(.top, 12)
         .padding(.bottom, 7)
         .background(CodexThemeBackground(theme: activeTheme))
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -144,16 +127,12 @@ struct CodexV6DashboardView: View {
 
     private var header: some View {
         HStack(spacing: 7) {
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text("Codex Usage")
                     .font(.headline.weight(.bold))
-                HStack(spacing: 5) {
-                    Text("6.0 prototype · \(page.title)")
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                    if showDataStatus {
-                        CodexV6DataStatusBadge(usage: snapshot.usage, now: now)
-                    }
+                    .lineLimit(1)
+                if showDataStatus {
+                    CodexV6DataStatusBadge(usage: snapshot.usage, now: now)
                 }
             }
             Spacer(minLength: 2)
@@ -200,7 +179,8 @@ struct CodexV6DashboardView: View {
                     theme: activeThemeBinding,
                     visualTuning: $visualTuning,
                     cardDensity: $cardDensity,
-                    showDataStatus: $showDataStatus
+                    showDataStatus: $showDataStatus,
+                    hapticsEnabled: hapticsEnabled
                 )
             }
             .help("Choose the \(page.title) page theme")
@@ -209,6 +189,11 @@ struct CodexV6DashboardView: View {
 
             Button {
                 hapticsEnabled.toggle()
+                if hapticsEnabled {
+                    CodexHaptics.performHoverIfEnabled(true)
+                } else {
+                    CodexHaptics.cancelPendingFeedback()
+                }
                 CodexV6Preferences.defaults.set(hapticsEnabled, forKey: CodexHaptics.enabledKey)
             } label: {
                 ZStack(alignment: .bottomTrailing) {
@@ -222,8 +207,8 @@ struct CodexV6DashboardView: View {
                 }
             }
             .buttonStyle(.plain)
-            .help("Model selection haptics: \(hapticsEnabled ? "On" : "Off")")
-            .accessibilityLabel("Model selection haptics")
+            .help("Hover and selection haptics: \(hapticsEnabled ? "On" : "Off")")
+            .accessibilityLabel("Hover and selection haptics")
             .accessibilityValue(hapticsEnabled ? "On" : "Off")
             .accessibilityAddTraits(hapticsEnabled ? .isSelected : [])
             .keyboardShortcut("h", modifiers: [.command, .shift])
@@ -251,7 +236,7 @@ struct CodexV6DashboardView: View {
             .accessibilityLabel("Close Codex Usage")
         }
         .padding(.horizontal, 3)
-        .padding(.bottom, 8)
+        .padding(.bottom, 12)
     }
 
     private var pagePicker: some View {
@@ -281,7 +266,17 @@ struct CodexV6DashboardView: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .help("Show the \(option.title) page")
+                .codexHoverHaptics(enabled: hapticsEnabled)
+                .onDrop(of: [CodexV6CardDrag.type], delegate: CodexV6CardDropDelegate(
+                    onEnter: {
+                        if page != option {
+                            page = option
+                            CodexHaptics.performPageNavigationIfEnabled(hapticsEnabled)
+                        }
+                    },
+                    onMove: { moveCard($0, to: option, before: cardOrders[option]?.first) }
+                ))
+                .help("Show \(option.title), or drop a card here to move it")
                 .accessibilityLabel("\(option.title) page")
                 .accessibilityValue(page == option ? "Selected" : "Not selected")
                 .accessibilityAddTraits(page == option ? .isSelected : [])
@@ -297,8 +292,6 @@ struct CodexV6DashboardView: View {
             } label: {
                 Image(systemName: "chevron.left")
                     .frame(width: 20, height: 20)
-                    .offset(x: pageDragOffset > 0 ? min(pageDragOffset * 0.06, 3) : 0)
-                    .scaleEffect(pageDragOffset > 0 ? 1 + min(pageDragOffset / 700, 0.08) : 1)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
@@ -315,15 +308,12 @@ struct CodexV6DashboardView: View {
             }
             .frame(minWidth: 36)
 
-            CodexV6SwipeProgress(progress: swipeProgress, theme: activeTheme)
 
             Button {
                 navigatePage(by: 1)
             } label: {
                 Image(systemName: "chevron.right")
                     .frame(width: 20, height: 20)
-                    .offset(x: pageDragOffset < 0 ? max(pageDragOffset * 0.06, -3) : 0)
-                    .scaleEffect(pageDragOffset < 0 ? 1 + min(abs(pageDragOffset) / 700, 0.08) : 1)
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
@@ -332,7 +322,7 @@ struct CodexV6DashboardView: View {
 
             Spacer(minLength: 0)
             VStack(alignment: .trailing, spacing: 1) {
-                Text(isEditing ? "Drag cards to reorder" : "Swipe or ⌘← ⌘→")
+                Text(isEditing ? "Drop cards onto page tabs" : "Swipe or ⌘← ⌘→")
             .font(.caption2.weight(.medium))
                     .foregroundStyle(isEditing ? activeTheme.accent : Color.secondary.opacity(0.70))
                     .lineLimit(1)
@@ -365,10 +355,24 @@ struct CodexV6DashboardView: View {
     }
 
     private var activePage: some View {
+        // Keep each page mounted while dragging. Removing the source page
+        // during a tab hover cancels the native macOS drag session.
+        ZStack {
+            ForEach(CodexV6Page.allCases) { option in
+                pageView(for: option)
+                    .opacity(page == option ? 1 : 0)
+                    .zIndex(page == option ? 1 : 0)
+                    .allowsHitTesting(page == option || dragOrigin == option)
+                    .accessibilityHidden(page != option)
+            }
+        }
+    }
+
+    private func pageView(for page: CodexV6Page) -> some View {
         CodexV6PageView(
             page: page,
             snapshot: snapshot,
-            cardOrder: orderBinding(for: page),
+            cardOrder: cardOrders[page] ?? page.defaultCards,
             isEditing: $isEditing,
             now: now,
             isPreview: isPreview,
@@ -377,27 +381,42 @@ struct CodexV6DashboardView: View {
             cardDensity: cardDensity,
             activityWindow: $activityWindow,
             modelFilter: $modelFilter,
-            onSelectCard: { selectedCard = $0 }
+            onSelectCard: { selectedCard = $0 },
+            onMoveCard: { moveCard($0, to: $1, before: $2) },
+            onDragStarted: { dragOrigin = page }
         )
-        .environment(\.codexTheme, activeTheme)
-        .environment(\.codexVisualTuning, visualTuning)
-        .offset(x: pageDragOffset * 0.05)
-        .animation(reduceMotion || !visualTuning.animationsEnabled ? nil : .easeOut(duration: 0.12), value: pageDragOffset)
+        .environment(\.codexTheme, pageThemes[page] ?? page.defaultTheme)
+        .environment(\.codexVisualTuning, tuning(for: page))
     }
 
-    private var swipeProgress: CGFloat {
-        min(abs(pageDragOffset) / 140, 1)
+    private func tuning(for option: CodexV6Page) -> CodexV6VisualTuning {
+        var result = visualTuning
+        if option != page { result.animationsEnabled = false }
+        return result
     }
 
-    private func orderBinding(for page: CodexV6Page) -> Binding<[CodexV6CardID]> {
-        Binding(
-            get: { cardOrders[page] ?? page.defaultCards },
-            set: { newValue in
-                let normalized = CodexV6CardOrderStore.normalized(newValue, for: page)
-                cardOrders[page] = normalized
-                CodexV6CardOrderStore.save(normalized, for: page)
-            }
+    private func edgeDropZone(direction: Int) -> some View {
+        CodexV6EdgeDropZone(
+            page: page,
+            direction: direction,
+            onNavigate: { offset in
+                page = adjacentPage(offset: offset)
+                CodexHaptics.performPageNavigationIfEnabled(hapticsEnabled)
+            },
+            onMove: { moveCard($0, to: page, before: cardOrders[page]?.first) }
         )
+    }
+
+    private func moveCard(_ card: CodexV6CardID, to destination: CodexV6Page, before target: CodexV6CardID?) {
+        dragOrigin = nil
+        let updated = CodexV6CardOrderStore.moving(card, to: destination, before: target, in: cardOrders)
+        guard updated != cardOrders else { return }
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+            cardOrders = updated
+            page = destination
+        }
+        CodexV6CardOrderStore.saveLayout(updated)
+        CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)
     }
 
     private var activeThemeBinding: Binding<CodexTheme> {

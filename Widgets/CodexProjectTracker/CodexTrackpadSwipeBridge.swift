@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 /// Observes horizontal trackpad scroll events without taking ownership of the
-/// vertical card scroll view. SwiftUI's DragGesture covers pointer drags, but
-/// macOS two-finger trackpad swipes arrive as scroll-wheel events.
+/// vertical card scroll view or the native card drag session. macOS two-finger
+/// trackpad swipes arrive as scroll-wheel events.
 struct CodexTrackpadSwipeBridge: NSViewRepresentable {
     let onSwipe: (Int) -> Void
 

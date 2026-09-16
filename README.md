@@ -4,7 +4,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current public personal beta:** [6.0.0](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.0) — the full page-based dashboard refresh with themed animated data surfaces, haptic feedback, trackpad swiping, richer compact dock previews, and an isolated Reflective Shelf beta.
+**Current public personal beta:** [6.0.1](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.1) — refined dashboard spacing, shared illustrated model and appearance buttons, clearer settings, and double-pulse hover feedback.
 
 **Last stable private release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 
@@ -65,7 +65,7 @@ This public update is for the personal companion and its full-featured `codex-pr
 - 🫧 **DockDoor Pro preview refresh:** compact, horizontal, and vertical previews share one visual system, foreground the active model name (Luna, Sol, Terra, or Astra), keep supporting text legible, and remove the old colored capsule/border from the transparent Reflective Shelf beta treatment.
 - 🔒 **Local-first by design:** observed token events, cache state, session health, and workspace checks stay on the Mac. Account percentages continue to come from the local Codex app-server snapshot and are labeled separately from derived telemetry.
 
-The complete release notes are in [docs/RELEASE-6.0.0.md](docs/RELEASE-6.0.0.md). The public Sparkle feed is generated and signed by the tag-driven release workflow after the universal app, widget, and notarized installer pass validation.
+The complete release notes are in [docs/RELEASE-6.0.1.md](docs/RELEASE-6.0.1.md). The public Sparkle feed is generated and signed by the tag-driven release workflow after the universal app, widget, and notarized installer pass validation.
 
 ## New design · 5.0.4
 

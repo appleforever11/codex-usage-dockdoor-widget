@@ -17,6 +17,7 @@ swiftc -parse-as-library -target arm64-apple-macosx14.0 \
     "$root_dir/Widgets/CodexProjectTracker/CodexTheme.swift" \
     "$root_dir/Widgets/CodexProjectTracker/CodexThemeVisuals.swift" \
     "$root_dir/Widgets/CodexProjectTracker/CodexModelControls.swift" \
+    "$root_dir/Widgets/CodexProjectTracker/CodexIdentityButton.swift" \
     "$root_dir/Widgets/CodexProjectTracker/CodexSnapshot.swift" \
     "$root_dir/Widgets/CodexProjectTracker/CodexTokenTelemetry.swift" \
     "$root_dir/Widgets/CodexProjectTracker/CodexV6Analytics.swift" \

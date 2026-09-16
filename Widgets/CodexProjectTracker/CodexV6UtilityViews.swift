@@ -189,106 +189,141 @@ struct CodexV6AppearancePopover: View {
     @Binding var visualTuning: CodexV6VisualTuning
     @Binding var cardDensity: CodexV6CardDensity
     @Binding var showDataStatus: Bool
+    let hapticsEnabled: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Appearance")
-                    .font(.headline.weight(.bold))
-                Spacer(minLength: 5)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Appearance")
+                        .font(.system(size: 16, weight: .bold))
+                    Text("Customize this page")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
                 Text(theme.rawValue)
-                    .font(.caption2.weight(.bold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(theme.accent)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(theme.accent.opacity(0.12), in: Capsule())
             }
 
-            Text("Page theme")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
-                ForEach(CodexTheme.allCases) { option in
-                    Button {
-                        theme = option
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: option.symbol)
-                                .font(.caption.weight(.bold))
-                            Text(option.rawValue)
-                                .font(.system(size: 9, weight: .semibold, design: .rounded))
-                                .lineLimit(1)
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 7) {
+                        sectionLabel("PAGE THEME")
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
+                            ForEach([CodexTheme.luna, .sol, .terra, .astra]) { option in
+                                themeButton(option, height: 54)
+                            }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 7)
-                        .foregroundStyle(option.accent)
-                        .background(option.base.opacity(theme == option ? 0.72 : 0.34), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous)
-                            .stroke(option.accent.opacity(theme == option ? 0.90 : 0.22), lineWidth: theme == option ? 1.2 : 0.7))
+                        themeButton(.rainbow, height: 34)
                     }
-                    .buttonStyle(.plain)
-                    .help("Use the \(option.rawValue) theme for this page")
-                    .accessibilityAddTraits(theme == option ? .isSelected : [])
+
+                    Divider().opacity(0.35)
+
+                    HStack(alignment: .top, spacing: 14) {
+                        intensityControl("Glow", symbol: "sun.max.fill", value: tuningBinding(\.glowIntensity))
+                        intensityControl("Sparkles", symbol: "sparkles", value: tuningBinding(\.sparkleIntensity))
+                    }
+
+                    VStack(alignment: .leading, spacing: 9) {
+                        Toggle("Animate glow and sparkles", isOn: tuningBinding(\.animationsEnabled))
+                            .disabled(reduceMotion)
+                        Toggle("High contrast edges", isOn: tuningBinding(\.highContrast))
+                        Toggle("Show live data status", isOn: $showDataStatus)
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .controlSize(.small)
+                    .toggleStyle(.checkbox)
+
+                    VStack(alignment: .leading, spacing: 7) {
+                        sectionLabel("CARD SPACING")
+                        HStack(spacing: 6) {
+                            ForEach(CodexV6CardDensity.allCases) { density in
+                                Button {
+                                    cardDensity = density
+                                    CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)
+                                } label: {
+                                    Text(density.title)
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .lineLimit(1)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 28)
+                                        .foregroundStyle(cardDensity == density ? .white : .secondary)
+                                        .background(cardDensity == density ? theme.accent.opacity(0.28) : .white.opacity(0.05),
+                                                    in: RoundedRectangle(cornerRadius: 8))
+                                        .overlay(RoundedRectangle(cornerRadius: 8)
+                                            .strokeBorder(cardDensity == density ? theme.accent.opacity(0.7) : .white.opacity(0.12), lineWidth: 0.8))
+                                }
+                                .buttonStyle(.plain)
+                                .codexHoverHaptics(enabled: hapticsEnabled)
+                                .accessibilityLabel("Card spacing \(density.title)")
+                                .accessibilityValue(cardDensity == density ? "Selected" : "Not selected")
+                                .accessibilityAddTraits(cardDensity == density ? .isSelected : [])
+                            }
+                        }
+                    }
+
+                    if reduceMotion {
+                        Label("Reduce Motion is enabled in macOS", systemImage: "figure.walk.circle")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+                .padding(2)
             }
-
-            Divider().opacity(0.45)
-
-            HStack {
-                Label("Glow", systemImage: "sun.max.fill")
-                Spacer()
-                Text("\(Int((visualTuning.glowIntensity * 100).rounded()))%")
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            Slider(value: tuningBinding(\.glowIntensity), in: 0...1.5)
-                .accessibilityLabel("Glow intensity")
-
-            HStack {
-                Label("Sparkles", systemImage: "sparkles")
-                Spacer()
-                Text("\(Int((visualTuning.sparkleIntensity * 100).rounded()))%")
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            Slider(value: tuningBinding(\.sparkleIntensity), in: 0...1.5)
-                .accessibilityLabel("Sparkle intensity")
-
-            Toggle("Animate glow and sparkles", isOn: tuningBinding(\.animationsEnabled))
-                .disabled(reduceMotion)
-            Toggle("High contrast edges", isOn: tuningBinding(\.highContrast))
-            Picker("Card density", selection: $cardDensity) {
-                ForEach(CodexV6CardDensity.allCases) { density in
-                    Text(density.title).tag(density)
-                }
-            }
-            .pickerStyle(.segmented)
-            .accessibilityLabel("Card density")
-            Toggle("Show live data status", isOn: $showDataStatus)
-
-            if reduceMotion {
-                Label("macOS Reduce Motion is enabled", systemImage: "figure.walk.circle")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Animation controls respect macOS accessibility settings.")
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .padding(15)
-        .frame(width: 285)
+        .padding(14)
+        .frame(width: 300, height: 460)
+        .environment(\.codexVisualTuning, visualTuning)
+        .environment(\.codexTheme, theme)
+        .environment(\.colorScheme, .dark)
         .tint(theme.accent)
     }
 
-    private func tuningBinding<Value>(_ keyPath: WritableKeyPath<CodexV6VisualTuning, Value>) -> Binding<Value> {
-        Binding(
-            get: { visualTuning[keyPath: keyPath] },
-            set: { newValue in
-                var updated = visualTuning
-                updated[keyPath: keyPath] = newValue
-                visualTuning = updated
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 9, weight: .semibold))
+            .tracking(1.2)
+            .foregroundStyle(.secondary)
+    }
+
+    private func themeButton(_ option: CodexTheme, height: CGFloat) -> some View {
+        CodexIdentityButton(identity: option, isSelected: theme == option,
+                            hapticsEnabled: hapticsEnabled, height: height) {
+            theme = option
+            CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)
+        }
+        .help("Use the \(option.rawValue) theme for this page")
+        .accessibilityLabel("\(option.rawValue) theme")
+    }
+
+    private func intensityControl(_ title: String, symbol: String, value: Binding<Double>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
+                Label(title, systemImage: symbol)
+                Spacer(minLength: 2)
+                Text("\(Int((value.wrappedValue * 100).rounded()))%")
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
             }
-        )
+            .font(.system(size: 11, weight: .medium))
+            .lineLimit(1)
+            Slider(value: value, in: 0...1.5)
+                .controlSize(.small)
+                .accessibilityLabel("\(title) intensity")
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func tuningBinding<Value>(_ keyPath: WritableKeyPath<CodexV6VisualTuning, Value>) -> Binding<Value> {
+        Binding(get: { visualTuning[keyPath: keyPath] }, set: { visualTuning[keyPath: keyPath] = $0 })
     }
 }
 

@@ -59,9 +59,9 @@ private func previewSnapshot() -> CodexSnapshot {
         attributedEventCount: 13
     )
     snapshot.panelSessions = [
-        ("Widget design", "Explore the new model themes"),
+        ("Codex workspace", "Review usage and reset timing"),
         ("Native app", "Refine the sidebar and search"),
-        ("Release preparation", "Review the latest changes"),
+        ("Release checklist", "Review the latest changes"),
         ("Usage dashboard", "Improve status and accessibility"),
         ("Model controls", "Verify Light, Medium, and Max")
     ].enumerated().map { index, item in
