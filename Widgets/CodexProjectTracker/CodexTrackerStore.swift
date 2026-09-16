@@ -59,6 +59,7 @@ enum CodexTrackerStore {
             "\(recentLimit())",
             "\(usageBudgetTokens())",
             "\(usageWindowHours())",
+            "\(WidgetDefaults.double(key: "dailyGoalMillions", widgetId: "codex-project-tracker", default: 2))",
             sessionsRoot.path,
             primaryCardSetting(),
         ].joined(separator: ":")
@@ -98,6 +99,11 @@ enum CodexTrackerStore {
                 )
             }
         )
+        let analytics = CodexV6AnalyticsBuilder.build(
+            telemetry: tokenTelemetry,
+            usage: usage,
+            sessions: panelSessions
+        )
         let taskCount = localTaskCount(sessions: sessions)
         let modelSettings = CodexConfigStore.read()
 
@@ -110,6 +116,7 @@ enum CodexTrackerStore {
             latestChat: latestChat,
             usage: usage,
             tokenTelemetry: tokenTelemetry,
+            analytics: analytics,
             modelSettings: modelSettings,
             projects: projects,
             sessions: sessions,
@@ -595,9 +602,9 @@ enum CodexTrackerStore {
         let primaryLimit = state.limits?.first
         let percentRemaining: Double
         if let remaining = primaryLimit?.percentRemaining ?? primaryLimit?.remainingPercent ?? state.percentRemaining ?? state.remainingPercent {
-            percentRemaining = remaining > 1 ? remaining / 100 : remaining
+            percentRemaining = CodexUsagePercent.fraction(fromPercent: remaining)
         } else if let used = primaryLimit?.percentUsed ?? primaryLimit?.usedPercent ?? state.percentUsed ?? state.usedPercent {
-            percentRemaining = 1 - (used > 1 ? used / 100 : used)
+            percentRemaining = 1 - CodexUsagePercent.fraction(fromPercent: used)
         } else if let remaining = primaryLimit?.remaining ?? state.remaining, let limit = primaryLimit?.limit ?? state.limit, limit > 0 {
             percentRemaining = Double(remaining) / Double(limit)
         } else {
@@ -689,10 +696,10 @@ enum CodexTrackerStore {
 
     private static func normalizedPercent(for limit: CodexExternalUsageLimit) -> Double? {
         if let remaining = limit.percentRemaining ?? limit.remainingPercent {
-            return min(max(remaining > 1 ? remaining / 100 : remaining, 0), 1)
+            return CodexUsagePercent.fraction(fromPercent: remaining)
         }
         if let used = limit.percentUsed ?? limit.usedPercent {
-            return min(max(1 - (used > 1 ? used / 100 : used), 0), 1)
+            return 1 - CodexUsagePercent.fraction(fromPercent: used)
         }
         if let remaining = limit.remaining, let cap = limit.limit, cap > 0 {
             return min(max(Double(remaining) / Double(cap), 0), 1)

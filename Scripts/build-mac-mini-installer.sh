@@ -34,7 +34,10 @@ for arch in arm64 x86_64; do
         -parse-as-library \
         -o "$installer_macos/CodexUsageInstaller_${arch}" \
         "$installer_source" "$root_dir/Installer/CompanionUpdates.swift" \
-        "$root_dir/Installer/CompanionTheme.swift" "$root_dir/Widgets/CodexProjectTracker/CodexTheme.swift"
+        "$root_dir/Installer/CompanionTheme.swift" \
+        "$root_dir/Widgets/CodexProjectTracker/CodexTheme.swift" \
+        "$root_dir/Widgets/CodexProjectTracker/CodexThemeVisuals.swift" \
+        "$root_dir/Widgets/CodexProjectTracker/CodexHaptics.swift"
 done
 lipo -create \
     "$installer_macos/CodexUsageInstaller_arm64" \

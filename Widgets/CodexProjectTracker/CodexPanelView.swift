@@ -62,178 +62,41 @@ struct CodexTrackerPanelView: View {
     }
 
     private func panelContent(_ snapshot: CodexSnapshot) -> some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("Codex Usage", systemImage: "gauge.with.dots.needle.67percent")
-                    .font(.headline)
-                Spacer()
-                Button {
-                    if !isPreview { CodexAppLauncher.checkForUpdates() }
-                } label: {
-                    Image(systemName: "arrow.down.circle")
-                        .frame(width: 22, height: 22)
+        CodexV6DashboardView(
+            snapshot: snapshot,
+            now: now,
+            isPreview: isPreview,
+            isRefreshing: isRefreshing,
+            onRefresh: {
+                if !isPreview {
+                    Task { await refreshSnapshot(force: true) }
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .help("Check for widget updates")
-                .accessibilityLabel("Check for widget updates")
-                Button {
-                    if !isPreview { Task { await refreshSnapshot(force: true) } }
-                } label: {
-                    Image(systemName: isRefreshing ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
-                        .rotationEffect(.degrees(isRefreshing ? 180 : 0))
-                        .frame(width: 22, height: 22)
+            },
+            onCheckUpdates: {
+                if !isPreview { CodexAppLauncher.checkForUpdates() }
+            },
+            onModelChange: { model, reasoning in
+                if isPreview {
+                    self.snapshot?.modelSettings = CodexModelSettings(model: model, reasoningEffort: reasoning)
+                    return true
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-                .help("Refresh Codex data now")
-                .accessibilityLabel("Refresh usage")
-                .disabled(isRefreshing)
-                CodexThemeMenu(selection: $themeName)
-                Button(action: dismiss) {
-                    Image(systemName: "xmark.circle.fill")
+
+                do {
+                    try CodexConfigStore.update(model: model, reasoningEffort: reasoning)
+                    Task { await refreshSnapshot() }
+                    return true
+                } catch {
+                    settingsError = error.localizedDescription
+                    return false
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
-            }
-
-            if CodexWidgetPreferences.showDataStatus {
-                DataStatusRow(usage: snapshot.usage, now: now)
-            }
-
-            if let warning = snapshot.usage.warning {
-                HStack(alignment: .top, spacing: 7) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                    Text(warning)
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 7)
-                .background(.orange.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            }
-
-            HStack(spacing: 12) {
-                UsageRingView(percentRemaining: snapshot.usage.percentRemaining, size: 72, lineWidth: 7, theme: theme)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(snapshot.usage.primaryTitle)
-                        .font(.title3.weight(.bold))
-                    Text(snapshot.usage.primarySubtitle)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                    Text(snapshot.usage.resetSummary(now: now))
-                        .font(.caption2.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(10)
-            .background(theme.accent.opacity(0.075), in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(theme.accent.opacity(0.18)))
-
-            HStack(spacing: 10) {
-                StatPill(title: "Window", value: snapshot.usage.windowUsedLabel)
-                StatPill(title: "Today", value: snapshot.usage.todayUsedLabel)
-                StatPill(title: "Tasks", value: "\(snapshot.taskCount)")
-                StatPill(title: "Chats", value: "\(snapshot.chatCount)")
-            }
-
-            VStack(alignment: .leading, spacing: 7) {
-                Text("Usage limits")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-
-                ForEach(snapshot.usage.metrics) { metric in
-                    HStack(spacing: 8) {
-                        Image(systemName: metric.systemImage)
-                            .frame(width: 15)
-                            .foregroundStyle(theme.accent)
-                        Text(metric.title)
-                            .font(.caption.weight(.semibold))
-                        Spacer()
-                        Text(metric.value)
-                            .font(.caption.monospacedDigit().weight(.bold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .lineLimit(1)
-                }
-            }
-
-            if CodexWidgetPreferences.showTokenTelemetry {
-                CodexTokenTelemetrySection(telemetry: snapshot.tokenTelemetry, now: now)
-            }
-
-            ModelControlSection(
-                settings: snapshot.modelSettings,
-                onChange: { model, reasoning in
-                    if isPreview {
-                        self.snapshot?.modelSettings = CodexModelSettings(model: model, reasoningEffort: reasoning)
-                    } else {
-                        do {
-                            try CodexConfigStore.update(model: model, reasoningEffort: reasoning)
-                            Task { await refreshSnapshot() }
-                        } catch {
-                            settingsError = error.localizedDescription
-                        }
-                    }
-                }
-            )
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Recent Chats")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-
-                ScrollView(.vertical, showsIndicators: true) {
-                    LazyVStack(alignment: .leading, spacing: 8) {
-                        if snapshot.panelSessions.isEmpty {
-                            Label("Your recent chats will appear here", systemImage: "bubble.left.and.bubble.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.vertical, 14)
-                        }
-                        ForEach(snapshot.panelSessions) { session in
-                            CodexSessionRow(session: session, allowsOpening: !isPreview)
-                        }
-
-                        if let latest = snapshot.latestChat {
-                            Divider()
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("Latest Chat")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                                Text(latest)
-                                    .font(.caption)
-                                    .lineLimit(2)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.trailing, 2)
-                }
-                .frame(minHeight: 70, maxHeight: 170)
-                .accessibilityLabel("Recent Codex chats")
-            }
-            }
-            .padding(14)
-        }
+            },
+            dismiss: dismiss
+        )
         .frame(width: 350, height: 640, alignment: .topLeading)
     }
 
     private var loadingContent: some View {
-        VStack(spacing: 12) {
-            ProgressView()
-                .controlSize(.small)
-            Text("Loading Codex Usage")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-        }
-        .frame(width: 350, height: 640)
+        CodexV6LoadingState(theme: theme)
     }
 
     private func refreshSnapshot(force: Bool = false) async {

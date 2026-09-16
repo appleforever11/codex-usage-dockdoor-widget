@@ -7,6 +7,7 @@ private struct AstraPreview: View {
     var body: some View {
         ModelControlSection(settings: settings) { model, reasoning in
             settings = CodexModelSettings(model: model, reasoningEffort: reasoning)
+            return true
         }
         .padding(14)
         .frame(width: 350)

@@ -29,7 +29,14 @@ ET.SubElement(item, "pubDate").text = email.utils.format_datetime(datetime.datet
 ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
-ET.SubElement(item, "description").text = "Adds private local token activity with observed burn rates, context-window usage, and per-model/reasoning totals. The Token activity panel is collapsible with a live compact summary. Also includes the custom Astra app icon, adjustable background opacity and frosted glass, model themes, Astra-only animated ring sparkles, Terra controls, and Light reasoning. Private-edition signed Sparkle updates remain in the companion app. The companion applies the bundled widget to DockDoor Pro after updating."
+ET.SubElement(item, "description").text = (
+    f"🚀 Codex Usage {version} beta brings the personal build's living dashboard to the dock. "
+    "🧭 Four swipeable pages cover Overview, Activity, Models, and Health, with reorderable cards and focused detail views. "
+    "🎨 Astra, Luna, Sol, Terra, and Rainbow themes now carry through rings, bars, charts, surfaces, breathing atmosphere, and floating sparkles. "
+    "🖱️ Two-finger trackpad swipes and keyboard navigation move between pages, while 🧲 model and page actions can provide haptic feedback. "
+    "🫧 Transparent compact, extended horizontal, and extended vertical previews are ready for DockDoor Pro's optional Reflective Shelf beta. "
+    "🔒 This is the personal companion edition; the marketplace variant keeps its separate read-only update path."
+)
 ET.SubElement(item, "enclosure", {
     "url": f"https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/download/v{version}/CodexUsage-v{version}.zip",
     "length": str(pathlib.Path(archive).stat().st_size),

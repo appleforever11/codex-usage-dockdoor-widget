@@ -49,6 +49,13 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
                 step: 1,
                 defaultValue: 5
             ),
+            .slider(
+                key: "dailyGoalMillions",
+                label: "Daily Token Goal (M)",
+                range: 0.5...20,
+                step: 0.5,
+                defaultValue: 2
+            ),
             .textField(
                 key: "usageStatePath",
                 label: "Usage State File",
@@ -64,7 +71,7 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
             .picker(
                 key: "primaryCard",
                 label: "Primary Dock Card",
-                options: ["Auto", "Usage", "Model", "Burn", "Tasks", "Chats", "Credits"],
+                options: ["Auto", "Usage", "Model", "Burn", "Pace", "Cost", "Tasks", "Chats", "Credits"],
                 defaultValue: "Auto"
             ),
             .slider(
@@ -87,6 +94,11 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
             .toggle(
                 key: "showTokenTelemetry",
                 label: "Show Local Token Activity",
+                defaultValue: true
+            ),
+            .toggle(
+                key: "hapticsEnabled",
+                label: "Model Selection Haptics",
                 defaultValue: true
             ),
         ]

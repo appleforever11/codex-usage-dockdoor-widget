@@ -2,7 +2,24 @@ import SwiftUI
 
 struct ModelControlSection: View {
     let settings: CodexModelSettings
-    let onChange: (String, String) -> Void
+    let onChange: (String, String) -> Bool
+    let hapticsEnabledOverride: Bool?
+    @AppStorage(CodexHaptics.enabledKey) private var storedHapticsEnabled = true
+    @Environment(\.codexTheme) private var theme
+
+    init(
+        settings: CodexModelSettings,
+        hapticsEnabled: Bool? = nil,
+        onChange: @escaping (String, String) -> Bool
+    ) {
+        self.settings = settings
+        self.hapticsEnabledOverride = hapticsEnabled
+        self.onChange = onChange
+    }
+
+    private var hapticsEnabled: Bool {
+        hapticsEnabledOverride ?? storedHapticsEnabled
+    }
 
     private let models: [CodexPickerOption] = [
         CodexPickerOption(
@@ -64,7 +81,8 @@ struct ModelControlSection: View {
                 ForEach(models, id: \.value) { option in
                     CodexChoiceButton(
                         option: option,
-                        isSelected: settings.model == option.value
+                        isSelected: settings.model == option.value,
+                        hapticsEnabled: hapticsEnabled
                     ) {
                         onChange(option.value, settings.reasoningEffort)
                     }
@@ -81,12 +99,26 @@ struct ModelControlSection: View {
                 ForEach(reasoning, id: \.value) { option in
                     CodexChoiceButton(
                         option: option,
-                        isSelected: settings.reasoningEffort == option.value
+                        isSelected: settings.reasoningEffort == option.value,
+                        hapticsEnabled: hapticsEnabled
                     ) {
                         onChange(settings.model, option.value)
                     }
                 }
             }
+
+            HStack(spacing: 4) {
+                Image(systemName: hapticsEnabled ? "waveform" : "waveform.slash")
+                    .foregroundStyle(hapticsEnabled ? theme.sharedPurpleGlow : .secondary)
+                Text(hapticsEnabled ? "Model taps trigger Mac haptic feedback" : "Model selection haptics are off")
+                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Model selection haptics")
+            .accessibilityValue(hapticsEnabled ? "On" : "Off")
         }
         .padding(10)
         .background {
@@ -118,12 +150,18 @@ private struct CodexPickerOption {
 private struct CodexChoiceButton: View {
     let option: CodexPickerOption
     let isSelected: Bool
-    let action: () -> Void
+    let hapticsEnabled: Bool
+    let action: () -> Bool
     @Environment(\.codexTheme) private var theme
     @State private var isHovering = false
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            let changed = action()
+            if changed && isModel {
+                CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)
+            }
+        } label: {
             HStack(spacing: 5) {
                 if isModel {
                     Image(systemName: isAstra ? "sparkles" : (option.label == "Luna" ? "moon.fill" : (option.label == "Terra" ? "globe.americas.fill" : "sun.max.fill")))
@@ -150,6 +188,11 @@ private struct CodexChoiceButton: View {
                     }
                 }
                 .overlay(buttonStroke)
+                .overlay {
+                    if isModel && (isSelected || isHovering) {
+                        CodexSharedPurpleGlow(isActive: isSelected || isHovering)
+                    }
+                }
                 .shadow(
                     color: selectedGlow,
                     radius: isSelected ? (isAstra ? 12 : 8) : 0,
@@ -203,8 +246,28 @@ private struct CodexChoiceButton: View {
     }
 
     private var selectedGlow: Color {
-        (isAstra ? Color(red: 0.54, green: 0.20, blue: 0.90) : (option.colors.last ?? .accentColor))
-            .opacity(isAstra ? 0.52 : 0.38)
+        (isModel ? theme.sharedPurpleGlow : (option.colors.last ?? .accentColor))
+            .opacity(isModel ? 0.52 : 0.38)
+    }
+}
+
+private struct CodexSharedPurpleGlow: View {
+    let isActive: Bool
+    @Environment(\.codexTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 18.0,
+                                paused: reduceMotion || !isActive)) { timeline in
+            let time = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
+            let pulse = 0.70 + (0.16 * sin(time * 1.8))
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(theme.sharedPurpleGlow.opacity(pulse), lineWidth: 1.8)
+                .blur(radius: 4.5)
+                .opacity(isActive ? 1 : 0)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 

@@ -4,7 +4,9 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/latest) — fixes current-session model/reasoning attribution in local token activity while retaining the 5.0.4 design and telemetry features.
+**Current public personal beta:** [6.0.0](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.0) — the full page-based dashboard refresh with themed animated data surfaces, haptic feedback, trackpad swiping, richer compact dock previews, and an isolated Reflective Shelf beta.
+
+**Last stable private release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 
 **Marketplace Astra review:** [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
@@ -13,6 +15,57 @@ The standalone build contains the complete tracker, freshness-aware account sync
 The private build includes bounded local token telemetry. It reports observed burn rates, context-window usage, and per-model/reasoning totals from Codex session events. The Token activity panel is collapsible so the compact summary stays visible without crowding the rest of the widget. Token data stays on the Mac; account percentage limits remain a separate authoritative surface.
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
+
+## 6.0 beta visual refresh
+
+The private 6.0 build keeps the full dashboard expressive while both the standard compact dock view and the optional Reflective Shelf beta use a genuinely transparent root. DockDoor Pro supplies the shelf material and reflection; the widget contributes only the themed usage ring, its breathing glow, animated sparkles, model-first labels, and readable neutral text. There is no colored capsule, edge border, or backing card behind the dock content.
+
+<img src="screenshots/reflective-shelf-beta-transparent.png" width="980" alt="Transparent Reflective Shelf beta dock treatment with a glowing Codex usage ring and visible labels">
+
+### Updated v6 screenshots
+
+The following previews are rendered from the native SwiftUI v6 prototype with deterministic sample data. The dock gallery covers compact, extended horizontal, and extended vertical sizing; the page captures show the refreshed themed dashboard surface.
+
+<img src="screenshots/codex-v6-dock-gallery.png" width="980" alt="Codex Usage 6.0 dock gallery showing themed horizontal, compact, and vertical layouts">
+
+| Astra | Luna | Sol |
+| --- | --- | --- |
+| <img src="screenshots/codex-v6-overview-astra.png" width="220" alt="Codex Usage 6.0 Astra overview page"> | <img src="screenshots/codex-v6-overview-luna.png" width="220" alt="Codex Usage 6.0 Luna overview page"> | <img src="screenshots/codex-v6-overview-sol.png" width="220" alt="Codex Usage 6.0 Sol overview page"> |
+
+| Terra | Rainbow |
+| --- | --- |
+| <img src="screenshots/codex-v6-overview-terra.png" width="220" alt="Codex Usage 6.0 Terra overview page"> | <img src="screenshots/codex-v6-overview-rainbow.png" width="220" alt="Codex Usage 6.0 Rainbow overview page"> |
+
+## 🚀 6.0 beta patch notes
+
+This public update is for the personal companion and its full-featured `codex-project-tracker` widget. The marketplace `codex-usage` variant is intentionally unchanged and remains on DockDoor Pro's separate read-only update path.
+
+### ✨ New widget preview options
+
+| Preview option | What it demonstrates |
+| --- | --- |
+| 🧭 **Overview** | Quota, quota pace, live burn, context health, quota budget, session pulse, and context runway cards. |
+| 📈 **Activity** | Daily and hourly activity, project heatmap, turn timeline, streaks and goals, and cost estimate cards with Today, 7 days, and 30 days filters. |
+| 🧠 **Models** | Model mix, model scorecard, efficiency, project mix, and session health with model filtering. |
+| 🩺 **Health** | Official activity, reliability, data health, workspace health, recent chats, and new-chat model/reasoning controls. |
+| 🎨 **Theme gallery** | Independent Astra, Luna, Sol, Terra, and Rainbow page themes, with each theme carried through every related ring, bar, chart, surface, glow, and sparkle. |
+| 🫧 **Dock sizing** | One transparent widget preview adapts between compact, extended horizontal, and extended vertical layouts. |
+| 🪞 **Reflective Shelf beta** | Edge-free transparent dock content that lets DockDoor Pro provide the shelf material and reflection while the widget contributes its living ring and readable model-first labels. |
+| 🖱️ **Navigation** | Two-finger trackpad swipes, previous/next controls, page dots, and keyboard shortcuts (`⌘←` / `⌘→`). |
+| 🧲 **Interaction polish** | Optional haptic feedback for page/model actions, drag-to-reorder cards, hover detail affordances, and Reduce Motion support. |
+
+### 🎉 Detailed 6.0 changes
+
+- 🧭 **A dashboard that feels like a dashboard:** the panel is now organized into four swipeable pages instead of one crowded stream. Page-specific themes, page dots, keyboard controls, and animated transitions make the current context obvious.
+- 📊 **More useful data at a glance:** account quota and reset timing remain authoritative, while local token telemetry adds burn rate, context-window health, model/reasoning attribution, project activity, cost estimates, reliability, and workspace health.
+- 🪄 **Living theme language:** breathing ambient backgrounds, themed progress rings, coordinated metric bars, chart columns, glowing card edges, and faint floating stars stay synchronized across Astra, Luna, Sol, Terra, and Rainbow. Reduce Motion keeps a calm static rendering when requested.
+- 🖱️ **Trackpad-first navigation:** two-finger drags on the trackpad move between pages, with visible swipe progress and keyboard/arrow controls as dependable alternatives.
+- 🧲 **Haptics you can see and control:** the model controls expose the haptic state directly, with feedback for meaningful page and model changes rather than repeated taps on an already-selected option.
+- 🧩 **Cards that are yours:** enter arrangement mode, drag cards into a custom order, open a focused detail sheet, and choose compact, standard, or spacious density without losing the rounded section treatment.
+- 🫧 **DockDoor Pro preview refresh:** compact, horizontal, and vertical previews share one visual system, foreground the active model name (Luna, Sol, Terra, or Astra), keep supporting text legible, and remove the old colored capsule/border from the transparent Reflective Shelf beta treatment.
+- 🔒 **Local-first by design:** observed token events, cache state, session health, and workspace checks stay on the Mac. Account percentages continue to come from the local Codex app-server snapshot and are labeled separately from derived telemetry.
+
+The complete release notes are in [docs/RELEASE-6.0.0.md](docs/RELEASE-6.0.0.md). The public Sparkle feed is generated and signed by the tag-driven release workflow after the universal app, widget, and notarized installer pass validation.
 
 ## New design · 5.0.4
 

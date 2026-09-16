@@ -76,12 +76,12 @@ struct CodexTokenTelemetrySection: View {
                 CodexTokenTelemetryStat(
                     title: "Today",
                     value: CodexTokenUsage.compactLabel(telemetry.todayUsage.effectiveTotalTokens),
-                    tint: .blue
+                    tint: theme.dataColor(1)
                 )
                 CodexTokenTelemetryStat(
                     title: "Context",
                     value: telemetry.contextLabel,
-                    tint: .purple
+                    tint: theme.dataColor(2)
                 )
             }
 
@@ -160,6 +160,7 @@ private struct CodexTokenTelemetryStat: View {
     let title: String
     let value: String
     let tint: Color
+    @Environment(\.codexTheme) private var theme
 
     var body: some View {
         VStack(spacing: 1) {
@@ -175,50 +176,65 @@ private struct CodexTokenTelemetryStat: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
-        .background(tint.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(CodexThemeMetricSurface(theme: theme, tint: tint))
     }
 }
 
 private struct CodexTokenBurnChart: View {
     let samples: [CodexTokenBurnSample]
     let tint: Color
+    @Environment(\.codexTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geometry in
-            Canvas { context, size in
-                let visible = Array(samples.suffix(36))
-                let values = visible.map { max(0, Double($0.usage.effectiveTotalTokens)) }
-                let maximum = max(values.max() ?? 0, 1)
-                let slot = size.width / CGFloat(max(visible.count, 1))
+            TimelineView(.animation(minimumInterval: codexThemeAnimationInterval,
+                                    paused: reduceMotion)) { timeline in
+                let time = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
+                Canvas { context, size in
+                    let visible = Array(samples.suffix(36))
+                    let values = visible.map { max(0, Double($0.usage.effectiveTotalTokens)) }
+                    let maximum = max(values.max() ?? 0, 1)
+                    let slot = size.width / CGFloat(max(visible.count, 1))
 
-                context.stroke(
-                    Path { path in
-                        path.move(to: CGPoint(x: 0, y: size.height - 1))
-                        path.addLine(to: CGPoint(x: size.width, y: size.height - 1))
-                    },
-                    with: .color(tint.opacity(0.20)),
-                    style: StrokeStyle(lineWidth: 1, dash: [2, 3])
-                )
-
-                for (index, value) in values.enumerated() {
-                    let height = max(3, CGFloat(value / maximum) * (size.height - 5))
-                    let rect = CGRect(
-                        x: CGFloat(index) * slot + max(1, slot * 0.16),
-                        y: size.height - height,
-                        width: max(2, slot * 0.68),
-                        height: height
+                    context.stroke(
+                        Path { path in
+                            path.move(to: CGPoint(x: 0, y: size.height - 1))
+                            path.addLine(to: CGPoint(x: size.width, y: size.height - 1))
+                        },
+                        with: .color(theme.dataColor(0).opacity(0.20)),
+                        style: StrokeStyle(lineWidth: 1, dash: [2, 3])
                     )
-                    context.fill(
-                        Path(roundedRect: rect, cornerRadius: min(3, rect.width / 2)),
-                        with: .linearGradient(
-                            Gradient(colors: [tint.opacity(0.42), tint.opacity(0.95)]),
-                            startPoint: CGPoint(x: rect.midX, y: rect.maxY),
-                            endPoint: CGPoint(x: rect.midX, y: rect.minY)
+
+                    for (index, value) in values.enumerated() {
+                        let height = max(3, CGFloat(value / maximum) * (size.height - 5))
+                        let rect = CGRect(
+                            x: CGFloat(index) * slot + max(1, slot * 0.16),
+                            y: size.height - height,
+                            width: max(2, slot * 0.68),
+                            height: height
                         )
-                    )
+                        let color = theme.dataColor(index)
+                        let pulse = 0.5 + 0.5 * sin(time * 1.05 + Double(index) * 0.65)
+                        var glow = context
+                        glow.addFilter(.blur(radius: 3))
+                        glow.fill(Path(roundedRect: rect.insetBy(dx: -1, dy: -1), cornerRadius: min(3, rect.width / 2)),
+                                  with: .color(color.opacity(0.16 + 0.10 * pulse)))
+                        context.fill(
+                            Path(roundedRect: rect, cornerRadius: min(3, rect.width / 2)),
+                            with: .linearGradient(
+                                Gradient(colors: [color.opacity(0.42), color.opacity(0.95)]),
+                                startPoint: CGPoint(x: rect.midX, y: rect.maxY),
+                                endPoint: CGPoint(x: rect.midX, y: rect.minY)
+                            )
+                        )
+                        let sparkle = CGPoint(x: rect.midX, y: rect.minY + 1)
+                        context.fill(codexSparkPath(center: sparkle, radius: max(0.8, min(1.8, rect.width * 0.18))),
+                                     with: .color(.white.opacity(0.25 + 0.42 * pulse)))
+                    }
                 }
+                .frame(width: geometry.size.width, height: geometry.size.height)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .accessibilityLabel("Recent token burn chart")
         .accessibilityValue(samples.isEmpty ? "No token events" : "Showing the latest \(samples.count) token events")

@@ -253,6 +253,25 @@ struct CodexTokenBurnSample: Identifiable, Equatable, Sendable {
     let model: String
     let reasoningEffort: String
     let contextWindow: Int64?
+    let projectName: String?
+
+    init(
+        id: String,
+        timestamp: Date,
+        usage: CodexTokenUsage,
+        model: String,
+        reasoningEffort: String,
+        contextWindow: Int64?,
+        projectName: String? = nil
+    ) {
+        self.id = id
+        self.timestamp = timestamp
+        self.usage = usage
+        self.model = model
+        self.reasoningEffort = reasoningEffort
+        self.contextWindow = contextWindow
+        self.projectName = projectName
+    }
 }
 
 struct CodexTokenModelBreakdown: Identifiable, Equatable, Sendable {
@@ -500,7 +519,8 @@ enum CodexTokenTelemetryReader {
                         usage: delta,
                         model: model,
                         reasoningEffort: effort,
-                        contextWindow: contextWindow
+                        contextWindow: contextWindow,
+                        projectName: source.projectName
                     )
                     allSamples.append(sample)
 

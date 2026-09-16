@@ -7,6 +7,7 @@ private func previewSnapshot() -> CodexSnapshot {
     snapshot.projectCount = 3
     snapshot.chatCount = 24
     snapshot.taskCount = 6
+    snapshot.analytics = .preview
     snapshot.usage = CodexUsageSnapshot(percentRemaining: 0.78, primaryTitle: "78% remaining",
         primarySubtitle: "Account usage · 5-hour window", windowUsedTokens: 1_250_000,
         todayUsedTokens: 3_700_000, budgetTokens: 0, resetDate: Date().addingTimeInterval(7500),

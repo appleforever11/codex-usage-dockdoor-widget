@@ -11,7 +11,7 @@ struct UsageRingView: View {
     var forceReducedMotion = false
 
     private var clamped: Double { percentRemaining.isFinite ? min(max(percentRemaining, 0), 1) : 0 }
-    private var ringColors: [Color] { theme.colors }
+    private var ringColors: [Color] { theme.dataColors }
     private var glowColor: Color { theme.accent }
 
     var body: some View {
@@ -50,10 +50,13 @@ struct UsageRingView: View {
             .minimumScaleFactor(0.65)
         }
         .frame(width: size, height: size)
-        .background(.black.opacity(0.16), in: Circle())
         .overlay {
-            if theme == .astra && clamped > 0 {
-                AstraRingSparkles(progress: clamped, ringSize: size, lineWidth: lineWidth, forceReducedMotion: forceReducedMotion)
+            if clamped > 0 {
+                CodexThemeRingSparkles(progress: clamped,
+                                       ringSize: size,
+                                       lineWidth: lineWidth,
+                                       theme: theme,
+                                       forceReducedMotion: forceReducedMotion)
             }
         }
         .shadow(color: glowColor.opacity(0.42), radius: 7, y: 1)

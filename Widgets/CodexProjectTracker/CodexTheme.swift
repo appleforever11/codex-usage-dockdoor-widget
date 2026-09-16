@@ -18,6 +18,11 @@ enum CodexTheme: String, CaseIterable, Identifiable {
         }
     }
     var accent: Color { colors[1] }
+    // A shared purple interaction layer keeps model selection visually coherent
+    // while each page/theme retains its own identity colors.
+    var sharedPurpleGlow: Color {
+        Color(red: 0.54, green: 0.20, blue: 0.90)
+    }
     var colors: [Color] {
         switch self {
         case .astra: return [Color(red: 0.38, green: 0.16, blue: 0.85), Color(red: 0.76, green: 0.48, blue: 1), Color(red: 0.98, green: 0.72, blue: 1)]
@@ -52,6 +57,7 @@ struct CodexThemeMenu: View {
     @Binding var selection: String
     @AppStorage(CodexTheme.opacityKey) private var opacity = 0.75
     @AppStorage(CodexTheme.glassKey) private var frosted = true
+    @AppStorage(CodexHaptics.enabledKey) private var hapticsEnabled = true
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var isPresented = false
     private var theme: CodexTheme { CodexTheme(rawValue: selection) ?? .astra }
@@ -97,6 +103,7 @@ struct CodexThemeMenu: View {
                 .font(.caption2).foregroundStyle(.secondary)
                 Toggle("Frosted glass", isOn: $frosted)
                     .disabled(reduceTransparency)
+                Toggle("Model selection haptics", isOn: $hapticsEnabled)
                 if reduceTransparency {
                     Text("Reduce Transparency is enabled in macOS.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -139,18 +146,9 @@ struct CodexThemeBackground: View {
             theme.base.opacity(reduceTransparency ? 1 : min(max(opacity, 0.2), 1))
             RadialGradient(colors: [theme.accent.opacity(0.20), .clear], center: .topTrailing,
                            startRadius: 10, endRadius: 360)
-            // Static points keep the main surface quiet; only model buttons animate.
-            if theme == .astra {
-                Canvas { context, size in
-                    for index in 0..<32 {
-                        let x = CGFloat((index * 73 + 13) % 347) / 347 * size.width
-                        let y = CGFloat((index * 97 + 7) % 641) / 641 * size.height
-                        let radius: CGFloat = index.isMultiple(of: 5) ? 1 : 0.5
-                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: radius * 2, height: radius * 2)),
-                                     with: .color(.white.opacity(index.isMultiple(of: 5) ? 0.20 : 0.10)))
-                    }
-                }
-            }
+            RadialGradient(colors: [theme.sharedPurpleGlow.opacity(0.13), .clear], center: .bottomLeading,
+                           startRadius: 8, endRadius: 320)
+            CodexThemeAnimatedAtmosphere(theme: theme)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

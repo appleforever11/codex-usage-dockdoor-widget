@@ -96,7 +96,15 @@ jobs:
             "Scripts/uninstall-widget-updater.sh"
           )
 
-          gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
-              --title "Codex Usage Widget v$version" \
-              --generate-notes \
-              --verify-tag
+          notes_file="docs/RELEASE-$version.md"
+          if [[ -f "$notes_file" ]]; then
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+                --title "Codex Usage Widget v$version · Personal beta" \
+                --notes-file "$notes_file" \
+                --verify-tag
+          else
+            gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+                --title "Codex Usage Widget v$version" \
+                --generate-notes \
+                --verify-tag
+          fi

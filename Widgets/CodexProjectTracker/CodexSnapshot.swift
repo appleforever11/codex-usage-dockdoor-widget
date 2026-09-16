@@ -12,6 +12,7 @@ struct CodexSnapshot {
     var latestChat: String?
     var usage: CodexUsageSnapshot
     var tokenTelemetry: CodexTokenTelemetry
+    var analytics: CodexV6AnalyticsSnapshot
     var modelSettings: CodexModelSettings
     var projects: [CodexProject]
     var sessions: [CodexSession]
@@ -26,6 +27,7 @@ struct CodexSnapshot {
         latestChat: nil,
         usage: .empty,
         tokenTelemetry: .empty,
+        analytics: .empty,
         modelSettings: .default,
         projects: [],
         sessions: [],
@@ -64,6 +66,27 @@ struct CodexSnapshot {
                 kind: CodexCardKind.burn.rawValue
             ))
         }
+        if let pace = analytics.quotaPace, let rate = pace.percentPerHour {
+            let projected = pace.projectedExhaustionAt.map { projectedDate in
+                let formatter = RelativeDateTimeFormatter()
+                formatter.unitsStyle = .abbreviated
+                return "Runs out \(formatter.localizedString(for: projectedDate, relativeTo: date))"
+            } ?? "Building baseline"
+            cards.append(CodexDockCard(
+                title: String(format: "%.1f%% / hr", rate),
+                subtitle: "Quota pace · \(projected)",
+                shortLabel: "Pace",
+                kind: CodexCardKind.pace.rawValue
+            ))
+        }
+        if let cost = analytics.estimatedCostUSD {
+            cards.append(CodexDockCard(
+                title: String(format: "$%.2f est.", cost),
+                subtitle: "30-day API-equivalent cost",
+                shortLabel: "Cost",
+                kind: CodexCardKind.cost.rawValue
+            ))
+        }
 
         guard !cards.isEmpty else {
             return CodexDockCard(title: "Codex", subtitle: headline, shortLabel: "Codex")
@@ -88,6 +111,8 @@ enum CodexCardKind: String {
     case chats
     case credits
     case burn
+    case pace
+    case cost
 }
 
 
