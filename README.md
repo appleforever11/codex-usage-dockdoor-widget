@@ -8,7 +8,7 @@ A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recen
 
 **Last stable private release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 
-**Marketplace Astra review:** [ejbills/dockdoorpro-widgets#24](https://github.com/ejbills/dockdoorpro-widgets/pull/24). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
+**Marketplace 6.0 dashboard review:** [ejbills/dockdoorpro-widgets#27](https://github.com/ejbills/dockdoorpro-widgets/pull/27). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
 The standalone build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Sparkle companion. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and reads local Codex session telemetry or an optional `~/.codex/usage.json` override. It has no model-setting controls, installer, or Sparkle dependency.
 
@@ -24,17 +24,19 @@ The private 6.0 build keeps the full dashboard expressive while both the standar
 
 ### Updated v6 screenshots
 
-The following previews are rendered from the native SwiftUI v6 prototype with deterministic sample data. The dock gallery covers compact, extended horizontal, and extended vertical sizing; the page captures show the refreshed themed dashboard surface.
+The following previews are rendered from the current native SwiftUI 6.0.1 interface with sample data. The dock gallery covers compact, extended horizontal, and extended vertical sizing; the page captures show the refreshed themed dashboard surface.
 
 <img src="screenshots/codex-v6-dock-gallery.png" width="980" alt="Codex Usage 6.0 dock gallery showing themed horizontal, compact, and vertical layouts">
 
+The gallery changes the **page theme**; the sample’s selected model remains Astra in every capture.
+
 | Astra | Luna | Sol |
 | --- | --- | --- |
-| <img src="screenshots/codex-v6-overview-astra.png" width="220" alt="Codex Usage 6.0 Astra overview page"> | <img src="screenshots/codex-v6-overview-luna.png" width="220" alt="Codex Usage 6.0 Luna overview page"> | <img src="screenshots/codex-v6-overview-sol.png" width="220" alt="Codex Usage 6.0 Sol overview page"> |
+| <img src="screenshots/codex-v6.0.1-overview-astra.png" width="220" alt="Codex Usage 6.0 Astra overview page"> | <img src="screenshots/codex-v6.0.1-overview-luna.png" width="220" alt="Codex Usage 6.0 Luna overview page"> | <img src="screenshots/codex-v6.0.1-overview-sol.png" width="220" alt="Codex Usage 6.0 Sol overview page"> |
 
 | Terra | Rainbow |
 | --- | --- |
-| <img src="screenshots/codex-v6-overview-terra.png" width="220" alt="Codex Usage 6.0 Terra overview page"> | <img src="screenshots/codex-v6-overview-rainbow.png" width="220" alt="Codex Usage 6.0 Rainbow overview page"> |
+| <img src="screenshots/codex-v6.0.1-overview-terra.png" width="220" alt="Codex Usage 6.0 Terra overview page"> | <img src="screenshots/codex-v6.0.1-overview-rainbow.png" width="220" alt="Codex Usage 6.0 Rainbow overview page"> |
 
 ## 🚀 6.0 beta patch notes
 

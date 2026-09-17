@@ -73,11 +73,18 @@ private func previewSnapshot() -> CodexSnapshot {
 }
 
 private struct WidgetPreview: View {
+    let theme: CodexTheme
+
     var body: some View {
         VStack(spacing: 10) {
             Text("DESIGN PREVIEW · SAMPLE DATA")
                 .font(.system(size: 9, weight: .semibold)).tracking(1.5).foregroundStyle(.secondary)
-            CodexTrackerPanelView(dismiss: {}, previewSnapshot: previewSnapshot())
+            CodexV6DashboardView(
+                snapshot: previewSnapshot(), now: Date(), isPreview: true,
+                onRefresh: {}, onCheckUpdates: {}, onModelChange: { _, _ in true }, dismiss: {}
+            )
+            .id(theme)
+            .frame(width: 350, height: 640)
         }
         .padding(20)
 
@@ -96,7 +103,19 @@ private final class WidgetPreviewApp: NSObject, NSApplicationDelegate {
         withExtendedLifetime(delegate) { app.run() }
     }
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let host = NSHostingView(rootView: WidgetPreview())
+        // Isolate capture preferences from installed widgets and live demos.
+        let preferences = UserDefaults(suiteName: "com.appleforever11.theme-capture.\(UUID().uuidString)")!
+        CodexV6Preferences.defaults = preferences
+        func configure(_ theme: CodexTheme) {
+            var values: [String: Any] = [:]
+            for page in CodexV6Page.allCases {
+                values["widget.codex-project-tracker.v6.page-theme.\(page.rawValue)"] = theme.rawValue
+            }
+            values[CodexHaptics.enabledKey] = false
+            preferences.setVolatileDomain(values, forName: UserDefaults.argumentDomain)
+        }
+        configure(.astra)
+        let host = NSHostingView(rootView: WidgetPreview(theme: .astra))
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 390, height: 705),
                           styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.isOpaque = false
@@ -111,7 +130,11 @@ private final class WidgetPreviewApp: NSObject, NSApplicationDelegate {
             let folder = URL(fileURLWithPath: CommandLine.arguments[index + 1])
             for (index, theme) in CodexTheme.allCases.enumerated() {
                 DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 1.5) {
-                    UserDefaults.standard.set(theme.rawValue, forKey: CodexTheme.storageKey)
+                    configure(theme)
+                    // Recreate dashboard state; changing the legacy global theme
+                    // does not update the v6 per-page @State theme dictionary.
+                    host.rootView = WidgetPreview(theme: theme)
+                    host.layoutSubtreeIfNeeded()
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 1.5 + 1.0) {
                     guard let bitmap = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { return }
@@ -120,7 +143,6 @@ private final class WidgetPreviewApp: NSObject, NSApplicationDelegate {
                 }
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
-                UserDefaults.standard.set(CodexTheme.astra.rawValue, forKey: CodexTheme.storageKey)
                 NSApp.terminate(nil)
             }
         }
