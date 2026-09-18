@@ -1,6 +1,6 @@
-# 🚀 Codex Usage 6.0.0 beta — the personal edition gets its living dashboard
+# 🚀 Codex Usage 6.0.0 — the companion edition gets its living dashboard
 
-This public beta ships the full Codex Usage 6.0 experience to the personal companion and its `codex-project-tracker` widget. It does not modify or publish the marketplace `codex-usage` variant; that edition keeps DockDoor Pro's separate read-only update path.
+This release ships the full Codex Usage 6.0 experience to the companion edition and its `codex-project-tracker` widget. It does not modify or publish the marketplace `codex-usage` variant; that edition keeps DockDoor Pro's separate read-only update path.
 
 ## ✨ What is new
 
@@ -28,4 +28,4 @@ The repository README includes the refreshed native previews for:
 
 The release workflow builds the universal Apple Silicon/Intel widget and companion, validates the payload, notarizes and staples the installer artifacts, signs the Sparkle appcast, and publishes the immutable release assets. Existing Sparkle installations can use the companion's update check after the public feed is available.
 
-The marketplace variant is deliberately outside this release: no marketplace source, asset, manifest, or update path is part of the 6.0.0 personal beta publication.
+The marketplace variant is deliberately outside this release: no marketplace source, asset, manifest, or update path is part of the 6.0.0 publication.

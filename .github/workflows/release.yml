@@ -86,20 +86,12 @@ jobs:
             "Dist/CodexUsage-v$version.zip"
             "Dist/appcast.xml"
             "Dist/Codex Usage for DockDoor Pro v$version.dmg"
-            "Dist/Codex Usage for DockDoor Pro v$version.zip"
-            "build/CodexProjectTracker.bundle.zip"
-            "Scripts/install-usage-sync.sh"
-            "Scripts/sync-codex-usage.sh"
-            "Scripts/uninstall-usage-sync.sh"
-            "Scripts/install-widget-updater.sh"
-            "Scripts/update-codex-widget.sh"
-            "Scripts/uninstall-widget-updater.sh"
           )
 
           notes_file="docs/RELEASE-$version.md"
           if [[ -f "$notes_file" ]]; then
             gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
-                --title "Codex Usage Widget v$version · Personal beta" \
+                --title "Codex Usage Widget v$version" \
                 --notes-file "$notes_file" \
                 --verify-tag
           else

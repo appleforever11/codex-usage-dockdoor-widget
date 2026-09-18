@@ -4,21 +4,21 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Current public personal beta:** [6.0.1](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.1) — refined dashboard spacing, shared illustrated model and appearance buttons, clearer settings, and double-pulse hover feedback.
+**Latest release:** [6.0.1](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.1) — refined dashboard spacing, shared illustrated model and appearance buttons, clearer settings, and double-pulse hover feedback.
 
-**Last stable private release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
+**Previous 5.x release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 
 **Marketplace 6.0 dashboard review:** [ejbills/dockdoorpro-widgets#27](https://github.com/ejbills/dockdoorpro-widgets/pull/27). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
 
 The standalone build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Sparkle companion. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and reads local Codex session telemetry or an optional `~/.codex/usage.json` override. It has no model-setting controls, installer, or Sparkle dependency.
 
-The private build includes bounded local token telemetry. It reports observed burn rates, context-window usage, and per-model/reasoning totals from Codex session events. The Token activity panel is collapsible so the compact summary stays visible without crowding the rest of the widget. Token data stays on the Mac; account percentage limits remain a separate authoritative surface.
+The companion build includes bounded local token telemetry. It reports observed burn rates, context-window usage, and per-model/reasoning totals from Codex session events. The Token activity panel is collapsible so the compact summary stays visible without crowding the rest of the widget. Token data stays on the Mac; account percentage limits remain a separate authoritative surface.
 
 **Canonical Discord discussion:** [Codex Usage Widget v3.0.0 (Repost)](https://discord.com/channels/1312172160931856464/1532985348374659092)
 
-## 6.0 beta visual refresh
+## 6.0 visual refresh
 
-The private 6.0 build keeps the full dashboard expressive while both the standard compact dock view and the optional Reflective Shelf beta use a genuinely transparent root. DockDoor Pro supplies the shelf material and reflection; the widget contributes only the themed usage ring, its breathing glow, animated sparkles, model-first labels, and readable neutral text. There is no colored capsule, edge border, or backing card behind the dock content.
+The 6.0 companion build keeps the full dashboard expressive while both the standard compact dock view and the optional Reflective Shelf beta use a genuinely transparent root. DockDoor Pro supplies the shelf material and reflection; the widget contributes only the themed usage ring, its breathing glow, animated sparkles, model-first labels, and readable neutral text. There is no colored capsule, edge border, or backing card behind the dock content.
 
 <img src="screenshots/reflective-shelf-beta-transparent.png" width="980" alt="Transparent Reflective Shelf beta dock treatment with a glowing Codex usage ring and visible labels">
 
@@ -38,9 +38,9 @@ The gallery changes the **page theme**; the sample’s selected model remains As
 | --- | --- |
 | <img src="screenshots/codex-v6.0.1-overview-terra.png" width="220" alt="Codex Usage 6.0 Terra overview page"> | <img src="screenshots/codex-v6.0.1-overview-rainbow.png" width="220" alt="Codex Usage 6.0 Rainbow overview page"> |
 
-## 🚀 6.0 beta patch notes
+## 🚀 6.0 release highlights
 
-This public update is for the personal companion and its full-featured `codex-project-tracker` widget. The marketplace `codex-usage` variant is intentionally unchanged and remains on DockDoor Pro's separate read-only update path.
+This public update is for the companion edition and its full-featured `codex-project-tracker` widget. The marketplace `codex-usage` variant is intentionally unchanged and remains on DockDoor Pro's separate read-only update path.
 
 ### ✨ New widget preview options
 
