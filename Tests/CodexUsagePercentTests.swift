@@ -11,7 +11,11 @@ enum CodexUsagePercentTests {
         assertClose(CodexUsagePercent.fraction(fromPercent: 0.5), 0.5)
         assertClose(CodexUsagePercent.fraction(fromPercent: -1), 0)
         assertClose(CodexUsagePercent.fraction(fromPercent: 250), 1)
-        print("Passed: Codex usage percentage normalization, including the 1% exhaustion boundary.")
+        precondition(CodexCreditFormatting.display("1246.8885130000") == "1,246.89")
+        precondition(CodexCreditFormatting.display("$1250.0000000000") == "1,250")
+        precondition(CodexCreditFormatting.display("Unlimited") == "Unlimited")
+        precondition(CodexCreditFormatting.display(nil) == nil)
+        print("Passed: usage percentage normalization and unit-neutral prepaid credit formatting.")
     }
 
     private static func assertClose(_ actual: Double, _ expected: Double) {

@@ -495,7 +495,7 @@ enum CodexTrackerStore {
         let creditsValue: String? = if creditsSample.unlimitedCredits {
             "Unlimited"
         } else if let balance = creditsSample.creditsBalance {
-            balance.hasPrefix("$") ? balance : "$\(balance)"
+            CodexCreditFormatting.display(balance)
         } else {
             nil
         }
@@ -510,7 +510,7 @@ enum CodexTrackerStore {
         }
         if let creditsValue {
             metrics.insert(CodexUsageMetric(
-                title: "Credits",
+                title: "Prepaid credits",
                 value: creditsValue,
                 systemImage: "creditcard.fill",
                 tint: .blue
@@ -527,8 +527,8 @@ enum CodexTrackerStore {
         }
         if let creditsValue {
             cards.append(CodexDockCard(
-                title: "\(creditsValue) Credits",
-                subtitle: "Current balance",
+                title: "\(creditsValue) credits",
+                subtitle: "Prepaid balance",
                 shortLabel: "Credits",
                 kind: CodexCardKind.credits.rawValue
             ))
@@ -551,7 +551,8 @@ enum CodexTrackerStore {
             accountCards: cards,
             lastUpdated: lastUpdated,
             isStale: freshness.isStale,
-            warning: freshness.warning
+            warning: freshness.warning,
+            creditsBalance: creditsValue
         )
     }
 
@@ -636,7 +637,8 @@ enum CodexTrackerStore {
             accountCards: accountCards,
             lastUpdated: lastUpdated,
             isStale: freshness.isStale,
-            warning: freshness.warning
+            warning: freshness.warning,
+            creditsBalance: CodexCreditFormatting.display(state.creditsBalance)
         )
     }
 
@@ -651,9 +653,9 @@ enum CodexTrackerStore {
             )
         }
 
-        if let credits = state.creditsBalance {
+        if let credits = CodexCreditFormatting.display(state.creditsBalance) {
             metrics.insert(CodexUsageMetric(
-                title: "Credits",
+                title: "Prepaid credits",
                 value: credits,
                 systemImage: "creditcard.fill",
                 tint: .blue
@@ -682,10 +684,10 @@ enum CodexTrackerStore {
             )
         }
 
-        if let credits = state.creditsBalance {
+        if let credits = CodexCreditFormatting.display(state.creditsBalance) {
             cards.append(CodexDockCard(
-                title: "\(credits) Credits",
-                subtitle: "Current balance",
+                title: "\(credits) credits",
+                subtitle: "Prepaid balance",
                 shortLabel: "Credits",
                 kind: CodexCardKind.credits.rawValue
             ))

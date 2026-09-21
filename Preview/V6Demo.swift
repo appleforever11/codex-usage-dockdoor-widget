@@ -22,10 +22,12 @@ private func v6DemoSnapshot() -> CodexSnapshot {
         source: "Codex app-server live account limits",
         metrics: [
             CodexUsageMetric(title: "Weekly allowance", value: "64% left", systemImage: "calendar", tint: .purple),
-            CodexUsageMetric(title: "5-hour allowance", value: "78% left", systemImage: "clock", tint: .purple)
+            CodexUsageMetric(title: "5-hour allowance", value: "78% left", systemImage: "clock", tint: .purple),
+            CodexUsageMetric(title: "Prepaid credits", value: "1,246.89", systemImage: "creditcard.fill", tint: .blue)
         ],
         accountCards: [],
-        lastUpdated: now.addingTimeInterval(-8)
+        lastUpdated: now.addingTimeInterval(-8),
+        creditsBalance: "1,246.89"
     )
 
     let usages = [

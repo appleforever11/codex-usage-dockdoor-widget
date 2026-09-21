@@ -1,5 +1,14 @@
 # Changelog
 
+## 6.0.2 - Prepaid credit display fix (2026-09-21)
+
+- 🔧 Fixed the prepaid-credit display so the raw account quantity is no longer presented as a misleading dollar amount or a long floating-point string.
+- 🧾 Grouped and rounded the balance for readability, with clear **Prepaid credits** and **Prepaid balance** labels.
+- 🧭 Added an in-widget explanation that prepaid credits are separate from the weekly General allowance, so an exhausted usage window is not confused with the credit balance.
+- 🔄 Applied the same formatting to live session fallback data, the synced `~/.codex/usage.json` path, dock cards, and the expanded dashboard.
+- 🧪 Added focused formatter coverage and rebuilt the universal Apple silicon/Intel widget.
+- 🔒 Private companion and personal widget patch only; the marketplace `codex-usage` variant remains unchanged.
+
 ## 5.0.5 - Model attribution fix (2026-09-13)
 
 - Fixed local token telemetry for current Codex session logs by reading the active model and reasoning level from `turn_context` records.

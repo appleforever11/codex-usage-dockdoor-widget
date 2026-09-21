@@ -154,6 +154,8 @@ struct CodexUsageSnapshot {
     var lastUpdated: Date?
     var isStale: Bool
     var warning: String?
+    /// Formatted, unit-neutral prepaid credit balance from the account snapshot.
+    var creditsBalance: String?
 
     init(
         percentRemaining: Double,
@@ -169,7 +171,8 @@ struct CodexUsageSnapshot {
         accountCards: [CodexDockCard],
         lastUpdated: Date? = nil,
         isStale: Bool = false,
-        warning: String? = nil
+        warning: String? = nil,
+        creditsBalance: String? = nil
     ) {
         self.percentRemaining = percentRemaining
         self.primaryTitle = primaryTitle
@@ -185,6 +188,7 @@ struct CodexUsageSnapshot {
         self.lastUpdated = lastUpdated
         self.isStale = isStale
         self.warning = warning
+        self.creditsBalance = creditsBalance
     }
 
     static let empty = CodexUsageSnapshot(

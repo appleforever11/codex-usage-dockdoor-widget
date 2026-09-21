@@ -188,7 +188,17 @@ struct CodexV6QuotaCard: View {
                 .padding(.top, 2)
             }
 
-
+            if usage.creditsBalance != nil {
+                HStack(alignment: .top, spacing: 5) {
+                    Image(systemName: "info.circle.fill")
+                        .foregroundStyle(theme.accent)
+                    Text("Prepaid credits are reported separately from the weekly General allowance.")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .font(.system(size: 9, weight: .medium, design: .rounded))
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue("\(Int((usage.percentRemaining * 100).rounded())) percent remaining, \(usage.resetSummary(now: now))")

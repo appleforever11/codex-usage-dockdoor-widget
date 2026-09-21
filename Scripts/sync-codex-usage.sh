@@ -96,9 +96,10 @@ general_reset_at="$(reset_at_iso "$general_reset")"
 spark_reset_at="$(reset_at_iso "$spark_reset")"
 temporary_usage="$work_dir/usage.json"
 
+# credits.balance is an internal prepaid-credit quantity, not a USD amount.
 /usr/bin/jq -n \
     --arg source "Codex app-server live account limits" \
-    --arg creditsBalance "\$$credits" \
+    --arg creditsBalance "$credits" \
     --arg generalReset "$general_reset_label" \
     --arg sparkReset "$spark_reset_label" \
     --arg generalResetAt "$general_reset_at" \

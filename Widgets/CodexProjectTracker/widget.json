@@ -20,6 +20,7 @@
         "CodexTrackerStore.swift",
         "CodexUsageDecoding.swift",
         "CodexUsagePercent.swift",
+        "CodexCreditFormatting.swift",
         "CodexTokenTelemetry.swift",
         "CodexV6Analytics.swift",
         "CodexTokenTelemetryView.swift",
