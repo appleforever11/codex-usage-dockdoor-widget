@@ -85,7 +85,7 @@ struct CodexThemeMenu: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Appearance").font(.headline)
                 ForEach(CodexTheme.allCases) { option in
-                    Button { selection = option.rawValue } label: {
+                    Button { selection = option.displayName } label: {
                         HStack {
                             Image(systemName: option.symbol).foregroundStyle(option.accent).frame(width: 18)
                             Text(option.displayName)
