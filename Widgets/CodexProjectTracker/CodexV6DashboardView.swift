@@ -185,7 +185,7 @@ struct CodexV6DashboardView: View {
             }
             .help("Choose the \(page.title) page theme")
             .accessibilityLabel("Choose \(page.title) page theme")
-            .accessibilityValue(activeTheme.rawValue)
+            .accessibilityValue(activeTheme.displayName)
 
             Button {
                 hapticsEnabled.toggle()

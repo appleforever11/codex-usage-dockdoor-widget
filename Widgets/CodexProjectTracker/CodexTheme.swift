@@ -8,6 +8,18 @@ enum CodexTheme: String, CaseIterable, Identifiable {
     static let opacityKey = "widget.codex-project-tracker.backgroundOpacity"
     static let glassKey = "widget.codex-project-tracker.frostedGlass"
     var id: String { rawValue }
+    var displayName: String {
+        switch self {
+        case .luna: return "Luna-6"
+        case .sol: return "Sol-6"
+        default: return rawValue
+        }
+    }
+
+    // Keep saved page palettes stable while host settings display the new names.
+    static func named(_ value: String) -> CodexTheme? {
+        allCases.first { $0.rawValue == value || $0.displayName == value }
+    }
     var symbol: String {
         switch self {
         case .astra: return "sparkles"
@@ -60,7 +72,7 @@ struct CodexThemeMenu: View {
     @AppStorage(CodexHaptics.enabledKey) private var hapticsEnabled = true
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var isPresented = false
-    private var theme: CodexTheme { CodexTheme(rawValue: selection) ?? .astra }
+    private var theme: CodexTheme { CodexTheme.named(selection) ?? .astra }
     var body: some View {
         Button { isPresented.toggle() } label: {
             Image(systemName: "paintpalette.fill")
@@ -76,14 +88,14 @@ struct CodexThemeMenu: View {
                     Button { selection = option.rawValue } label: {
                         HStack {
                             Image(systemName: option.symbol).foregroundStyle(option.accent).frame(width: 18)
-                            Text(option.rawValue)
+                            Text(option.displayName)
                             Spacer()
-                            if selection == option.rawValue { Image(systemName: "checkmark").foregroundStyle(option.accent) }
+                            if theme == option { Image(systemName: "checkmark").foregroundStyle(option.accent) }
                         }
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityAddTraits(selection == option.rawValue ? .isSelected : [])
+                    .accessibilityAddTraits(theme == option ? .isSelected : [])
                 }
                 Divider()
                 HStack {
@@ -117,7 +129,7 @@ struct CodexThemeMenu: View {
         }
         .help("Choose theme and transparency")
         .accessibilityLabel("Widget appearance")
-        .accessibilityValue(theme.rawValue)
+        .accessibilityValue(theme.displayName)
     }
 }
 

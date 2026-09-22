@@ -65,7 +65,7 @@ final class CodexProjectTrackerPlugin: WidgetPlugin, DockDoorWidgetProvider {
             .picker(
                 key: "modelTheme",
                 label: "Widget Theme",
-                options: CodexTheme.allCases.map(\.rawValue),
+                options: CodexTheme.allCases.map(\.displayName),
                 defaultValue: "Astra"
             ),
             .picker(

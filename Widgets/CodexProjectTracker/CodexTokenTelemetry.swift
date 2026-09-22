@@ -284,14 +284,7 @@ struct CodexTokenModelBreakdown: Identifiable, Equatable, Sendable {
     var id: String { "\(model)|\(reasoningEffort)" }
 
     var modelLabel: String {
-        switch model.lowercased() {
-        case let value where value.contains("astra"): return "Astra"
-        case let value where value.contains("terra"): return "Terra"
-        case let value where value.contains("luna"): return "Luna"
-        case let value where value.contains("sol"): return "Sol"
-        case "", "unknown": return "Unknown model"
-        default: return model
-        }
+        CodexModelIdentity.label(model)
     }
 
     var reasoningLabel: String {
@@ -382,13 +375,7 @@ struct CodexTokenTelemetry: Equatable, Sendable {
     }
 
     var currentModelLabel: String {
-        switch currentModel?.lowercased() {
-        case let value? where value.contains("astra"): return "Astra"
-        case let value? where value.contains("terra"): return "Terra"
-        case let value? where value.contains("luna"): return "Luna"
-        case let value? where value.contains("sol"): return "Sol"
-        default: return "Unknown model"
-        }
+        CodexModelIdentity.label(currentModel)
     }
 
     var currentReasoningLabel: String {

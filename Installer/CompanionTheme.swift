@@ -3,7 +3,7 @@ import SwiftUI
 struct CompanionThemeSurface: View {
     @AppStorage(CodexTheme.storageKey) private var selection = CodexTheme.astra.rawValue
     var body: some View {
-        CodexThemeBackground(theme: CodexTheme(rawValue: selection) ?? .astra)
+        CodexThemeBackground(theme: CodexTheme.named(selection) ?? .astra)
             .environment(\.colorScheme, .dark)
     }
 }

@@ -257,14 +257,7 @@ struct CodexAnalyticsModel: Equatable, Identifiable, Sendable {
     var id: String { "\(model)|\(reasoningEffort)" }
 
     var modelLabel: String {
-        switch model.lowercased() {
-        case let value where value.contains("astra"): return "Astra"
-        case let value where value.contains("terra"): return "Terra"
-        case let value where value.contains("luna"): return "Luna"
-        case let value where value.contains("sol"): return "Sol"
-        case "", "unknown": return "Unknown"
-        default: return model
-        }
+        CodexModelIdentity.label(model, unknown: "Unknown")
     }
 
     var reasoningLabel: String {
@@ -408,7 +401,7 @@ struct CodexV6AnalyticsSnapshot: Equatable, Sendable {
             models: [
                 CodexAnalyticsModel(model: "gpt-6-astra", reasoningEffort: "max", tokens: 8_420_000, eventCount: 46, estimatedCostUSD: 8.24),
                 CodexAnalyticsModel(model: "gpt-5.6-terra", reasoningEffort: "medium", tokens: 5_180_000, eventCount: 31, estimatedCostUSD: 4.88),
-                CodexAnalyticsModel(model: "gpt-5.6-luna", reasoningEffort: "low", tokens: 2_080_000, eventCount: 19, estimatedCostUSD: 1.12)
+                CodexAnalyticsModel(model: CodexModelIdentity.lunaModel, reasoningEffort: "low", tokens: 2_080_000, eventCount: 19, estimatedCostUSD: 1.12)
             ],
             projects: [
                 CodexAnalyticsProject(name: "Codex Usage Widget", tokens: 9_860_000, eventCount: 51, sessionCount: 7),

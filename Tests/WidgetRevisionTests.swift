@@ -3,6 +3,7 @@ import Foundation
 @main
 enum WidgetRevisionTests {
     static func main() {
+        verifyGPT6Models()
         let source = """
         # keep this comment
         model="gpt-5.6-sol" # root selection
@@ -51,5 +52,35 @@ enum WidgetRevisionTests {
         precondition(telemetry.modelBreakdowns.contains { $0.modelLabel == "Terra" && $0.usage.effectiveTotalTokens == 160 })
         precondition(telemetry.tokensPerMinute(window: 60, now: telemetryNow) == 260)
         print("Passed: root TOML edits, nested-profile preservation, root insertion, comments, Terra and Light labels, theme identities, token deltas, model/effort attribution, and context burn.")
+    }
+
+    private static func verifyGPT6Models() {
+        precondition(CodexModelSettings.default.model == "gpt-6-luna")
+        precondition(CodexModelIdentity.selectableModels == ["gpt-6-luna", "gpt-6-sol", "gpt-5.6-terra", "gpt-6-astra"])
+        let source = "model = \"gpt-5.6-luna\"\nmodel_reasoning_effort = \"medium\"\n[profiles.work]\nmodel = \"gpt-5.6-sol\"\n"
+        for (model, label) in [("gpt-6-luna", "Luna-6"), ("gpt-6-sol", "Sol-6")] {
+            let output = CodexConfigStore.replacingDefaults(in: source, model: model, reasoningEffort: "max")
+            precondition(CodexConfigStore.tomlStringValue(for: "model", in: output) == model)
+            precondition(output.hasSuffix("[profiles.work]\nmodel = \"gpt-5.6-sol\"\n"))
+            precondition(CodexModelSettings(model: model, reasoningEffort: "max").shortModelName == label)
+            precondition(CodexModelIdentity.label(model.uppercased()) == label)
+            precondition(CodexModelIdentity.label(model + "-2026-09-22") == label)
+        }
+        for legacy in ["gpt-5.6-luna", "gpt-5.6-sol"] {
+            do {
+                try CodexConfigStore.update(model: legacy, reasoningEffort: "medium")
+                preconditionFailure("Legacy defaults must be rejected before touching config.toml")
+            } catch {
+                precondition((error as NSError).code == CocoaError.validationMissingMandatoryProperty.rawValue)
+            }
+        }
+        precondition(CodexModelIdentity.label("gpt-5.6-luna") == "Luna-5.6")
+        precondition(CodexModelIdentity.label("gpt-5.6-sol") == "Sol-5.6")
+        precondition(CodexModelIdentity.label(nil) == "Unknown model")
+        precondition(CodexModelIdentity.label("custom-model") == "custom-model")
+        precondition(CodexTheme.named("Luna") == .luna && CodexTheme.named("Luna-6") == .luna)
+        precondition(CodexTheme.named("Sol") == .sol && CodexTheme.named("Sol-6") == .sol)
+        precondition(CodexTheme.luna.displayName == "Luna-6" && CodexTheme.sol.displayName == "Sol-6")
+        print("Passed: GPT-6 selection, labels, legacy write rejection, historical generation labels, and saved palettes.")
     }
 }

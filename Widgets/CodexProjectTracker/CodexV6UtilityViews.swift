@@ -203,7 +203,7 @@ struct CodexV6AppearancePopover: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
-                Text(theme.rawValue)
+                Text(theme.displayName)
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(theme.accent)
                     .padding(.horizontal, 8)
@@ -300,8 +300,8 @@ struct CodexV6AppearancePopover: View {
             theme = option
             CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)
         }
-        .help("Use the \(option.rawValue) theme for this page")
-        .accessibilityLabel("\(option.rawValue) theme")
+        .help("Use the \(option.displayName) theme for this page")
+        .accessibilityLabel("\(option.displayName) theme")
     }
 
     private func intensityControl(_ title: String, symbol: String, value: Binding<Double>) -> some View {

@@ -25,6 +25,7 @@
         "CodexV6Analytics.swift",
         "CodexTokenTelemetryView.swift",
         "CodexModelControls.swift",
+        "CodexModelIdentity.swift",
         "CodexIdentityButton.swift",
         "CodexTheme.swift",
         "CodexThemeVisuals.swift",

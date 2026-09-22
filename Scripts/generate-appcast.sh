@@ -30,10 +30,11 @@ ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
 ET.SubElement(item, "description").text = (
-    f"Codex Usage {version} refines the personal 6.0 dashboard with cleaner spacing, "
-    "illustrated model and Appearance buttons, clearer settings, and optional double-pulse hover feedback. "
-    "Move cards between pages using their context menu; native cross-page dragging remains experimental. "
-    "This is the personal companion edition; marketplace delivery is reviewed separately."
+    f"Codex Usage {version} adds Luna-6 and Sol-6 using gpt-6-luna and gpt-6-sol. "
+    "The model chooser, dock, themes, and analytics use consistent generation-aware names. "
+    "GPT-5.6 Luna/Sol are no longer selectable; old session records keep their original generation. "
+    "Preserves the 6.0.2 prepaid-credit fix, saved page palettes, and personal haptics. "
+    "Marketplace updates remain managed separately by DockDoor Pro."
 )
 ET.SubElement(item, "enclosure", {
     "url": f"https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/download/v{version}/CodexUsage-v{version}.zip",

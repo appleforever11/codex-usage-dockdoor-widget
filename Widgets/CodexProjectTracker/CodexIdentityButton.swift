@@ -18,7 +18,7 @@ struct CodexIdentityButton: View {
             HStack(spacing: compact ? 3 : 5) {
                 Image(systemName: identity.symbol)
                     .font(.system(size: compact ? 10 : 12, weight: .bold))
-                Text(identity.rawValue)
+                Text(identity.displayName)
                     .font(.system(size: compact ? 11 : 12, weight: .heavy, design: .rounded))
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
@@ -66,7 +66,7 @@ struct CodexIdentityButton: View {
         .onHover { hovering in
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.16)) { isHovering = hovering }
         }
-        .accessibilityLabel(identity.rawValue)
+        .accessibilityLabel(identity.displayName)
         .accessibilityValue(isSelected ? "Selected" : "Not selected")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }

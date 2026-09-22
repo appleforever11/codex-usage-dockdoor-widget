@@ -15,7 +15,7 @@ struct CodexTrackerPanelView: View {
     @State private var snapshot: CodexSnapshot?
     @State private var now = Date()
     @AppStorage(CodexTheme.storageKey) private var themeName = CodexTheme.astra.rawValue
-    private var theme: CodexTheme { CodexTheme(rawValue: themeName) ?? .astra }
+    private var theme: CodexTheme { CodexTheme.named(themeName) ?? .astra }
     @State private var isRefreshing = false
     @State private var settingsError: String?
 

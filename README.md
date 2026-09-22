@@ -4,11 +4,11 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Latest release:** [6.0.2](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.2) — fixes prepaid-credit formatting and clearly separates the credit balance from the weekly General allowance.
+**Latest release:** [6.0.3](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.3) — adds **Luna-6** (`gpt-6-luna`) and **Sol-6** (`gpt-6-sol`), preserves the 6.0.2 prepaid-credit fix, and keeps personal haptics.
 
 **Previous 5.x release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 
-**Marketplace 6.0 dashboard review:** [ejbills/dockdoorpro-widgets#27](https://github.com/ejbills/dockdoorpro-widgets/pull/27). The base read-only widget was merged in [#21](https://github.com/ejbills/dockdoorpro-widgets/pull/21).
+**Marketplace 6.0 dashboard:** merged in [ejbills/dockdoorpro-widgets#27](https://github.com/ejbills/dockdoorpro-widgets/pull/27), including ejbills' persistent card layout, move-menu controls, shared log discovery, readable light-mode values, and seven-day defaults. The GPT-6 follow-up builds on that merged version.
 
 The standalone build contains the complete tracker, freshness-aware account sync, model/reasoning defaults, card controls, and Sparkle companion. The marketplace companion is intentionally separate: it uses the `codex-usage` identifier and reads local Codex session telemetry or an optional `~/.codex/usage.json` override. It has no model-setting controls, installer, or Sparkle dependency.
 
@@ -67,7 +67,7 @@ This public update is for the companion edition and its full-featured `codex-pro
 - 🫧 **DockDoor Pro preview refresh:** compact, horizontal, and vertical previews share one visual system, foreground the active model name (Luna, Sol, Terra, or Astra), keep supporting text legible, and remove the old colored capsule/border from the transparent Reflective Shelf beta treatment.
 - 🔒 **Local-first by design:** observed token events, cache state, session health, and workspace checks stay on the Mac. Account percentages continue to come from the local Codex app-server snapshot and are labeled separately from derived telemetry.
 
-The complete release notes are in [docs/RELEASE-6.0.2.md](docs/RELEASE-6.0.2.md). The public Sparkle feed is generated and signed by the tag-driven release workflow after the universal app, widget, and notarized installer pass validation.
+The complete release notes are in [docs/RELEASE-6.0.3.md](docs/RELEASE-6.0.3.md). The public Sparkle feed is generated and signed by the tag-driven release workflow after the universal app, widget, and notarized installer pass validation. Earlier screenshots below retain their original release labels; the current interface uses Luna-6 and Sol-6.
 
 ## New design · 5.0.4
 
@@ -105,14 +105,14 @@ The highlights and installation instructions below describe the currently publis
 
 ## Highlights
 
-- Usage countdown ring in the dock, with Astra, Luna, Sol, Terra, and Rainbow themes.
+- Usage countdown ring in the dock, with Astra, Luna-6, Sol-6, Terra, and Rainbow themes.
 - Rotating dock cards for account limits, credits, selected model, task count, and chat count, with a selectable primary card, adjustable interval, and hover pause.
 - Panel view with credits, general usage, model-specific limits, task/chat totals, and recent Codex sessions.
 - Private local token telemetry with a 60-second burn chart, context percentage, freshness state, and per-model/reasoning breakdown.
 - Scrollable recent-chat history covering up to 500 indexed sessions, with older titles loaded as rows appear.
 - Freshness status, stale-data warnings, explicit refresh, and reset countdowns backed by timestamped account snapshots.
 - Clickable recent chats that open Codex tasks through `codex://threads/<session-id>` when a session id is available.
-- Local model and reasoning default controls for Luna, Sol, Terra, Astra, Light, Medium, and Max.
+- Local model and reasoning default controls for Luna-6, Sol-6, Terra, Astra, Light, Medium, and Max. Choosing Luna-6 or Sol-6 writes the GPT-6 ID for new chats; existing chats and nested profiles are preserved.
 - Astra (`gpt-6-astra`) has a dark-purple glowing starfield that animates when selected or hovered and respects Reduce Motion.
 - A header update button opens Sparkle in the companion app; Sparkle is not loaded into DockDoor Pro.
 - DockDoor settings schema for session folder, usage state file, recent session count, budget window, rainbow mode, primary card, rotation interval, hover pause, and freshness status.

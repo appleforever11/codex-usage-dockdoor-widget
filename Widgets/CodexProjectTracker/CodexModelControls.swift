@@ -27,27 +27,11 @@ struct ModelControlSection: View {
         hapticsEnabledOverride ?? storedHapticsEnabled
     }
 
-    private let models: [CodexPickerOption] = [
-        CodexPickerOption(
-            label: "Luna",
-            value: "gpt-5.6-luna",
-            colors: [Color(red: 0.18, green: 0.50, blue: 1.00), Color(red: 0.36, green: 0.22, blue: 0.95)]
-        ),
-        CodexPickerOption(
-            label: "Sol",
-            value: "gpt-5.6-sol",
-            colors: [Color(red: 1.00, green: 0.60, blue: 0.20), Color(red: 0.95, green: 0.24, blue: 0.44)]
-        ),
-        CodexPickerOption(
-            label: "Terra",
-            value: "gpt-5.6-terra",
-            colors: [Color(red: 0.48, green: 0.27, blue: 0.14), Color(red: 0.12, green: 0.62, blue: 0.40)]
-        ),
-        CodexPickerOption(
-            label: "Astra",
-            value: CodexModelSettings.astraModel,
-            colors: [Color(red: 0.10, green: 0.02, blue: 0.24), Color(red: 0.40, green: 0.10, blue: 0.70)]
-        ),
+    private let models: [CodexModelOption] = [
+        CodexModelOption(identity: .luna, value: CodexModelIdentity.lunaModel),
+        CodexModelOption(identity: .sol, value: CodexModelIdentity.solModel),
+        CodexModelOption(identity: .terra, value: CodexModelIdentity.terraModel),
+        CodexModelOption(identity: .astra, value: CodexModelIdentity.astraModel),
     ]
 
     private let reasoning: [CodexPickerOption] = [
@@ -162,9 +146,9 @@ struct ModelControlSection: View {
     }
 
     @ViewBuilder
-    private func modelButton(for option: CodexPickerOption) -> some View {
+    private func modelButton(for option: CodexModelOption) -> some View {
         CodexIdentityButton(
-            identity: CodexTheme(rawValue: option.label) ?? .astra,
+            identity: option.identity,
             isSelected: settings.model == option.value,
             hapticsEnabled: hapticsEnabled,
             height: isEmbedded ? 52 : 62,
@@ -175,6 +159,11 @@ struct ModelControlSection: View {
             }
         }
     }
+}
+
+private struct CodexModelOption {
+    let identity: CodexTheme
+    let value: String
 }
 
 private struct CodexPickerOption {
@@ -224,28 +213,5 @@ private struct CodexChoiceButton: View {
         .accessibilityLabel(option.label)
         .accessibilityValue(isSelected ? "Selected" : "Not selected")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-}
-
-struct CodexModelSettings {
-    var model: String
-    var reasoningEffort: String
-
-    static let astraModel = "gpt-6-astra"
-    static let `default` = CodexModelSettings(model: "gpt-5.6-luna", reasoningEffort: "medium")
-    var shortModelName: String {
-        if model.localizedCaseInsensitiveContains("astra") { return "Astra" }
-        if model.localizedCaseInsensitiveContains("spark") { return "Spark" }
-        if model.localizedCaseInsensitiveContains("terra") { return "Terra" }
-        if model.localizedCaseInsensitiveContains("luna") { return "Luna" }
-        if model.localizedCaseInsensitiveContains("sol") { return "Sol" }
-        if model.count > 14 { return String(model.prefix(14)) }
-        return model
-    }
-
-    var reasoningLabel: String {
-        if reasoningEffort == "low" || reasoningEffort == "instant" { return "Light" }
-        if reasoningEffort == "max" { return "Max" }
-        return reasoningEffort.prefix(1).uppercased() + reasoningEffort.dropFirst()
     }
 }

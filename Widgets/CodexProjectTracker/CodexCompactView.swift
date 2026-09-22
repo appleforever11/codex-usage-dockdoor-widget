@@ -11,7 +11,7 @@ struct CodexTrackerCompactView: View {
     @State private var snapshot = CodexSnapshot.empty
     @State private var now = Date()
     @AppStorage(CodexTheme.storageKey) private var themeName = CodexTheme.astra.rawValue
-    private var theme: CodexTheme { previewTheme ?? CodexTheme(rawValue: themeName) ?? .astra }
+    private var theme: CodexTheme { previewTheme ?? CodexTheme.named(themeName) ?? .astra }
     @State private var primaryCard = CodexWidgetPreferences.primaryCard
     @State private var rotationInterval = CodexWidgetPreferences.rotationInterval
     @State private var pauseRotationOnHover = CodexWidgetPreferences.pauseRotationOnHover
@@ -36,7 +36,7 @@ struct CodexTrackerCompactView: View {
     private var dockModelName: String {
         // Gallery previews represent the theme being previewed; live widgets
         // represent the model currently selected in Codex.
-        previewTheme?.rawValue ?? snapshot.modelSettings.shortModelName
+        previewTheme?.displayName ?? snapshot.modelSettings.shortModelName
     }
     private var dockReasoningLabel: String {
         snapshot.modelSettings.reasoningLabel

@@ -4,6 +4,7 @@ root_dir="${0:A:h:h}"
 mkdir -p "$root_dir/build/tests"
 swiftc -parse-as-library -target arm64-apple-macosx14.0 \
  "$root_dir/Widgets/CodexProjectTracker/CodexModelControls.swift" \
+ "$root_dir/Widgets/CodexProjectTracker/CodexModelIdentity.swift" \
  "$root_dir/Widgets/CodexProjectTracker/CodexIdentityButton.swift" \
  "$root_dir/Widgets/CodexProjectTracker/CodexConfigStore.swift" \
  "$root_dir/Widgets/CodexProjectTracker/CodexTheme.swift" \

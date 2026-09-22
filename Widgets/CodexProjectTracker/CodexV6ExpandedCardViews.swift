@@ -451,12 +451,7 @@ private struct CodexV6InsightEmptyState: View {
 }
 
 private func modelLabel(_ value: String) -> String {
-    let lowercased = value.lowercased()
-    if lowercased.contains("astra") { return "Astra" }
-    if lowercased.contains("luna") { return "Luna" }
-    if lowercased.contains("sol") { return "Sol" }
-    if lowercased.contains("terra") { return "Terra" }
-    return value.isEmpty ? "Unknown" : value
+    CodexModelIdentity.label(value, unknown: "Unknown")
 }
 
 private func effortLabel(_ value: String) -> String {

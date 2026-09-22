@@ -18,7 +18,7 @@ enum CodexConfigStore {
     }
 
     static func update(model: String, reasoningEffort: String) throws {
-        let allowedModels = ["gpt-5.6-luna", "gpt-5.6-sol", "gpt-5.6-terra", CodexModelSettings.astraModel]
+        let allowedModels = CodexModelIdentity.selectableModels
         let allowedReasoning = ["low", "medium", "max"]
         guard allowedModels.contains(model), allowedReasoning.contains(reasoningEffort) else { throw CocoaError(.validationMissingMandatoryProperty) }
 

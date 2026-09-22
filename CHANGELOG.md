@@ -1,5 +1,14 @@
 # Changelog
 
+## 6.0.3 — 2026-09-22
+
+- Added Luna-6 (`gpt-6-luna`) and Sol-6 (`gpt-6-sol`) to new-chat controls and removed GPT-5.6 Luna/Sol from the writable model list.
+- Centralized model IDs and generation-aware labels across dock cards, session telemetry, and analytics; older sessions keep their recorded generation.
+- Updated appearance and accessibility labels while preserving personal saved palettes and hover/selection haptics.
+- Preserved the 6.0.2 prepaid-credit fix and the existing Mac installer/Sparkle signing path.
+- Based the separate marketplace follow-up on ejbills' merged #27, retaining its host-compatible move menus, persistent layouts, shared file discovery, and light-mode readability.
+
+
 ## 6.0.2 - Prepaid credit display fix (2026-09-21)
 
 - 🔧 Fixed the prepaid-credit display so the raw account quantity is no longer presented as a misleading dollar amount or a long floating-point string.
