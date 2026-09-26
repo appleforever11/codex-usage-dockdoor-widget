@@ -60,6 +60,20 @@ enum CodexV6Tests {
         precondition(repairedCards.count == 24 && Set(repairedCards).count == 24)
         precondition(repaired[.activity]?.contains(.dailyActivity) == true)
 
+        let telemetryNow = ISO8601DateFormatter().date(from: "2026-09-25T12:00:00Z")!
+        let telemetryFixture = [
+            #"{"type":"event_msg","timestamp":"2026-09-25T05:00:00Z","ordinal":1,"payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":60,"output_tokens":40,"total_tokens":100},"total_token_usage":{"input_tokens":60,"output_tokens":40,"total_tokens":100},"model_context_window":200000}}}"#,
+            #"{"type":"event_msg","timestamp":"2026-09-25T08:00:00Z","ordinal":2,"payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":30,"output_tokens":20,"total_tokens":50},"total_token_usage":{"input_tokens":90,"output_tokens":60,"total_tokens":150},"model_context_window":200000}}}"#,
+            #"{"type":"event_msg","timestamp":"2026-09-25T11:00:00Z","ordinal":3,"payload":{"type":"token_count","info":{"last_token_usage":{"input_tokens":60,"output_tokens":40,"total_tokens":100},"total_token_usage":{"input_tokens":150,"output_tokens":100,"total_tokens":250},"model_context_window":200000}}}"#,
+        ].joined(separator: "\n")
+        let telemetry = CodexTokenTelemetryReader.read(
+            sources: [CodexTokenLogSource(id: "fixture", projectName: "Fixture", contents: telemetryFixture)],
+            now: telemetryNow,
+            windowHours: 5
+        )
+        precondition(telemetry.todayUsage.effectiveTotalTokens == 250)
+        precondition(telemetry.windowUsage.effectiveTotalTokens == 150)
+
         let preview = CodexV6AnalyticsSnapshot.preview
         precondition(preview.todayTokens > 0)
         precondition(preview.models.count == 3)
@@ -67,6 +81,6 @@ enum CodexV6Tests {
         precondition(preview.workspaceHealth.dirtyFileCount == 4)
         precondition(preview.sourceStatuses.contains { $0.id == "account-quota" && $0.state == "Ready" })
         precondition(preview.todayVsPreviousDay != nil)
-        print("Passed: v6 page defaults, cross-page moves, layout persistence and migration, duplicate-safe card normalization, analytics fixture, and source health.")
+        print("Passed: v6 layout and analytics checks, plus rolling-window and daily session-token totals.")
     }
 }

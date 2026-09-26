@@ -25,6 +25,7 @@ private func previewSnapshot() -> CodexSnapshot {
     snapshot.tokenTelemetry = CodexTokenTelemetry(
         observedUsage: CodexTokenUsage(inputTokens: 80_000, cachedInputTokens: 27_500, outputTokens: 4_320, reasoningOutputTokens: 1_360, totalTokens: 84_320),
         todayUsage: CodexTokenUsage(inputTokens: 246_000, cachedInputTokens: 94_000, outputTokens: 12_400, reasoningOutputTokens: 4_100, totalTokens: 258_400),
+        windowUsage: CodexTokenUsage(inputTokens: 80_000, cachedInputTokens: 27_500, outputTokens: 4_320, reasoningOutputTokens: 1_360, totalTokens: 84_320),
         latestDelta: sampleUsages.last,
         latestContextUsage: CodexTokenUsage(inputTokens: 131_000, cachedInputTokens: 52_000, outputTokens: 7_100, reasoningOutputTokens: 2_200, totalTokens: 148_100),
         latestContextWindow: 258_400,

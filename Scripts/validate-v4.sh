@@ -66,6 +66,7 @@ PY
 /usr/bin/grep -q 'usageFreshness' "$root_dir/Widgets/CodexProjectTracker/CodexTrackerStore.swift"
 /usr/bin/grep -q 'primaryCard' "$source_file"
 /usr/bin/grep -q 'resetAt' "$root_dir/Scripts/sync-codex-usage.sh"
+/usr/bin/grep -q 'Contents/Resources/codex-cli/bin/codex' "$root_dir/Scripts/sync-codex-usage.sh"
 
 if [[ "${CODEX_REQUIRE_SIGNING:-0}" == "1" ]]; then
     /usr/bin/codesign --verify --deep --strict --verbose=2 "$bundle"

@@ -300,6 +300,7 @@ struct CodexTokenModelBreakdown: Identifiable, Equatable, Sendable {
 struct CodexTokenTelemetry: Equatable, Sendable {
     let observedUsage: CodexTokenUsage
     let todayUsage: CodexTokenUsage
+    let windowUsage: CodexTokenUsage
     let latestDelta: CodexTokenUsage?
     let latestContextUsage: CodexTokenUsage?
     let latestContextWindow: Int64?
@@ -316,6 +317,7 @@ struct CodexTokenTelemetry: Equatable, Sendable {
     static let empty = CodexTokenTelemetry(
         observedUsage: .zero,
         todayUsage: .zero,
+        windowUsage: .zero,
         latestDelta: nil,
         latestContextUsage: nil,
         latestContextWindow: nil,
@@ -405,9 +407,15 @@ enum CodexTokenTelemetryReader {
     private static let maxChartSamples = 48
     private static let maxTelemetrySessions = 64
 
-    static func read(sources: [CodexTokenLogSource], now: Date = Date()) -> CodexTokenTelemetry {
+    static func read(
+        sources: [CodexTokenLogSource],
+        now: Date = Date(),
+        windowHours: Double = 5
+    ) -> CodexTokenTelemetry {
         var observed = CodexTokenUsage.zero
         var today = CodexTokenUsage.zero
+        var window = CodexTokenUsage.zero
+        let windowStart = now.addingTimeInterval(-max(1, windowHours) * 3600)
         var allSamples: [CodexTokenBurnSample] = []
         var breakdowns: [String: (usage: CodexTokenUsage, turns: Int, lastUpdated: Date?)] = [:]
         var latestContext: (date: Date, usage: CodexTokenUsage, window: Int64?, model: String, effort: String)?
@@ -499,6 +507,9 @@ enum CodexTokenTelemetryReader {
                     if Calendar.current.isDate(timestamp, inSameDayAs: now) {
                         today = today.adding(delta)
                     }
+                    if timestamp >= windowStart && timestamp <= now {
+                        window = window.adding(delta)
+                    }
 
                     let sample = CodexTokenBurnSample(
                         id: eventKey,
@@ -551,6 +562,7 @@ enum CodexTokenTelemetryReader {
         return CodexTokenTelemetry(
             observedUsage: observed,
             todayUsage: today,
+            windowUsage: window,
             latestDelta: latestDelta?.usage,
             latestContextUsage: latestContext?.usage,
             latestContextWindow: latestContext?.window,

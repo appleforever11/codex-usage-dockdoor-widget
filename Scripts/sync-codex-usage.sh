@@ -7,6 +7,10 @@ codex_bin="${CODEX_BIN:-}"
 
 if [[ -z "$codex_bin" ]]; then
     for bundled_codex in \
+        "/Applications/Codex.app/Contents/Resources/codex-cli/bin/codex" \
+        "$HOME/Applications/Codex.app/Contents/Resources/codex-cli/bin/codex" \
+        "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex" \
+        "$HOME/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex" \
         "/Applications/Codex.app/Contents/Resources/codex" \
         "$HOME/Applications/Codex.app/Contents/Resources/codex" \
         "/Applications/ChatGPT.app/Contents/Resources/codex" \

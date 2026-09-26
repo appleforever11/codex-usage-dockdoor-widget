@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.0.4 — ChatGPT macOS app compatibility
+
+- 🛠️ Updated live-sync discovery for the Codex executable now bundled at `Contents/Resources/codex-cli/bin/codex` in ChatGPT/Codex desktop apps, restoring account refreshes after the 26.924.20706 app update.
+- 📊 Kept account quota percentages and credits authoritative while deriving Window and Today token totals from local session events when account snapshots omit token counts.
+- 🕰️ Added regression coverage for five-hour rolling totals and daily totals so missing counts cannot silently render as zero.
+- 🔒 Private companion and personal widget release only; the marketplace widget remains read-only and on DockDoor Pro's update path.
+
 ## 6.0.3 — 2026-09-22
 
 - Added Luna-6 (`gpt-6-luna`) and Sol-6 (`gpt-6-sol`) to new-chat controls and removed GPT-5.6 Luna/Sol from the writable model list.

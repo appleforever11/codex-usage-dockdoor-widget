@@ -30,10 +30,10 @@ ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
 ET.SubElement(item, "description").text = (
-    f"Codex Usage {version} adds Luna-6 and Sol-6 using gpt-6-luna and gpt-6-sol. "
-    "The model chooser, dock, themes, and analytics use consistent generation-aware names. "
-    "GPT-5.6 Luna/Sol are no longer selectable; old session records keep their original generation. "
-    "Preserves the 6.0.2 prepaid-credit fix, saved page palettes, and personal haptics. "
+    f"Codex Usage {version} restores live account refresh with the updated ChatGPT/Codex macOS app bundle path. "
+    "Window and Today token totals now remain sourced from local session events when account snapshots omit token counts. "
+    "Account quota percentages and prepaid credits remain authoritative. "
+    "Preserves Luna-6/Sol-6 model labels, the 6.0.2 prepaid-credit fix, saved page palettes, and personal haptics. "
     "Marketplace updates remain managed separately by DockDoor Pro."
 )
 ET.SubElement(item, "enclosure", {

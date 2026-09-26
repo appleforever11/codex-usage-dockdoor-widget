@@ -4,7 +4,7 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
-**Latest release:** [6.0.3](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.3) — adds **Luna-6** (`gpt-6-luna`) and **Sol-6** (`gpt-6-sol`), preserves the 6.0.2 prepaid-credit fix, and keeps personal haptics.
+**Latest release:** [6.0.4](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.4) — restores live account refresh after the ChatGPT/Codex macOS app update and keeps local Window/Today token totals independent from account quota snapshots.
 
 **Previous 5.x release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 
@@ -173,7 +173,7 @@ Install the optional one-shot sync agent after installing the widget:
 Scripts/install-usage-sync.sh
 ```
 
-It refreshes `~/.codex/usage.json` from the official local `account/rateLimits/read` RPC every 60 seconds. Each invocation exits after the snapshot is written, and a bounded retry handles occasional slow app-server startup without replacing the last valid data.
+It discovers the bundled Codex CLI in current Codex and ChatGPT desktop apps (including `Contents/Resources/codex-cli/bin/codex`) and refreshes `~/.codex/usage.json` from the official local `account/rateLimits/read` RPC every 60 seconds. Each invocation exits after the snapshot is written, and a bounded retry handles occasional slow app-server startup without replacing the last valid data.
 
 Logs are written to `~/Library/Logs/CodexUsageWidget/`. To remove the agent:
 

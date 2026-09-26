@@ -88,7 +88,6 @@ enum CodexTrackerStore {
         let latestChat = latestHistoryPrompt()
         let activeCount = sessions.filter(\.isActive).count
         let headline = sessions.first?.projectName ?? projects.first?.name ?? "No sessions"
-        let usage = usageSnapshot(projects: projects, sessions: sessions, sessionFiles: sessionFiles)
         let tokenTelemetry = CodexTokenTelemetryReader.read(
             sources: records.map { record in
                 CodexTokenLogSource(
@@ -97,7 +96,14 @@ enum CodexTrackerStore {
                     url: record.file.url,
                     modified: record.file.modified
                 )
-            }
+            },
+            windowHours: usageWindowHours()
+        )
+        let usage = usageSnapshot(
+            projects: projects,
+            sessions: sessions,
+            sessionFiles: sessionFiles,
+            tokenTelemetry: tokenTelemetry
         )
         let analytics = CodexV6AnalyticsBuilder.build(
             telemetry: tokenTelemetry,
@@ -330,15 +336,16 @@ enum CodexTrackerStore {
     private static func usageSnapshot(
         projects: [CodexProject],
         sessions: [CodexSession],
-        sessionFiles: [CodexSessionFile]
+        sessionFiles: [CodexSessionFile],
+        tokenTelemetry: CodexTokenTelemetry
     ) -> CodexUsageSnapshot {
-        // The account snapshot represents the active subscription and wins over
-        // session telemetry, which may belong to an older plan or reset window.
-        if let external = externalUsageSnapshot() {
+        // Account percentages remain authoritative. Token totals are independent
+        // local observations and must not disappear when limits omit token counts.
+        if let external = externalUsageSnapshot(tokenTelemetry: tokenTelemetry) {
             return external
         }
 
-        if let live = liveRateLimitSnapshot(from: sessionFiles) {
+        if let live = liveRateLimitSnapshot(from: sessionFiles, tokenTelemetry: tokenTelemetry) {
             return live
         }
 
@@ -350,10 +357,9 @@ enum CodexTrackerStore {
         let windowHours = usageWindowHours()
         let now = Date()
         let windowStart = now.addingTimeInterval(-windowHours * 3600)
-        let todayStart = Calendar.current.startOfDay(for: now)
         let window = sqliteUsage(since: windowStart)
-        let today = sqliteUsage(since: todayStart)
-        let used = max(window.tokens, 0)
+        let used = max(tokenTelemetry.windowUsage.effectiveTotalTokens, 0)
+        let todayUsed = max(tokenTelemetry.todayUsage.effectiveTotalTokens, 0)
         let remaining = max(0, budget - used)
         let percentRemaining = budget > 0 ? Double(remaining) / Double(budget) : 1
         let resetDate = windowStart.addingTimeInterval(windowHours * 3600 * 2)
@@ -364,7 +370,7 @@ enum CodexTrackerStore {
             primaryTitle: "\(Int((percentRemaining * 100).rounded()))% Remaining",
             primarySubtitle: "\(CodexUsageSnapshot.compactTokens(used)) used in \(Int(windowHours))h window",
             windowUsedTokens: used,
-            todayUsedTokens: today.tokens,
+            todayUsedTokens: todayUsed,
             budgetTokens: budget,
             resetDate: resetDate,
             resetLabel: nil,
@@ -378,7 +384,7 @@ enum CodexTrackerStore {
                 ),
                 CodexUsageMetric(
                     title: "Today used",
-                    value: CodexUsageSnapshot.compactTokens(today.tokens),
+                    value: CodexUsageSnapshot.compactTokens(todayUsed),
                     systemImage: "calendar",
                     tint: .blue
                 ),
@@ -430,7 +436,10 @@ enum CodexTrackerStore {
         CodexSQLiteUsage(tokens: 0, threadCount: 0)
     }
 
-    private static func liveRateLimitSnapshot(from sessionFiles: [CodexSessionFile]) -> CodexUsageSnapshot? {
+    private static func liveRateLimitSnapshot(
+        from sessionFiles: [CodexSessionFile],
+        tokenTelemetry: CodexTokenTelemetry
+    ) -> CodexUsageSnapshot? {
         let decoder = JSONDecoder()
         var latestByID: [String: CodexLiveRateLimitSample] = [:]
 
@@ -541,8 +550,8 @@ enum CodexTrackerStore {
             percentRemaining: primaryLimit.percentRemaining,
             primaryTitle: "\(Int((primaryLimit.percentRemaining * 100).rounded()))% Left",
             primarySubtitle: "\(primaryLimit.name) • \(primaryLimit.resetLabel.map { "Resets \($0)" } ?? "Weekly usage")",
-            windowUsedTokens: 0,
-            todayUsedTokens: 0,
+            windowUsedTokens: tokenTelemetry.windowUsage.effectiveTotalTokens,
+            todayUsedTokens: tokenTelemetry.todayUsage.effectiveTotalTokens,
             budgetTokens: 0,
             resetDate: primaryLimit.resetDate,
             resetLabel: primaryLimit.resetLabel,
@@ -594,7 +603,7 @@ enum CodexTrackerStore {
         return formatter.string(from: date)
     }
 
-    private static func externalUsageSnapshot() -> CodexUsageSnapshot? {
+    private static func externalUsageSnapshot(tokenTelemetry: CodexTokenTelemetry) -> CodexUsageSnapshot? {
         let url = configuredUsageURL()
         guard let data = try? Data(contentsOf: url),
               let state = try? JSONDecoder().decode(CodexExternalUsageState.self, from: data)
@@ -622,13 +631,15 @@ enum CodexTrackerStore {
         let accountCards = externalDockCards(from: state, primaryPercent: percentRemaining)
         let lastUpdated = parseCodexDate(state.updatedAt) ?? modificationDate(for: url)
         let freshness = usageFreshness(updatedAt: lastUpdated, authoritative: true)
+        let observedWindowTokens = tokenTelemetry.windowUsage.effectiveTotalTokens
+        let observedTodayTokens = tokenTelemetry.todayUsage.effectiveTotalTokens
 
         return CodexUsageSnapshot(
             percentRemaining: min(max(percentRemaining, 0), 1),
             primaryTitle: "\(Int((percentRemaining * 100).rounded()))% Left",
             primarySubtitle: state.subtitle ?? "\(primaryName) • \(primaryReset)",
-            windowUsedTokens: used,
-            todayUsedTokens: state.todayUsed ?? used,
+            windowUsedTokens: observedWindowTokens > 0 ? observedWindowTokens : used,
+            todayUsedTokens: observedTodayTokens > 0 ? observedTodayTokens : state.todayUsed ?? used,
             budgetTokens: limit,
             resetDate: resetDate,
             resetLabel: resetLabel,
