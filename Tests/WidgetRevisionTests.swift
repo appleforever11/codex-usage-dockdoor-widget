@@ -26,7 +26,7 @@ enum WidgetRevisionTests {
         precondition(CodexConfigStore.tomlStringValue(for: "model", in: inserted) == "gpt-6-astra")
         precondition(CodexModelSettings(model: "gpt-5.6-terra", reasoningEffort: "low").reasoningLabel == "Light")
         precondition(CodexModelSettings(model: "gpt-5.6-terra", reasoningEffort: "medium").shortModelName == "Terra")
-        precondition(Set(CodexTheme.allCases.map(\.rawValue)).count == 5)
+        precondition(Set(CodexTheme.allCases.map(\.rawValue)).count == 6)
         precondition(CodexConfigStore.normalizedReasoningEffort("instant") == "low")
         precondition(CodexConfigStore.normalizedReasoningEffort("low") == "low")
 

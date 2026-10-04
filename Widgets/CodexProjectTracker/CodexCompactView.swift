@@ -11,7 +11,25 @@ struct CodexTrackerCompactView: View {
     @State private var snapshot = CodexSnapshot.empty
     @State private var now = Date()
     @AppStorage(CodexTheme.storageKey) private var themeName = CodexTheme.astra.rawValue
-    private var theme: CodexTheme { previewTheme ?? CodexTheme.named(themeName) ?? .astra }
+    @AppStorage("widget.codex-project-tracker.dockLayout") private var dockLayout = CodexDockLayout.model.rawValue
+    @AppStorage("widget.codex-project-tracker.ringMetric") private var ringMetric = CodexRingMetric.allowance.rawValue
+    @AppStorage("widget.codex-project-tracker.usageAlerts") private var usageAlerts = false
+    @AppStorage("widget.codex-project-tracker.lowAllowance") private var lowAllowance = 0.20
+    @AppStorage(CodexV6Preferences.sparkleIntensityKey) private var sparkle = 1.0
+    @AppStorage(CodexV6Preferences.glowIntensityKey) private var glow = 1.0
+    @AppStorage(CodexV6Preferences.animationsEnabledKey) private var animated = true
+    @AppStorage(CodexV6Preferences.highContrastKey) private var highContrast = false
+    private var visualTuning: CodexV6VisualTuning {
+        CodexV6VisualTuning(sparkleIntensity: sparkle, glowIntensity: glow,
+                            animationsEnabled: animated, highContrast: highContrast)
+    }
+    private var ringProgress: Double? {
+        (CodexRingMetric(rawValue: ringMetric) ?? .allowance).progress(snapshot.usage)
+    }
+    // The dashboard and host settings both write this single appearance key.
+    private var theme: CodexTheme {
+        previewTheme ?? CodexTheme.named(themeName) ?? .astra
+    }
     @State private var primaryCard = CodexWidgetPreferences.primaryCard
     @State private var rotationInterval = CodexWidgetPreferences.rotationInterval
     @State private var pauseRotationOnHover = CodexWidgetPreferences.pauseRotationOnHover
@@ -67,7 +85,12 @@ struct CodexTrackerCompactView: View {
 
     var body: some View {
         Group {
-            if isExtended {
+            if dockLayout != CodexDockLayout.model.rawValue {
+                UsageRingView(percentRemaining: ringProgress ?? 0, size: gaugeSize,
+                              lineWidth: max(3, dim * 0.055), theme: theme,
+                              showsPercentage: dockLayout == CodexDockLayout.percentage.rawValue,
+                              isAvailable: ringProgress != nil)
+            } else if isExtended {
                 extendedLayout
             } else {
                 compactLayout
@@ -76,6 +99,7 @@ struct CodexTrackerCompactView: View {
         // DockDoor owns the shelf surface. Keeping this view transparent lets the
         // reflective shelf show through instead of stacking a second tinted card.
         .foregroundStyle(.white.opacity(0.94))
+        .environment(\.codexVisualTuning, visualTuning)
         .padding(contentPadding)
         .shadow(color: .black.opacity(0.74), radius: 2.2, y: 1)
         .accessibilityElement(children: .combine)
@@ -89,6 +113,7 @@ struct CodexTrackerCompactView: View {
         }
         .task {
             guard !isPreview else { return }
+            CodexTheme.migrateSharedAppearance()
             while !Task.isCancelled {
                 let refreshed = await CodexTrackerStore.snapshot()
                 snapshot = refreshed
@@ -111,10 +136,11 @@ struct CodexTrackerCompactView: View {
     private var compactLayout: some View {
         VStack(spacing: 1) {
             UsageRingView(
-                percentRemaining: card.percentRemaining ?? snapshot.usage.percentRemaining,
+                percentRemaining: ringProgress ?? 0,
                 size: gaugeSize,
                 lineWidth: max(3, dim * 0.055),
-                theme: theme
+                theme: theme,
+                isAvailable: ringProgress != nil
             )
             Text(dockModelName)
                 .font(.system(size: compactTitleSize, weight: .bold, design: .rounded))
@@ -129,7 +155,7 @@ struct CodexTrackerCompactView: View {
         Group {
             if isVertical {
                 VStack(spacing: max(4, dim * 0.08)) {
-                    UsageRingView(percentRemaining: card.percentRemaining ?? snapshot.usage.percentRemaining, size: gaugeSize, lineWidth: max(3, dim * 0.052), theme: theme)
+                    UsageRingView(percentRemaining: ringProgress ?? 0, size: gaugeSize, lineWidth: max(3, dim * 0.052), theme: theme, isAvailable: ringProgress != nil)
                         .frame(
                             width: gaugeSize + (horizontalGaugeOutset * 2),
                             height: gaugeSize + (horizontalGaugeOutset * 2)
@@ -138,7 +164,7 @@ struct CodexTrackerCompactView: View {
                 }
             } else {
                 HStack(spacing: max(5, dim * 0.075)) {
-                    UsageRingView(percentRemaining: card.percentRemaining ?? snapshot.usage.percentRemaining, size: gaugeSize, lineWidth: max(3, dim * 0.052), theme: theme)
+                    UsageRingView(percentRemaining: ringProgress ?? 0, size: gaugeSize, lineWidth: max(3, dim * 0.052), theme: theme, isAvailable: ringProgress != nil)
                         .frame(
                             width: gaugeSize + (horizontalGaugeOutset * 2),
                             height: gaugeSize + (horizontalGaugeOutset * 2)
@@ -185,8 +211,9 @@ struct CodexTrackerCompactView: View {
     }
 
     private var compactStatusLabel: String {
-        if snapshot.usage.source == "Loading" { return "SYNC" }
-        return snapshot.usage.isStale ? "STALE" : "LIVE"
+        let status = snapshot.usage.connectionTitle(now: now)
+        if usageAlerts && status == "Live" && snapshot.usage.percentRemaining <= lowAllowance { return "LOW" }
+        return status.uppercased()
     }
 
 }

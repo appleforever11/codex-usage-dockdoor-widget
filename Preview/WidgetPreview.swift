@@ -143,7 +143,8 @@ private final class WidgetPreviewApp: NSObject, NSApplicationDelegate {
                     try? bitmap.representation(using: .png, properties: [:])?.write(to: folder.appendingPathComponent("theme-\(theme.rawValue.lowercased()).png"))
                 }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 8) {
+            let finalCaptureDelay = Double(max(CodexTheme.allCases.count - 1, 0)) * 1.5 + 1.5
+            DispatchQueue.main.asyncAfter(deadline: .now() + finalCaptureDelay) {
                 NSApp.terminate(nil)
             }
         }

@@ -10,6 +10,7 @@
     ],
     "principalClass": "CodexProjectTrackerPlugin",
     "sources": [
+        "CodexWidgetCustomization.swift",
         "CodexProjectTracker.swift",
         "CodexCompactView.swift",
         "CodexUsageRing.swift",

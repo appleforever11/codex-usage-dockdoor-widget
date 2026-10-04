@@ -36,7 +36,9 @@ struct CodexTrackerPanelView: View {
         .alert("Couldn’t save defaults", isPresented: Binding(
             get: { settingsError != nil }, set: { if !$0 { settingsError = nil } }
         )) { Button("OK") { settingsError = nil } } message: { Text(settingsError ?? "") }
-        .background(CodexThemeBackground(theme: theme))
+        .background {
+            if snapshot == nil { CodexThemeBackground(theme: theme) }
+        }
         .environment(\.codexTheme, theme)
         .environment(\.colorScheme, .dark)
         .tint(theme.accent)

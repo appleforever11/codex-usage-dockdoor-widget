@@ -25,6 +25,8 @@ struct CodexV6DashboardView: View {
     @State private var modelFilter: String?
     @State private var selectedCard: CodexV6CardID?
     @State private var isAppearancePresented = false
+    @AppStorage(CodexTheme.storageKey) private var sharedTheme = CodexTheme.astra.rawValue
+    @AppStorage("widget.codex-project-tracker.v6.page-theme.overview") private var overviewTheme = ""
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
@@ -59,7 +61,7 @@ struct CodexV6DashboardView: View {
     }
 
     private var activeTheme: CodexTheme {
-        pageThemes[page] ?? page.defaultTheme
+        CodexTheme.named(sharedTheme) ?? .astra
     }
 
     var body: some View {
@@ -67,7 +69,8 @@ struct CodexV6DashboardView: View {
             header
             pagePicker
 
-            CodexV6DataNotice(usage: snapshot.usage, now: now)
+            CodexV6DataNotice(usage: snapshot.usage, now: now, onRetry: onRefresh, isRefreshing: isRefreshing)
+            CodexAllowanceAlert(usage: snapshot.usage, now: now)
 
             ZStack {
                 activePage
@@ -123,6 +126,12 @@ struct CodexV6DashboardView: View {
         .onChange(of: showDataStatus) { _, newValue in
             CodexV6Preferences.showDataStatus = newValue
         }
+        .onAppear {
+            if !isPreview { CodexTheme.migrateSharedAppearance() }
+        }
+        .onChange(of: sharedTheme) { _, value in
+            overviewTheme = CodexTheme.named(value)?.rawValue ?? CodexTheme.astra.rawValue
+        }
     }
 
     private var header: some View {
@@ -134,6 +143,8 @@ struct CodexV6DashboardView: View {
                 if showDataStatus {
                     CodexV6DataStatusBadge(usage: snapshot.usage, now: now)
                 }
+                Text(CodexBuildIdentity.label)
+                    .font(.system(size: 8)).foregroundStyle(.secondary)
             }
             Spacer(minLength: 2)
 
@@ -183,8 +194,8 @@ struct CodexV6DashboardView: View {
                     hapticsEnabled: hapticsEnabled
                 )
             }
-            .help("Choose the \(page.title) page theme")
-            .accessibilityLabel("Choose \(page.title) page theme")
+            .help("Appearance & Layout")
+            .accessibilityLabel("Appearance & Layout")
             .accessibilityValue(activeTheme.displayName)
 
             Button {
@@ -368,6 +379,7 @@ struct CodexV6DashboardView: View {
         }
     }
 
+    @ViewBuilder
     private func pageView(for page: CodexV6Page) -> some View {
         CodexV6PageView(
             page: page,
@@ -385,7 +397,7 @@ struct CodexV6DashboardView: View {
             onMoveCard: { moveCard($0, to: $1, before: $2) },
             onDragStarted: { dragOrigin = page }
         )
-        .environment(\.codexTheme, pageThemes[page] ?? page.defaultTheme)
+        .environment(\.codexTheme, activeTheme)
         .environment(\.codexVisualTuning, tuning(for: page))
     }
 
@@ -425,6 +437,8 @@ struct CodexV6DashboardView: View {
             set: { newTheme in
                 pageThemes[page] = newTheme
                 CodexV6PageThemeStore.save(newTheme, for: page)
+                overviewTheme = newTheme.rawValue
+                sharedTheme = newTheme.displayName
             }
         )
     }

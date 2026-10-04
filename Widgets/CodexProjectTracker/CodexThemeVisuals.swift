@@ -36,6 +36,8 @@ extension CodexTheme {
             return [colors[1], colors[2], Color(red: 1.0, green: 0.38, blue: 0.12), Color(red: 0.96, green: 0.25, blue: 0.16)]
         case .terra:
             return [colors[1], colors[2], Color(red: 0.24, green: 0.91, blue: 0.59), Color(red: 0.82, green: 0.68, blue: 0.28)]
+        case .goldenGate:
+            return [colors[1], colors[2], Color(red: 0.70, green: 0.34, blue: 0.12), Color(red: 0.98, green: 0.68, blue: 0.32)]
         case .rainbow:
             return colors
         }
@@ -97,7 +99,7 @@ struct CodexThemeAnimatedAtmosphere: View {
                 CodexThemeSparkleField(
                     theme: theme,
                     time: time,
-                    count: Int(Double(theme == .rainbow ? 42 : 34) * (0.45 + tuning.clampedSparkle * 0.55))
+                    count: Int(Double(theme == .rainbow ? 42 : 34) * tuning.clampedSparkle)
                 )
             }
         }
@@ -121,6 +123,8 @@ private struct CodexThemeAmbientMotif: View {
             case .luna:
                 codexDrawLunaMotif(&context, center: center, radius: radius, pulse: pulse, theme: theme)
             case .sol:
+                codexDrawSolMotif(&context, center: center, radius: radius, pulse: pulse, time: time, theme: theme)
+            case .goldenGate:
                 codexDrawSolMotif(&context, center: center, radius: radius, pulse: pulse, time: time, theme: theme)
             case .terra:
                 codexDrawTerraMotif(&context, center: center, radius: radius, pulse: pulse, theme: theme)
@@ -400,6 +404,40 @@ struct CodexThemePlanetMarker: View {
                         endRadius: radius * 1.2
                     ))
 
+                case .goldenGate:
+                    context.fill(Path(ellipseIn: planet), with: .radialGradient(
+                        Gradient(colors: [theme.dataColor(2).opacity(0.96),
+                                          theme.dataColor(1).opacity(0.78),
+                                          theme.dataColor(0).opacity(0.58)]),
+                        center: CGPoint(x: planet.midX - radius * 0.2,
+                                        y: planet.midY - radius * 0.25),
+                        startRadius: 0.5,
+                        endRadius: radius * 1.2
+                    ))
+                    let deckY = center.y + radius * 0.22
+                    let towerTopY = center.y - radius * 0.70
+                    let leftTowerX = center.x - radius * 0.42
+                    let rightTowerX = center.x + radius * 0.42
+                    var bridge = Path()
+                    bridge.move(to: CGPoint(x: center.x - radius * 1.45, y: deckY))
+                    bridge.addQuadCurve(to: CGPoint(x: leftTowerX, y: towerTopY),
+                                        control: CGPoint(x: center.x - radius * 0.96, y: center.y - radius * 0.58))
+                    bridge.addQuadCurve(to: CGPoint(x: rightTowerX, y: towerTopY),
+                                        control: CGPoint(x: center.x, y: center.y - radius * 0.20))
+                    bridge.addQuadCurve(to: CGPoint(x: center.x + radius * 1.45, y: deckY),
+                                        control: CGPoint(x: center.x + radius * 0.96, y: center.y - radius * 0.58))
+                    bridge.move(to: CGPoint(x: center.x - radius * 1.45, y: deckY))
+                    bridge.addLine(to: CGPoint(x: center.x + radius * 1.45, y: deckY))
+                    for towerX in [leftTowerX, rightTowerX] {
+                        bridge.move(to: CGPoint(x: towerX, y: towerTopY))
+                        bridge.addLine(to: CGPoint(x: towerX, y: deckY))
+                    }
+                    context.stroke(bridge, with: .color(theme.base.opacity(0.86)), lineWidth: 0.7)
+                    context.fill(codexSparkPath(center: CGPoint(x: center.x - radius * 1.08,
+                                                                y: center.y - radius * 1.08),
+                                                radius: radius * 0.19),
+                                 with: .color(theme.sparkleColor.opacity(0.88)))
+
                 case .terra:
                     context.fill(Path(ellipseIn: planet), with: .radialGradient(
                         Gradient(colors: [theme.dataColor(2).opacity(0.95),
@@ -540,7 +578,7 @@ struct CodexThemeBarSparkle: View {
                                               height: arm * 4.4)),
                       with: .color(color.opacity(0.22 + 0.18 * pulse)))
             context.fill(codexSparkPath(center: point, radius: arm),
-                         with: .color(.white.opacity(0.28 + 0.42 * pulse)))
+                         with: .color(theme.sparkleColor.opacity(0.28 + 0.42 * pulse)))
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -588,8 +626,8 @@ struct CodexThemeRingSparkles: View {
                                                       width: arm * 4,
                                                       height: arm * 4)),
                               with: .color(color.opacity(0.24 + pulse * 0.40)))
-                    context.fill(codexSparkPath(center: point, radius: arm),
-                                 with: .color(.white.opacity(0.35 + pulse * 0.65)))
+                context.fill(codexSparkPath(center: point, radius: arm),
+                                 with: .color(theme.sparkleColor.opacity(0.35 + pulse * 0.65)))
                 }
             }
         }

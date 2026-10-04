@@ -109,7 +109,7 @@ struct ModelControlSection: View {
             if !isEmbedded {
                 HStack(spacing: 3) {
                     Image(systemName: hapticsEnabled ? "waveform" : "waveform.slash")
-                        .foregroundStyle(hapticsEnabled ? theme.sharedPurpleGlow : .secondary)
+                        .foregroundStyle(hapticsEnabled ? theme.sharedInteractionGlow : .secondary)
                     Text(hapticsEnabled ? "Hover and select for Mac haptic feedback" : "Hover and selection haptics are off")
                         .font(.system(size: 9, weight: .medium, design: .rounded))
                         .foregroundStyle(.secondary)

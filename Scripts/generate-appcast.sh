@@ -30,10 +30,10 @@ ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
 ET.SubElement(item, "description").text = (
-    f"Codex Usage {version} restores live account refresh with the updated ChatGPT/Codex macOS app bundle path. "
-    "Window and Today token totals now remain sourced from local session events when account snapshots omit token counts. "
-    "Account quota percentages and prepaid credits remain authoritative. "
-    "Preserves Luna-6/Sol-6 model labels, the 6.0.2 prepaid-credit fix, saved page palettes, and personal haptics. "
+    f"Codex Usage {version} unifies panel and dock appearance, preserving the private Golden Gate theme. "
+    "Adds dock layouts, ring metrics, glass controls, card visibility, a quiet preset, and optional in-widget allowance alerts. "
+    "Includes connection recovery actions, build identification, and a clearly labeled local-token trend. "
+    "Task completion is unavailable from local snapshots; Dot integration is excluded. "
     "Marketplace updates remain managed separately by DockDoor Pro."
 )
 ET.SubElement(item, "enclosure", {

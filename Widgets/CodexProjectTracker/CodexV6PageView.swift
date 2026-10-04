@@ -19,6 +19,14 @@ struct CodexV6PageView: View {
     let onMoveCard: (CodexV6CardID, CodexV6Page, CodexV6CardID?) -> Void
     let onDragStarted: () -> Void
     @Environment(\.codexTheme) private var theme
+    @AppStorage("widget.codex-project-tracker.hiddenCards") private var hiddenCards = ""
+
+    private var visibleCards: [CodexV6CardID] {
+        let hidden = Set(hiddenCards.split(separator: ",").map(String.init))
+        let visible = cardOrder.filter { isEditing || !hidden.contains($0.rawValue) }
+        if page == .overview, visible.contains(.quota) { return [.quota] + visible.filter { $0 != .quota } }
+        return visible
+    }
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: true) {
@@ -40,14 +48,14 @@ struct CodexV6PageView: View {
                     )
                 }
 
-                if cardOrder.isEmpty {
-                    Label("Drop cards here", systemImage: "square.dashed")
+                if visibleCards.isEmpty {
+                    Label(isEditing ? "Drop cards here" : "Enable cards in Appearance & Layout", systemImage: "square.dashed")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, minHeight: 100)
                 }
 
-                ForEach(cardOrder) { card in
+                ForEach(visibleCards) { card in
                     CodexV6CardShell(
                         card: card,
                         isEditing: isEditing,

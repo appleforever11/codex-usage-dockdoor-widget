@@ -145,6 +145,39 @@ private struct CodexIdentityArtwork: View {
                         terrain.stroke(contour, with: .color(Color(red: 0.82, green: 0.91, blue: 0.51).opacity(0.78)), lineWidth: 1.5)
                     }
                     context.stroke(planet, with: .color(.mint.opacity(0.8)), lineWidth: 0.8)
+                case .goldenGate:
+                    let sun = CGRect(x: center.x - radius * 1.05,
+                                    y: center.y - radius * 1.0,
+                                    width: radius * 2.1,
+                                    height: radius * 2.0)
+                    context.fill(Path(ellipseIn: sun), with: .radialGradient(
+                        Gradient(colors: [identity.dataColor(2), identity.dataColor(1), identity.colors[0]]),
+                        center: CGPoint(x: sun.midX - radius * 0.18, y: sun.midY - radius * 0.2),
+                        startRadius: 0.5,
+                        endRadius: radius * 1.3
+                    ))
+
+                    let deckY = center.y + radius * 0.60
+                    let towerTopY = center.y - radius * 0.84
+                    let leftTowerX = size.width * 0.64
+                    let rightTowerX = size.width * 0.91
+                    var bridge = Path()
+                    bridge.move(to: CGPoint(x: size.width * 0.43, y: deckY))
+                    bridge.addQuadCurve(to: CGPoint(x: leftTowerX, y: towerTopY),
+                                        control: CGPoint(x: size.width * 0.52, y: center.y - radius * 0.14))
+                    bridge.addQuadCurve(to: CGPoint(x: rightTowerX, y: towerTopY),
+                                        control: CGPoint(x: size.width * 0.78, y: center.y - radius * 0.18))
+                    bridge.addQuadCurve(to: CGPoint(x: size.width * 1.02, y: deckY),
+                                        control: CGPoint(x: size.width * 0.98, y: center.y - radius * 0.12))
+                    bridge.move(to: CGPoint(x: size.width * 0.43, y: deckY))
+                    bridge.addLine(to: CGPoint(x: size.width * 1.02, y: deckY))
+                    for towerX in [leftTowerX, rightTowerX] {
+                        bridge.move(to: CGPoint(x: towerX, y: towerTopY))
+                        bridge.addLine(to: CGPoint(x: towerX, y: deckY))
+                    }
+                    context.stroke(bridge, with: .color(identity.base.opacity(0.86)), lineWidth: 1)
+                    stars(&context, size: size, time: time, count: 18,
+                          tint: identity.dataColor(2), sparkleColor: identity.sparkleColor)
                 case .rainbow:
                     for (index, color) in identity.colors.enumerated() {
                         var ribbon = Path()
@@ -182,7 +215,12 @@ private struct CodexIdentityArtwork: View {
         }
     }
 
-    private func stars(_ context: inout GraphicsContext, size: CGSize, time: Double, count: Int, tint: Color) {
+    private func stars(_ context: inout GraphicsContext,
+                       size: CGSize,
+                       time: Double,
+                       count: Int,
+                       tint: Color,
+                       sparkleColor: Color = .white) {
         let count = Int(Double(count) * tuning.clampedSparkle)
         for index in 0..<count {
             let x = CGFloat((index * 37 + 11) % 101) / 101 * size.width
@@ -197,7 +235,7 @@ private struct CodexIdentityArtwork: View {
                 glow.addFilter(.blur(radius: 2.5))
                 glow.fill(shape, with: .color(tint.opacity(twinkle)))
             }
-            context.fill(shape, with: .color(.white.opacity(0.30 + 0.65 * twinkle)))
+            context.fill(shape, with: .color(sparkleColor.opacity(0.30 + 0.65 * twinkle)))
         }
     }
 

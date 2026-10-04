@@ -147,7 +147,7 @@ struct CodexV6QuotaCard: View {
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(theme.accent)
                     if let change = analytics.todayVsPreviousDay {
-                        CodexV6TrendBadge(change: change, label: "vs yesterday")
+                        CodexV6TrendBadge(change: change, label: "tokens vs yesterday")
                     }
                 }
                 Spacer(minLength: 0)
@@ -164,6 +164,10 @@ struct CodexV6QuotaCard: View {
                 CodexV6Metric(value: "\(chatCount)", label: "Chats", tint: theme.dataColor(3), treatment: .soft)
             }
             .padding(.vertical, 1)
+            Text("Trend measures locally recorded tokens today versus yesterday. It does not measure account allowance changes.")
+                .font(.system(size: 9)).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            CodexUsageMiniTrend(days: analytics.daily)
 
             if !usage.metrics.isEmpty {
                 VStack(alignment: .leading, spacing: 9) {

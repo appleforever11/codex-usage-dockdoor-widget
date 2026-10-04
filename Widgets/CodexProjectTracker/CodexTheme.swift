@@ -3,10 +3,20 @@ import AppKit
 
 // Shared by the panel and dock: AppStorage propagates palette changes immediately.
 enum CodexTheme: String, CaseIterable, Identifiable {
-    case astra = "Astra", luna = "Luna", sol = "Sol", terra = "Terra", rainbow = "Rainbow"
+    case astra = "Astra", luna = "Luna", sol = "Sol", terra = "Terra", goldenGate = "Golden Gate", rainbow = "Rainbow"
     static let storageKey = "widget.codex-project-tracker.modelTheme"
     static let opacityKey = "widget.codex-project-tracker.backgroundOpacity"
     static let glassKey = "widget.codex-project-tracker.frostedGlass"
+    static func migrateSharedAppearance() {
+        let defaults = UserDefaults.standard
+        let migratedKey = "widget.codex-project-tracker.sharedAppearanceMigrated"
+        guard !defaults.bool(forKey: migratedKey) else { return }
+        if let saved = defaults.string(forKey: "widget.codex-project-tracker.v6.page-theme.overview"),
+           let theme = named(saved) {
+            defaults.set(theme.displayName, forKey: storageKey)
+        }
+        defaults.set(true, forKey: migratedKey)
+    }
     var id: String { rawValue }
     var displayName: String {
         switch self {
@@ -26,14 +36,20 @@ enum CodexTheme: String, CaseIterable, Identifiable {
         case .luna: return "moon.fill"
         case .sol: return "sun.max.fill"
         case .terra: return "globe.americas.fill"
+        case .goldenGate: return "sun.horizon.fill"
         case .rainbow: return "rainbow"
         }
     }
     var accent: Color { colors[1] }
-    // A shared purple interaction layer keeps model selection visually coherent
-    // while each page/theme retains its own identity colors.
-    var sharedPurpleGlow: Color {
-        Color(red: 0.54, green: 0.20, blue: 0.90)
+    // A shared interaction glow keeps model selection coherent while allowing
+    // Golden Gate to stay inside its warm bronze palette.
+    var sharedInteractionGlow: Color {
+        self == .goldenGate
+            ? Color(red: 0.78, green: 0.47, blue: 0.20)
+            : Color(red: 0.54, green: 0.20, blue: 0.90)
+    }
+    var sparkleColor: Color {
+        self == .goldenGate ? Color(red: 1.0, green: 0.84, blue: 0.58) : .white
     }
     var colors: [Color] {
         switch self {
@@ -41,6 +57,7 @@ enum CodexTheme: String, CaseIterable, Identifiable {
         case .luna: return [Color(red: 0.20, green: 0.36, blue: 0.90), Color(red: 0.40, green: 0.77, blue: 1), Color(red: 0.80, green: 0.91, blue: 1)]
         case .sol: return [Color(red: 0.85, green: 0.25, blue: 0.10), Color(red: 1, green: 0.61, blue: 0.20), Color(red: 1, green: 0.88, blue: 0.49)]
         case .terra: return [Color(red: 0.62, green: 0.36, blue: 0.19), Color(red: 0.30, green: 0.77, blue: 0.52), Color(red: 0.78, green: 0.87, blue: 0.56)]
+        case .goldenGate: return [Color(red: 0.48, green: 0.23, blue: 0.09), Color(red: 0.88, green: 0.56, blue: 0.23), Color(red: 1.0, green: 0.83, blue: 0.54)]
         case .rainbow: return [.pink, .orange, .yellow, .green, .cyan, .purple, .pink]
         }
     }
@@ -50,6 +67,7 @@ enum CodexTheme: String, CaseIterable, Identifiable {
         case .luna: return Color(red: 0.025, green: 0.055, blue: 0.12)
         case .sol: return Color(red: 0.13, green: 0.055, blue: 0.025)
         case .terra: return Color(red: 0.065, green: 0.08, blue: 0.045)
+        case .goldenGate: return Color(red: 0.12, green: 0.055, blue: 0.028)
         case .rainbow: return Color(red: 0.07, green: 0.055, blue: 0.10)
         }
     }
@@ -149,18 +167,25 @@ struct CodexThemeBackground: View {
     let theme: CodexTheme
     @AppStorage(CodexTheme.opacityKey) private var opacity = 0.75
     @AppStorage(CodexTheme.glassKey) private var frosted = true
+    @AppStorage("widget.codex-project-tracker.tintStrength") private var tint = 1.0
+    @AppStorage("widget.codex-project-tracker.blurStrength") private var blur = 1.0
+    @Environment(\.codexVisualTuning) private var tuning
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     var body: some View {
         ZStack {
             if frosted && !reduceTransparency {
                 CodexFrostedBackdrop()
+                    .opacity(min(max(blur, 0), 1))
             }
-            theme.base.opacity(reduceTransparency ? 1 : min(max(opacity, 0.2), 1))
+            theme.base.opacity(reduceTransparency ? 1 : min(max(opacity, tuning.highContrast ? 0.65 : 0.2), 1))
             RadialGradient(colors: [theme.accent.opacity(0.20), .clear], center: .topTrailing,
                            startRadius: 10, endRadius: 360)
-            RadialGradient(colors: [theme.sharedPurpleGlow.opacity(0.13), .clear], center: .bottomLeading,
+                .opacity(min(max(tint, 0), 1.5))
+            RadialGradient(colors: [theme.sharedInteractionGlow.opacity(0.13), .clear], center: .bottomLeading,
                            startRadius: 8, endRadius: 320)
+                .opacity(min(max(tint, 0), 1.5))
             CodexThemeAnimatedAtmosphere(theme: theme)
+                .opacity(min(max(tint, 0), 1.5))
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

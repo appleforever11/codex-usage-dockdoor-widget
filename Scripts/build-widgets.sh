@@ -130,6 +130,8 @@ for WIDGET_DIR in "${WIDGET_DIRS[@]}"; do
     <string>${WIDGET_VERSION}</string>
     <key>CFBundleVersion</key>
     <string>${WIDGET_VERSION}</string>
+    <key>CodexBuildChannel</key>
+    <string>${CODEX_BUILD_CHANNEL:-Private}</string>
 </dict>
 </plist>
 PLIST

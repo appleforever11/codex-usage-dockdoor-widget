@@ -7,9 +7,7 @@ struct CodexV6DataStatusBadge: View {
     @Environment(\.codexTheme) private var theme
 
     private var title: String {
-        if usage.source == "Loading" { return "Loading" }
-        if usage.source == "No account snapshot" { return "Waiting" }
-        return usage.isStale ? "Stale" : "Live"
+        usage.connectionTitle(now: now)
     }
 
     private var tint: Color {
@@ -41,10 +39,12 @@ struct CodexV6DataStatusBadge: View {
 struct CodexV6DataNotice: View {
     let usage: CodexUsageSnapshot
     let now: Date
+    var onRetry: () -> Void = {}
+    var isRefreshing = false
     @Environment(\.codexTheme) private var theme
 
     private var isVisible: Bool {
-        usage.source == "No account snapshot" || usage.isStale
+        usage.connectionTitle(now: now) != "Live" && usage.source != "Loading"
     }
 
     var body: some View {
@@ -53,7 +53,7 @@ struct CodexV6DataNotice: View {
                 Image(systemName: usage.source == "No account snapshot" ? "wifi.exclamationmark" : "clock.badge.exclamationmark")
                     .foregroundStyle(theme.dataColor(1))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(usage.source == "No account snapshot" ? "Account data unavailable" : "Showing stale account data")
+                    Text(usage.connectionTitle(now: now) == "Stale" ? "Showing stale account data" : usage.connectionTitle(now: now))
                         .font(.caption2.weight(.bold))
                     Text(usage.warning ?? usage.statusLabel(now: now))
                         .font(.system(size: 9, weight: .medium, design: .rounded))
@@ -61,6 +61,11 @@ struct CodexV6DataNotice: View {
                         .lineLimit(2)
                 }
                 Spacer(minLength: 0)
+                Button("Open Codex") { CodexAppLauncher.openCodex() }
+                    .buttonStyle(.borderless)
+                    .help("Open Codex to sign in or restore the connection, then refresh the widget")
+                Button(isRefreshing ? "Refreshing…" : "Retry", action: onRetry)
+                    .buttonStyle(.borderless).disabled(isRefreshing)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 7)
@@ -196,9 +201,9 @@ struct CodexV6AppearancePopover: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Appearance")
+                    Text("Appearance & Layout")
                         .font(.system(size: 16, weight: .bold))
-                    Text("Customize this page")
+                    Text("Shared by the panel and dock")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
@@ -214,15 +219,16 @@ struct CodexV6AppearancePopover: View {
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading, spacing: 7) {
-                        sectionLabel("PAGE THEME")
+                        sectionLabel("WIDGET THEME")
                         LazyVGrid(columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)], spacing: 8) {
-                            ForEach([CodexTheme.luna, .sol, .terra, .astra]) { option in
+                            ForEach([CodexTheme.luna, .sol, .terra, .astra, .goldenGate, .rainbow]) { option in
                                 themeButton(option, height: 54)
                             }
                         }
-                        themeButton(.rainbow, height: 34)
                     }
 
+                    Divider().opacity(0.35)
+                    CodexWidgetCustomization()
                     Divider().opacity(0.35)
 
                     HStack(alignment: .top, spacing: 14) {
@@ -231,6 +237,11 @@ struct CodexV6AppearancePopover: View {
                     }
 
                     VStack(alignment: .leading, spacing: 9) {
+                        Button("Quiet animation preset") {
+                            visualTuning.sparkleIntensity = 0.25
+                            visualTuning.glowIntensity = 0.35
+                            visualTuning.animationsEnabled = false
+                        }
                         Toggle("Animate glow and sparkles", isOn: tuningBinding(\.animationsEnabled))
                             .disabled(reduceMotion)
                         Toggle("High contrast edges", isOn: tuningBinding(\.highContrast))
@@ -300,7 +311,7 @@ struct CodexV6AppearancePopover: View {
             theme = option
             CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)
         }
-        .help("Use the \(option.displayName) theme for this page")
+        .help("Use the \(option.displayName) theme for the panel and dock")
         .accessibilityLabel("\(option.displayName) theme")
     }
 

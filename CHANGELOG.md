@@ -1,5 +1,18 @@
 # Changelog
 
+## 6.0.5 — 2026-10-04 · private customization
+
+- Unified the dock and dashboard palette, including host theme settings; appearance remains independent of chat defaults.
+- Added dock layouts, account/local-window ring choices, explicit unavailable task progress, and optional in-widget low-allowance/reset alerts.
+- Added separate background opacity, tint and native frosted-material strength, a quiet preset, and a solid accessibility fallback; removed duplicate panel backgrounds.
+- Added persistent card visibility, a quota-first Overview, a short local-token chart and metric explanation.
+- Added connection status, Open Codex/Retry recovery actions, and bundle-derived build/channel identification.
+- Dot integration is excluded. Golden Gate remains private; this is not a marketplace publication.
+
+## Unreleased — private build
+
+- Added a Golden Gate theme with a warm brown and amber palette, sunset bridge artwork, and champagne-gold usage-ring sparkles. This remains exclusive to the private widget build.
+
 ## 6.0.4 — ChatGPT macOS app compatibility
 
 - 🛠️ Updated live-sync discovery for the Codex executable now bundled at `Contents/Resources/codex-cli/bin/codex` in ChatGPT/Codex desktop apps, restoring account refreshes after the 26.924.20706 app update.

@@ -9,6 +9,9 @@ struct UsageRingView: View {
     let lineWidth: CGFloat
     let theme: CodexTheme
     var forceReducedMotion = false
+    var showsPercentage = true
+    var isAvailable = true
+    @Environment(\.codexVisualTuning) private var tuning
 
     private var clamped: Double { percentRemaining.isFinite ? min(max(percentRemaining, 0), 1) : 0 }
     private var ringColors: [Color] { theme.dataColors }
@@ -27,7 +30,7 @@ struct UsageRingView: View {
                     )
                     .rotationEffect(.degrees(-90))
                     .blur(radius: max(2, lineWidth * 0.55))
-                    .opacity(0.55)
+                    .opacity(0.55 * tuning.clampedGlow)
             }
             Circle()
                 .trim(from: 0, to: clamped)
@@ -39,15 +42,17 @@ struct UsageRingView: View {
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-            VStack(spacing: -1) {
-                Text("\(Int((clamped * 100).rounded()))")
+            if showsPercentage {
+              VStack(spacing: -1) {
+                Text(isAvailable ? "\(Int((clamped * 100).rounded()))" : "—")
                     .font(.system(size: size * 0.34, weight: .black, design: .rounded))
                     .monospacedDigit()
-                Text("%")
+                Text(isAvailable ? "%" : "")
                     .font(.system(size: size * 0.15, weight: .bold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
             .minimumScaleFactor(0.65)
+            }
         }
         .frame(width: size, height: size)
         .overlay {
@@ -59,9 +64,9 @@ struct UsageRingView: View {
                                        forceReducedMotion: forceReducedMotion)
             }
         }
-        .shadow(color: glowColor.opacity(0.42), radius: 7, y: 1)
+        .shadow(color: glowColor.opacity(min(1, 0.42 * tuning.clampedGlow)), radius: 7, y: 1)
         .accessibilityLabel("Codex usage remaining")
-        .accessibilityValue("\(Int((clamped * 100).rounded())) percent")
+        .accessibilityValue(isAvailable ? "\(Int((clamped * 100).rounded())) percent" : "Selected metric unavailable")
     }
 }
 
