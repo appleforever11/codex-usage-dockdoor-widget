@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.6 — 2026-10-04 · release compiler compatibility
+
+- Split the dock view into focused layout/style and refresh components for the release runner's Swift compiler. Includes the private 6.0.5 customization changes; 6.0.5 was not published because its CI build failed.
+
 ## 6.0.5 — 2026-10-04 · private customization
 
 - Unified the dock and dashboard palette, including host theme settings; appearance remains independent of chat defaults.

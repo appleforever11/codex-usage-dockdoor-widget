@@ -84,6 +84,16 @@ struct CodexTrackerCompactView: View {
     }
 
     var body: some View {
+        styledContent
+            .onHover { hovering in
+                if hovering && !isHovering { pausedAt = now }
+                isHovering = hovering
+            }
+            .task { await refreshLoop() }
+            .task { await clockLoop() }
+    }
+
+    @ViewBuilder private var layoutContent: some View {
         Group {
             if dockLayout != CodexDockLayout.model.rawValue {
                 UsageRingView(percentRemaining: ringProgress ?? 0, size: gaugeSize,
@@ -96,6 +106,10 @@ struct CodexTrackerCompactView: View {
                 compactLayout
             }
         }
+    }
+
+    private var styledContent: some View {
+        layoutContent
         // DockDoor owns the shelf surface. Keeping this view transparent lets the
         // reflective shelf show through instead of stacking a second tinted card.
         .foregroundStyle(.white.opacity(0.94))
@@ -105,13 +119,9 @@ struct CodexTrackerCompactView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Codex Usage 6.0 " + card.shortLabel + " card")
         .accessibilityValue(card.title + ". " + card.subtitle)
-        .onHover { hovering in
-            if hovering && !isHovering {
-                pausedAt = now
-            }
-            isHovering = hovering
-        }
-        .task {
+    }
+
+    @MainActor private func refreshLoop() async {
             guard !isPreview else { return }
             CodexTheme.migrateSharedAppearance()
             while !Task.isCancelled {
@@ -124,13 +134,13 @@ struct CodexTrackerCompactView: View {
                 showDataStatus = CodexWidgetPreferences.showDataStatus
                 try? await Task.sleep(for: .seconds(5))
             }
-        }
-        .task {
+    }
+
+    @MainActor private func clockLoop() async {
             while !Task.isCancelled {
                 now = Date()
                 try? await Task.sleep(for: .seconds(4))
             }
-        }
     }
 
     private var compactLayout: some View {
