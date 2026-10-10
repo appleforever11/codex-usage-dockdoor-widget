@@ -4,6 +4,28 @@
 
 A lightweight DockDoor Pro widget for keeping Codex usage, credit balance, recent chats, project activity, and local Codex defaults visible from the dock.
 
+---
+
+## KDE Plasma port (`kde/`)
+
+This repository also contains a complete **KDE Plasma 6 port** of the widget for the Codex CLI on Linux. All logic lives in a small **Rust helper daemon** (`codex-usage-helper`) that talks to the local `codex app-server` over stdio JSON-RPC and serves one snapshot document over loopback HTTP; the QML plasmoid renders it.
+
+```bash
+bash kde/Scripts/install-kde.sh     # builds the helper, installs systemd unit + plasmoid
+```
+
+Full details, helper HTTP API, and testing gates: **[kde/README-KDE.md](kde/README-KDE.md)**.
+
+### Feature highlights
+
+- **Dashboard popup** — four swipeable pages (Overview · Activity · Models · Health), 24 cards, arrangement mode, per-page themes, filter bars, and a plain-flickable scroller with no visible scrollbars.
+- **Three style modes** — Apple *Liquid Glass* (per-page planet themes), *Plasma Style* (colors follow your system color scheme), or a *Custom Accent* (10 presets + system color picker), switchable in the Appearance popover and the settings dialog.
+- **Percentage ring styles** — gradient (glow + sparkles), solid, dual, segments, and dial ticks, with a thickness slider (3–12px) and sparkles toggle; shared by the dashboard's hero wheel and the panel gauge.
+- **Live model catalog** — the picker is driven by the account's `model/list` (curated family buttons, per-family variant chips, each model's own reasoning ladder from low to ultra) plus a **Fast mode** toggle that writes `service_tier = "fast"` — the same thing the Codex CLI's `/fast` does. Everything lands in `~/.codex/config.toml` with a root-section-only upsert.
+- **Keyboard control** — `←/→` or `1–4` switch pages, `↑/↓` scroll, `R` refresh, `A` opens Appearance, `E` arranges cards, `Esc` closes.
+- **Panel widget** — gauge / bar / percent styles, rotating card deck, LIVE/STALE badge, hover pause.
+- **KDE extras** — reset-credit chip, plan type, `codex://threads/<id>` deep links, Markdown chat transcripts opened in your viewer, and a Prometheus `/metrics` endpoint.
+
 **Latest release:** [6.0.4](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.4) — restores live account refresh after the ChatGPT/Codex macOS app update and keeps local Window/Today token totals independent from account quota snapshots.
 
 **Previous 5.x release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.

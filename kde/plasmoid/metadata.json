@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "appleforever11",
+                "Email": ""
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Codex usage ring, quota, credits, live burn, sessions, and new-chat model defaults — KDE port of the DockDoor widget with a Rust backend",
+        "Icon": "view-statistics",
+        "Id": "io.github.appleforever11.codex-usage",
+        "License": "MIT",
+        "Name": "Codex Usage",
+        "ServiceTypes": [],
+        "Version": "6.1.0",
+        "Website": "https://github.com/appleforever11/codex-usage-dockdoor-widget"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": [
+        "usage-monitor"
+    ]
+}

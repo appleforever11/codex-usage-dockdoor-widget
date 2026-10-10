@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0">
+  <kcfgfile name=""/>
+  <group name="General">
+    <!-- Helper connection -->
+    <entry name="helperPort" type="Int">
+      <default>47631</default>
+    </entry>
+    <entry name="pollIntervalMs" type="Int">
+      <default>5000</default>
+    </entry>
+    <entry name="helperRefreshSeconds" type="Int">
+      <default>60</default>
+    </entry>
+    <!-- Data sources (mirrored into the helper's settings) -->
+    <entry name="sessionsFolder" type="String">
+      <default>~/.codex/sessions</default>
+    </entry>
+    <entry name="usageStatePath" type="String">
+      <default>~/.codex/usage.json</default>
+    </entry>
+    <entry name="recentSessionCount" type="Int">
+      <default>5</default>
+    </entry>
+    <entry name="usageBudgetMillions" type="Int">
+      <default>200</default>
+    </entry>
+    <entry name="usageWindowHours" type="Int">
+      <default>5</default>
+    </entry>
+    <entry name="dailyGoalMillions" type="Double">
+      <default>2</default>
+    </entry>
+    <!-- Shell template opening a chat transcript; {file} = transcript path -->
+    <entry name="chatViewerCommand" type="String">
+      <default>xdg-open {file}</default>
+    </entry>
+    <!-- Compact dock widget -->
+    <entry name="compactStyle" type="String">
+      <default>gauge</default>
+    </entry>
+    <!-- Length (px) of the panel widget along the panel (bar & full styles) -->
+    <entry name="panelWidgetLength" type="Int">
+      <default>110</default>
+    </entry>
+    <!-- "Codex" caption under the percent style -->
+    <entry name="panelShowCodexLabel" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="modelTheme" type="String">
+      <default>Astra</default>
+    </entry>
+    <!-- Widget style mode: apple (liquid glass, per-page themes), plasma
+         (follows the system color scheme), custom (one accent everywhere) -->
+    <entry name="themeMode" type="String">
+      <default>apple</default>
+    </entry>
+    <entry name="customAccentColor" type="String">
+      <default>#9C6CE8</default>
+    </entry>
+    <entry name="showDataStatus" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="showTokenTelemetry" type="Bool">
+      <default>true</default>
+    </entry>
+    <!-- Dashboard visual tuning -->
+    <entry name="uiFontFamily" type="String">
+      <default></default>
+    </entry>
+    <entry name="pageThemeOverview" type="String">
+      <default>Astra</default>
+    </entry>
+    <entry name="pageThemeActivity" type="String">
+      <default>Luna</default>
+    </entry>
+    <entry name="pageThemeModels" type="String">
+      <default>Terra</default>
+    </entry>
+    <entry name="pageThemeHealth" type="String">
+      <default>Sol</default>
+    </entry>
+    <entry name="cardDensity" type="String">
+      <default>standard</default>
+    </entry>
+    <entry name="sparkleIntensity" type="Double">
+      <default>1</default>
+    </entry>
+    <entry name="glowIntensity" type="Double">
+      <default>1</default>
+    </entry>
+    <entry name="animationsEnabled" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="highContrast" type="Bool">
+      <default>false</default>
+    </entry>
+    <entry name="backgroundOpacity" type="Double">
+      <default>0.75</default>
+    </entry>
+    <entry name="frostedGlass" type="Bool">
+      <default>true</default>
+    </entry>
+    <!-- Percentage ring styling (dashboard hero + panel gauge) -->
+    <entry name="ringStyle" type="String">
+      <default>gradient</default>
+    </entry>
+    <entry name="ringThickness" type="Int">
+      <default>7</default>
+    </entry>
+    <entry name="ringSparkles" type="Bool">
+      <default>true</default>
+    </entry>
+    <!-- Persisted card arrangement: {"overview":[...],"activity":[...]} -->
+    <entry name="cardLayout" type="String">
+      <default></default>
+    </entry>
+  </group>
+</kcfg>
