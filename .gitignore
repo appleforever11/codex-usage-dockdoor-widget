@@ -8,3 +8,7 @@ DerivedData/
 Dist/
 *.xcuserstate
 *.swp
+
+# KDE port build output + local workspace state
+kde/helper/target/
+.zcode/
