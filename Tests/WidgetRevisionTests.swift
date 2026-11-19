@@ -56,9 +56,9 @@ enum WidgetRevisionTests {
 
     private static func verifyGPT6Models() {
         precondition(CodexModelSettings.default.model == "gpt-6-luna")
-        precondition(CodexModelIdentity.selectableModels == ["gpt-6-luna", "gpt-6-sol", "gpt-5.6-terra", "gpt-6-astra"])
+        precondition(CodexModelIdentity.selectableModels == ["gpt-6-luna", "gpt-6-sol", "gpt-5.6-terra", "gpt-6-astra", "gpt-6.2-sol", "gpt-6.2-astra"])
         let source = "model = \"gpt-5.6-luna\"\nmodel_reasoning_effort = \"medium\"\n[profiles.work]\nmodel = \"gpt-5.6-sol\"\n"
-        for (model, label) in [("gpt-6-luna", "Luna-6"), ("gpt-6-sol", "Sol-6")] {
+        for (model, label) in [("gpt-6-luna", "Luna-6"), ("gpt-6-sol", "Sol-6"), ("gpt-6.2-sol", "Sol-6.2"), ("gpt-6.2-astra", "Astra-6.2")] {
             let output = CodexConfigStore.replacingDefaults(in: source, model: model, reasoningEffort: "max")
             precondition(CodexConfigStore.tomlStringValue(for: "model", in: output) == model)
             precondition(output.hasSuffix("[profiles.work]\nmodel = \"gpt-5.6-sol\"\n"))

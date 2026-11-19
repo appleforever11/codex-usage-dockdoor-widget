@@ -920,7 +920,10 @@ enum CodexV6WorkspaceHealthReader {
     }
 
     private static func gitStatus(at url: URL) -> (branch: String?, dirtyFileCount: Int)? {
-        let output = Pipe()
+        let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("codex-git-health-\(UUID().uuidString)")
+        guard FileManager.default.createFile(atPath: temporary.path, contents: nil),
+              let output = try? FileHandle(forWritingTo: temporary) else { return nil }
+        defer { try? output.close(); try? FileManager.default.removeItem(at: temporary) }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
         process.arguments = [
@@ -932,11 +935,26 @@ enum CodexV6WorkspaceHealthReader {
         ]
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
+        var environment = ProcessInfo.processInfo.environment
+        environment["GIT_OPTIONAL_LOCKS"] = "0"
+        environment["GIT_TERMINAL_PROMPT"] = "0"
+        process.environment = environment
 
         do {
             try process.run()
-            let data = output.fileHandleForReading.readDataToEndOfFile()
-            process.waitUntilExit()
+            let deadline = Date().addingTimeInterval(0.75)
+            while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.02) }
+            guard !process.isRunning else {
+                process.terminate()
+                // Git status is optional. Never wait for a slow provider or repository.
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
+                    if process.isRunning { kill(process.processIdentifier, SIGKILL) }
+                }
+                return nil
+            }
+            guard let reader = try? FileHandle(forReadingFrom: temporary) else { return nil }
+            defer { try? reader.close() }
+            let data = (try? reader.read(upToCount: 256 * 1024)) ?? Data()
             guard process.terminationStatus == 0,
                   let text = String(data: data, encoding: .utf8)
             else { return nil }

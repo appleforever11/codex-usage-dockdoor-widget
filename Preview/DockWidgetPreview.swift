@@ -1,14 +1,14 @@
 import AppKit
 import SwiftUI
 
-private func dockPreviewSnapshot() -> CodexSnapshot {
+private func dockPreviewSnapshot(model: String = CodexModelIdentity.astra62) -> CodexSnapshot {
     var snapshot = CodexSnapshot.empty
     snapshot.projectCount = 5
     snapshot.activeCount = 3
     snapshot.chatCount = 403
     snapshot.taskCount = 3
     snapshot.headline = "5 projects active"
-    snapshot.modelSettings = CodexModelSettings(model: CodexModelSettings.astraModel, reasoningEffort: "max")
+    snapshot.modelSettings = CodexModelSettings(model: model, reasoningEffort: "max")
     snapshot.usage = CodexUsageSnapshot(
         percentRemaining: 0.91,
         primaryTitle: "91% Left",
@@ -37,7 +37,7 @@ private func dockPreviewSnapshot() -> CodexSnapshot {
 
 private struct DockPreviewGallery: View {
     private let snapshot = dockPreviewSnapshot()
-    private let horizontalSize = CGSize(width: 216, height: 58)
+    private let horizontalSize = CGSize(width: 165, height: 58)
     private let verticalSize = CGSize(width: 64, height: 174)
 
     var body: some View {
@@ -49,11 +49,11 @@ private struct DockPreviewGallery: View {
             )
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("DOCK PREVIEW · CODEX USAGE 6.0")
+                    Text("DOCK PREVIEW · CODEX USAGE 7.0")
                         .font(.system(size: 11, weight: .bold, design: .rounded))
                         .tracking(1.4)
                         .foregroundStyle(.white.opacity(0.72))
-                    Text("The extended slot now carries the same living theme language as the v6 dashboard.")
+                    Text("Sol and Astra 6.2 · sample allowance of 91%")
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                         .foregroundStyle(.white.opacity(0.48))
                 }
@@ -65,7 +65,7 @@ private struct DockPreviewGallery: View {
                         .foregroundStyle(.white.opacity(0.46))
                     HStack(spacing: 10) {
                         ForEach(CodexTheme.allCases) { theme in
-                            CodexTrackerCompactView(size: horizontalSize, isVertical: false, previewSnapshot: snapshot, previewTheme: theme)
+                            CodexTrackerCompactView(size: horizontalSize, isVertical: false, previewSnapshot: theme == .sol ? dockPreviewSnapshot(model: CodexModelIdentity.sol62) : snapshot, previewTheme: theme)
                                 .environment(\.colorScheme, .dark)
                                 .environment(\.codexVisualTuning, .standard)
                                 .frame(width: horizontalSize.width, height: horizontalSize.height)
@@ -79,9 +79,9 @@ private struct DockPreviewGallery: View {
                         .tracking(1.1)
                         .foregroundStyle(.white.opacity(0.46))
                     HStack(alignment: .top, spacing: 16) {
-                        CodexTrackerCompactView(size: CGSize(width: 66, height: 66), isVertical: false, previewSnapshot: snapshot, previewTheme: .astra)
+                        CodexTrackerCompactView(size: CGSize(width: 48, height: 48), isVertical: false, previewSnapshot: snapshot, previewTheme: .astra)
                             .environment(\.colorScheme, .dark)
-                            .frame(width: 66, height: 66)
+                            .frame(width: 48, height: 48)
                         CodexTrackerCompactView(size: verticalSize, isVertical: true, previewSnapshot: snapshot, previewTheme: .astra)
                             .environment(\.colorScheme, .dark)
                             .frame(width: verticalSize.width, height: verticalSize.height)
@@ -111,7 +111,7 @@ private final class DockWidgetPreviewApp: NSObject, NSApplicationDelegate {
         let host = NSHostingView(rootView: DockPreviewGallery())
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 350),
                           styleMask: [.titled, .closable], backing: .buffered, defer: false)
-        window.title = "Codex Usage 6.0 · Dock Widget Preview"
+        window.title = "Codex Usage 7.0 · Dock Widget Preview"
         window.contentView = host
         window.center()
         window.makeKeyAndOrderFront(nil)

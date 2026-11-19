@@ -28,6 +28,8 @@ struct ModelControlSection: View {
     }
 
     private let models: [CodexModelOption] = [
+        CodexModelOption(identity: .sol, value: CodexModelIdentity.sol62),
+        CodexModelOption(identity: .astra, value: CodexModelIdentity.astra62),
         CodexModelOption(identity: .luna, value: CodexModelIdentity.lunaModel),
         CodexModelOption(identity: .sol, value: CodexModelIdentity.solModel),
         CodexModelOption(identity: .terra, value: CodexModelIdentity.terraModel),
@@ -68,20 +70,9 @@ struct ModelControlSection: View {
                 .padding(.bottom, isEmbedded ? 2 : 0)
             }
 
-            if isEmbedded {
-                HStack(spacing: 6) {
-                    ForEach(models, id: \.value) { option in
-                        modelButton(for: option)
-                    }
-                }
-            } else {
-                LazyVGrid(
-                    columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2),
-                    spacing: 8
-                ) {
-                    ForEach(models, id: \.value) { option in
-                        modelButton(for: option)
-                    }
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: isEmbedded ? 3 : 2), spacing: 6) {
+                ForEach(models, id: \.value) { option in
+                    modelButton(for: option)
                 }
             }
 
@@ -152,7 +143,8 @@ struct ModelControlSection: View {
             isSelected: settings.model == option.value,
             hapticsEnabled: hapticsEnabled,
             height: isEmbedded ? 52 : 62,
-            compact: isEmbedded
+            compact: isEmbedded,
+            label: CodexModelIdentity.label(option.value)
         ) {
             if onChange(option.value, settings.reasoningEffort) {
                 CodexHaptics.performModelSelectionIfEnabled(hapticsEnabled)

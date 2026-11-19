@@ -3,6 +3,25 @@ import Foundation
 @main
 enum CodexV6Tests {
     static func main() {
+        // An optional Git health scan must not stall the usage dashboard.
+        let slowRepo = FileManager.default.temporaryDirectory.appendingPathComponent("tracker-slow-git-\(UUID().uuidString)")
+        try! FileManager.default.createDirectory(at: slowRepo, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: slowRepo) }
+        func git(_ args: [String]) {
+            let process = Process(); process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+            process.arguments = ["-C", slowRepo.path] + args
+            process.standardOutput = FileHandle.nullDevice; process.standardError = FileHandle.nullDevice
+            try! process.run(); process.waitUntilExit(); precondition(process.terminationStatus == 0)
+        }
+        git(["init"])
+        let hook = slowRepo.appendingPathComponent("slow-monitor")
+        try! "#!/bin/sh\nsleep 5\nprintf 'token\\0'\n".write(to: hook, atomically: true, encoding: .utf8)
+        try! FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: hook.path)
+        git(["config", "core.fsmonitor", hook.path])
+        let began = Date()
+        let health = CodexV6WorkspaceHealthReader.read(sessions: [CodexSession(id: "slow", url: hook, projectName: "Fixture", projectURL: slowRepo, modified: began, title: nil, isActive: true)])
+        precondition(Date().timeIntervalSince(began) < 2, "Slow Git must time out without blocking the dashboard")
+        precondition(health.repositoryCount == 0, "A timed-out repository is not a clean repository")
         let normalized = CodexV6CardOrderStore.normalized([.burn, .burn, .cost, .quota], for: .overview)
         precondition(normalized == [.burn, .quota, .modelControls, .quotaBudget, .sessionPulse, .pace, .context, .contextRunway])
         precondition(CodexV6Page.allCases.flatMap(\.defaultCards).count == 24)

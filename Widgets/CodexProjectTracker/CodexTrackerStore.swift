@@ -3,17 +3,23 @@ import DockDoorWidgetSDK
 import Foundation
 import SwiftUI
 
-actor CodexSnapshotBuildCache {
+private actor CodexSnapshotBuildCache {
     private var signature: String?
     private var snapshot: CodexSnapshot?
+    private var checked: ContinuousClock.Instant?
 
-    func cachedSnapshot(for signature: String) -> CodexSnapshot? {
-        self.signature == signature ? snapshot : nil
-    }
-
-    func store(_ snapshot: CodexSnapshot, for signature: String) {
-        self.signature = signature
-        self.snapshot = snapshot
+    func read(force: Bool, inputs: () -> ([CodexSessionFile], String),
+              build: ([CodexSessionFile]) -> CodexSnapshot) -> CodexSnapshot {
+        if !force, let checked, checked.duration(to: .now) < .seconds(2), let snapshot {
+            return snapshot
+        }
+        let (files, key) = inputs()
+        if force || signature != key || snapshot == nil {
+            snapshot = build(files)
+            signature = key
+        }
+        checked = .now
+        return snapshot ?? .empty
     }
 }
 
@@ -29,24 +35,16 @@ enum CodexTrackerStore {
     private static let snapshotCache = CodexSnapshotBuildCache()
 
     static func snapshot(forceRefresh: Bool = false) async -> CodexSnapshot {
-        let signature = await Task.detached(priority: .utility) { inputSignature() }.value
-        if !forceRefresh {
-            if let cached = await snapshotCache.cachedSnapshot(for: signature) {
-                return cached
-            }
+        await snapshotCache.read(force: forceRefresh) {
+            let root = configuredProjectsRoot()
+            let files = sessionFiles(in: root)
+            return (files, inputSignature(sessionsRoot: root, files: files))
+        } build: { files in
+            buildSnapshot(sessionFiles: files)
         }
-
-        let refreshed = await Task.detached(priority: .utility) {
-            buildSnapshot()
-        }.value
-
-        await snapshotCache.store(refreshed, for: signature)
-        return refreshed
     }
 
-    private static func inputSignature() -> String {
-        let sessionsRoot = configuredProjectsRoot()
-        let files = sessionFiles(in: sessionsRoot)
+    private static func inputSignature(sessionsRoot: URL, files: [CodexSessionFile]) -> String {
         let sessionStamp = files.prefix(maxIndexedSessions)
             .map { "\($0.url.path):\($0.modified.timeIntervalSince1970)" }
             .joined(separator: "|")
@@ -75,9 +73,7 @@ enum CodexTrackerStore {
         return "\(modified):\(size)"
     }
 
-    private static func buildSnapshot() -> CodexSnapshot {
-        let sessionsRoot = configuredProjectsRoot()
-        let sessionFiles = sessionFiles(in: sessionsRoot)
+    private static func buildSnapshot(sessionFiles: [CodexSessionFile]) -> CodexSnapshot {
         let records = sessionFiles.prefix(maxIndexedSessions).compactMap { file -> CodexSessionRecord? in
             guard let metadata = sessionMetadata(from: file.url) else { return nil }
             return CodexSessionRecord(file: file, metadata: metadata)

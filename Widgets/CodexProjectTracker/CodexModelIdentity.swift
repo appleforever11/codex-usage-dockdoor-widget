@@ -6,15 +6,17 @@ enum CodexModelIdentity {
     static let solModel = "gpt-6-sol"
     static let terraModel = "gpt-5.6-terra"
     static let astraModel = "gpt-6-astra"
-    static let selectableModels = [lunaModel, solModel, terraModel, astraModel]
+    static let sol62 = "gpt-6.2-sol"
+    static let astra62 = "gpt-6.2-astra"
+    static let selectableModels = [lunaModel, solModel, terraModel, astraModel, sol62, astra62]
 
     static func label(_ model: String?, unknown: String = "Unknown model") -> String {
         guard let model, !model.isEmpty, model.lowercased() != "unknown" else { return unknown }
         let value = model.lowercased()
-        if value.contains("astra") { return "Astra" }
+        if value.contains("astra") && !value.hasPrefix("gpt-6.2-") { return "Astra" }
         if value.contains("spark") { return "Spark" }
         if value.contains("terra") { return "Terra" }
-        for family in ["luna", "sol"] where value.contains(family) {
+        for family in ["luna", "sol", "astra"] where value.contains(family) {
             let name = family.capitalized
             // Historical records keep their actual generation; reading them never
             // changes a default or presents GPT-5.6 activity as GPT-6 activity.

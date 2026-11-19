@@ -133,7 +133,7 @@ fi
 /usr/bin/ditto "$installer_app" "$stage_dir/Install Codex Usage.app"
 /bin/cp "$root_dir/Installer/README - Mac mini.txt" "$stage_dir/"
 /bin/cp "$root_dir/VERSION" "$stage_dir/"
-/bin/cp "$root_dir/screenshots/codex-astra-theme.png" "$stage_dir/Codex Usage Preview.png"
+/bin/cp "$root_dir/screenshots/dock-7.png" "$stage_dir/Codex Usage Preview.png"
 /usr/bin/xattr -cr "$stage_dir" 2>/dev/null || true
 
 if [[ -n "${CODEX_SIGNING_IDENTITY:-}" ]]; then

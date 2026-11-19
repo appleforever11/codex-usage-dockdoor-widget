@@ -123,6 +123,9 @@ struct CodexV6QuotaCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            Label("Codex", systemImage: "terminal.fill")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(theme.accent)
             HStack(spacing: 5) {
                 Circle()
                     .fill(usage.isStale ? theme.dataColor(1) : theme.dataColor(2))
@@ -156,6 +159,12 @@ struct CodexV6QuotaCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(theme.accent.opacity(0.065), in: RoundedRectangle(cornerRadius: 14))
             .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(theme.accent.opacity(0.18), lineWidth: 0.8))
+
+            ClaudeUsageSection(now: now)
+
+            Text("Codex activity & limits")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(theme.accent)
 
             HStack(spacing: 7) {
                 CodexV6Metric(value: usage.windowUsedLabel, label: "Window", tint: theme.dataColor(0), treatment: .soft)
@@ -204,8 +213,8 @@ struct CodexV6QuotaCard: View {
                 .padding(.top, 2)
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityValue("\(Int((usage.percentRemaining * 100).rounded())) percent remaining, \(usage.resetSummary(now: now))")
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Separate Codex and Claude allowances; Codex activity and limits")
     }
 }
 
@@ -661,7 +670,7 @@ enum CodexV6MetricTreatment: Equatable {
     case outlined
 }
 
-private struct CodexV6ProgressRing: View {
+struct CodexV6ProgressRing: View {
     let value: Double
     let theme: CodexTheme
     let size: CGFloat

@@ -1,0 +1,9 @@
+# Claude usage in the private tracker
+
+The usage quota card contains a labeled Codex allowance followed by a separate Claude section. Both use the active widget theme and ring renderer. Local token analytics, tasks, chats, prepaid credits, and model controls belong to Codex. The extended model dock layout adds labeled Codex and Claude weekly percentages; it preserves the existing compact ring and model/percentage layout preferences.
+
+Claude reads the latest timestamped sample from the version 2 `plan-usage-history.json` feed written by Claude Desktop in its Application Support directory. `fh` and `sd` are percent used; the widget converts them to fractions remaining. It reads at most 1 MiB, retains no account identifiers, accesses no credentials, and makes no network requests. The usage section refreshes every 15 seconds; the dock refreshes with the existing five-second snapshot loop. An absent allowance is unavailable, never zero. Samples older than 15 minutes or more than one minute in the future are stale. Desktop updates may change this local file format; unsupported formats show unavailable. This feed provides no reset times.
+
+Run `bash Scripts/test-claude-usage.sh` for parsing/freshness coverage and `bash Scripts/build-widgets.sh Widgets/CodexProjectTracker` to build the universal plugin. `bash Scripts/inspect-installed-widget.sh` opens an inspection app that dynamically loads the actual installed plugin and renders its live dock body and panel. It copies widget preferences into a volatile domain for inspection without changing host preferences.
+
+The November 1 local install preserves the existing filename and placement. Its previous bundle is backed up under `~/Library/Application Support/DockDoorPro/WidgetInstallerBackups/claude-integration-20261101/`. Restore that bundle with DockDoor stopped, then relaunch DockDoor to roll back.

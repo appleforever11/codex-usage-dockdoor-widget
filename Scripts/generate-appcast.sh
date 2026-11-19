@@ -30,11 +30,8 @@ ET.SubElement(item, f"{{{namespace}}}version").text = version
 ET.SubElement(item, f"{{{namespace}}}shortVersionString").text = version
 ET.SubElement(item, f"{{{namespace}}}minimumSystemVersion").text = "14.0"
 ET.SubElement(item, "description").text = (
-    f"Codex Usage {version} unifies panel and dock appearance, preserving the private Golden Gate theme. "
-    "Adds dock layouts, ring metrics, glass controls, card visibility, a quiet preset, and optional in-widget allowance alerts. "
-    "Includes connection recovery actions, build identification, and a clearly labeled local-token trend. "
-    "Task completion is unavailable from local snapshots; Dot integration is excluded. "
-    "Marketplace updates remain managed separately by DockDoor Pro."
+    f"Codex Usage {version} adds Sol 6.2 and Astra 6.2 to new-chat defaults, "
+    "restores the translucent Dock appearance, and shares session scans between the Dock and dashboard."
 )
 ET.SubElement(item, "enclosure", {
     "url": f"https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/download/v{version}/CodexUsage-v{version}.zip",

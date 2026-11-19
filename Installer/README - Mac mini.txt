@@ -1,4 +1,4 @@
-CODEX USAGE FOR DOCKDOOR PRO v5.0.1
+CODEX USAGE FOR DOCKDOOR PRO
 ====================================
 
 ONE UNIVERSAL INSTALLER FOR ALL THREE MACS
@@ -13,7 +13,7 @@ QUICK INSTALL
 5. Hover over Codex Usage in the DockDoor Pro dock after the installer finishes.
 
 The app-based installer does not open Terminal, does not require an administrator
-password, and is signed and notarized for Gatekeeper-friendly installation. It will:
+password, and is signed with Developer ID. The installer will:
 
 - Back up an existing Codex widget instead of deleting it.
 - Install the universal Apple Silicon and Intel widget bundle.

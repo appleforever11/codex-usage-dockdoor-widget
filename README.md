@@ -26,7 +26,9 @@ Full details, helper HTTP API, and testing gates: **[kde/README-KDE.md](kde/READ
 - **Panel widget** — gauge / bar / percent styles, rotating card deck, LIVE/STALE badge, hover pause.
 - **KDE extras** — reset-credit chip, plan type, `codex://threads/<id>` deep links, Markdown chat transcripts opened in your viewer, and a Prometheus `/metrics` endpoint.
 
-**Latest release:** [6.0.4](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v6.0.4) — restores live account refresh after the ChatGPT/Codex macOS app update and keeps local Window/Today token totals independent from account quota snapshots.
+**Latest personal release:** [7.0.1](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v7.0.1) adds Sol 6.2 and Astra 6.2, shares session scans between views, and draws model labels and the usage ring directly on the translucent DockDoor shelf.
+
+<img src="screenshots/dock-7.png" width="980" alt="Personal Dock widget with Astra 6.2 and Sol 6.2">
 
 **Previous 5.x release:** [5.0.5](https://github.com/appleforever11/codex-usage-dockdoor-widget/releases/tag/v5.0.5) — fixes current-session model/reasoning attribution in local token activity.
 

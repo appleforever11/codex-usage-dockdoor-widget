@@ -10,6 +10,7 @@ struct CodexTrackerCompactView: View {
     private let previewTheme: CodexTheme?
     @State private var snapshot = CodexSnapshot.empty
     @State private var now = Date()
+    @State private var claudeUsage = ClaudeUsageSnapshot.unavailable
     @AppStorage(CodexTheme.storageKey) private var themeName = CodexTheme.astra.rawValue
     @AppStorage("widget.codex-project-tracker.dockLayout") private var dockLayout = CodexDockLayout.model.rawValue
     @AppStorage("widget.codex-project-tracker.ringMetric") private var ringMetric = CodexRingMetric.allowance.rawValue
@@ -39,11 +40,11 @@ struct CodexTrackerCompactView: View {
 
     private var dim: CGFloat { min(size.width, size.height) }
     private var gaugeSize: CGFloat {
-        min(dim * (isExtended ? 0.76 : 0.70), isExtended ? 42 : 38)
+        min(dim * (isExtended ? 0.65 : 0.54), isExtended ? 42 : 38)
     }
     private var horizontalGaugeOutset: CGFloat { max(3, min(dim * 0.08, 5)) }
-    private var compactTitleSize: CGFloat { max(9, min(dim * 0.22, 12)) }
-    private var titleSize: CGFloat { isVertical ? max(10, min(dim * 0.22, 14)) : max(11, min(dim * 0.24, 14)) }
+    private var compactTitleSize: CGFloat { max(7, min(dim * 0.16, 10)) }
+    private var titleSize: CGFloat { isVertical ? max(8, min(dim * 0.15, 11)) : max(11, min(dim * 0.24, 14)) }
     private var subtitleSize: CGFloat { isVertical ? max(8, min(dim * 0.16, 10)) : max(8.5, min(dim * 0.16, 9.5)) }
     private var isExtended: Bool {
         isVertical ? size.height > size.width * 1.5 : size.width > size.height * 1.5
@@ -52,14 +53,16 @@ struct CodexTrackerCompactView: View {
         isExtended ? max(4, min(dim * 0.10, 7)) : max(2, min(dim * 0.07, 4))
     }
     private var dockModelName: String {
-        // Gallery previews represent the theme being previewed; live widgets
-        // represent the model currently selected in Codex.
-        previewTheme?.displayName ?? snapshot.modelSettings.shortModelName
+        snapshot.modelSettings.shortModelName
     }
     private var dockReasoningLabel: String {
         snapshot.modelSettings.reasoningLabel
     }
     private var dockSecondaryLabel: String {
+        if let remaining = claudeUsage.weeklyRemaining {
+            let claudeLabel = claudeUsage.isStale(at: now) ? "Claude stale" : "Claude"
+            return "Codex \(Int((snapshot.usage.percentRemaining * 100).rounded()))% · \(claudeLabel) \(Int((remaining * 100).rounded()))%"
+        }
         if card.kind == CodexCardKind.model.rawValue {
             return dockReasoningLabel
         }
@@ -90,7 +93,14 @@ struct CodexTrackerCompactView: View {
                 isHovering = hovering
             }
             .task { await refreshLoop() }
-            .task { await clockLoop() }
+            .task(id: rotationInterval) {
+                guard !isPreview else { return }
+                while !Task.isCancelled {
+                    now = Date()
+                    try? await Task.sleep(for: .seconds(max(1, rotationInterval)))
+                }
+            }
+
     }
 
     @ViewBuilder private var layoutContent: some View {
@@ -117,8 +127,9 @@ struct CodexTrackerCompactView: View {
         .padding(contentPadding)
         .shadow(color: .black.opacity(0.74), radius: 2.2, y: 1)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Codex Usage 6.0 " + card.shortLabel + " card")
+        .accessibilityLabel("Codex Usage 7.0 " + card.shortLabel + " card")
         .accessibilityValue(card.title + ". " + card.subtitle)
+        .help("Codex account allowance and Claude weekly allowance are separate. " + dockSecondaryLabel)
     }
 
     @MainActor private func refreshLoop() async {
@@ -127,19 +138,13 @@ struct CodexTrackerCompactView: View {
             while !Task.isCancelled {
                 let refreshed = await CodexTrackerStore.snapshot()
                 snapshot = refreshed
+                claudeUsage = await Task.detached(priority: .utility) { ClaudeUsageSnapshot.read() }.value
                 CodexSnapshotCache.latest = refreshed
                 primaryCard = CodexWidgetPreferences.primaryCard
                 rotationInterval = CodexWidgetPreferences.rotationInterval
                 pauseRotationOnHover = CodexWidgetPreferences.pauseRotationOnHover
                 showDataStatus = CodexWidgetPreferences.showDataStatus
                 try? await Task.sleep(for: .seconds(5))
-            }
-    }
-
-    @MainActor private func clockLoop() async {
-            while !Task.isCancelled {
-                now = Date()
-                try? await Task.sleep(for: .seconds(4))
             }
     }
 
